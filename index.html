@@ -224,21 +224,17 @@
 
   </main>
 
-  <!-- JavaScript Logic -->
+   <!-- JavaScript Logic -->
   <script>
     // =========================================================
-    // ⚙️ 1. ตั้งค่าการเชื่อมต่อ (ให้เปลี่ยนเป็นค่าของคุณตรงนี้)
+    // ⚙️ 1. ตั้งค่าการเชื่อมต่อ (แก้ไข URL ให้ถูกต้องเรียบร้อยแล้ว)
     // =========================================================
-    const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co/rest/v1/';
+    const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
     const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
 
-    // ตรวจสอบ Config
-    if (SUPABASE_URL.includes('YOUR_') || GOOGLE_CHAT_WEBHOOK_URL.includes('YOUR_')) {
-      document.getElementById('config-warning').classList.remove('hidden');
-    }
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // สร้าง Client สำหรับเชื่อมต่อ Supabase
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let allEquipment = [];
     let html5QrcodeScanner = null;
 
@@ -272,12 +268,16 @@
     // 📦 3. Equipment Fetching & Preview
     // =========================================================
     async function fetchAllEquipment() {
-      const { data, error } = await supabase.from('equipment').select('*').order('asset_label');
-      if (error) { console.error('Error:', error); return; }
-      
-      allEquipment = data;
-      renderEquipmentDropdown();
-      renderInventoryTable(data);
+      try {
+        const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
+        if (error) { console.error('Error fetching equipment:', error); return; }
+        
+        allEquipment = data || [];
+        renderEquipmentDropdown();
+        renderInventoryTable(allEquipment);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      }
     }
 
     function renderEquipmentDropdown() {
@@ -289,7 +289,7 @@
       availableItems.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item.id;
-        opt.textContent = `[${item.asset_label}] ${item.name} ${item.brand} ${item.model}`;
+        opt.textContent = `[${item.asset_label}] ${item.name} ${item.brand || ''} ${item.model || ''}`;
         select.appendChild(opt);
       });
 
@@ -301,10 +301,10 @@
       const preview = document.getElementById('equipment-preview');
       if (!item) { preview.classList.add('hidden'); return; }
 
-      document.getElementById('prev-name').textContent = `${item.name} ${item.brand} ${item.model}`;
+      document.getElementById('prev-name').textContent = `${item.name} ${item.brand || ''} ${item.model || ''}`;
       document.getElementById('prev-label').textContent = item.asset_label;
       document.getElementById('prev-serial').textContent = item.serial_number || '-';
-      document.getElementById('prev-location').textContent = item.location;
+      document.getElementById('prev-location').textContent = item.location || '-';
       preview.classList.remove('hidden');
     }
 
@@ -317,7 +317,6 @@
         readerDiv.classList.remove('hidden');
         html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
         html5QrcodeScanner.render((decodedText) => {
-          // ค้นหาจาก Label
           const matchedItem = allEquipment.find(i => i.asset_label.toLowerCase() === decodedText.toLowerCase());
           if (matchedItem) {
             document.getElementById('borrow-asset-select').value = matchedItem.id;
@@ -350,7 +349,7 @@
       const item = allEquipment.find(i => i.id == equipmentId);
 
       // 1. บันทึกลง borrow_records
-      const { error: insertErr } = await supabase.from('borrow_records').insert([{
+      const { error: insertErr } = await _supabase.from('borrow_records').insert([{
         equipment_id: equipmentId,
         borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`,
         expected_return_date: returnDate,
@@ -360,14 +359,14 @@
       if (insertErr) { alert(' เกิดข้อผิดพลาด: ' + insertErr.message); return; }
 
       // 2. อัปเดตสถานะอุปกรณ์เป็น BORROWED
-      await supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
+      await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
 
       // 3. ยิงแจ้งเตือนเข้า Google Chat
       sendGoogleChatNotification({
         title: '📦 มีรายการยืมอุปกรณ์ IT ใหม่',
         color: '#4f46e5',
         details: [
-          `<b>อุปกรณ์:</b> ${item.name} (${item.brand} ${item.model})`,
+          `<b>อุปกรณ์:</b> ${item.name} (${item.brand || ''} ${item.model || ''})`,
           `<b>รหัสลาเบล:</b> ${item.asset_label}`,
           `<b>ผู้ยืม:</b> ${borrowerName} ${dept ? '[' + dept + ']' : ''}`,
           `<b>กำหนดส่งคืน:</b> ${returnDate}`,
@@ -383,7 +382,7 @@
     }
 
     async function loadActiveBorrows() {
-      const { data, error } = await supabase
+      const { data, error } = await _supabase
         .from('borrow_records')
         .select('*, equipment(*)')
         .eq('status', 'BORROWED')
@@ -415,13 +414,13 @@
       if (!confirm(`ยืนยันรับคืนอุปกรณ์ ${name} [${label}] ?`)) return;
 
       // 1. อัปเดต record
-      await supabase.from('borrow_records').update({
+      await _supabase.from('borrow_records').update({
         status: 'RETURNED',
         actual_return_date: new Date().toISOString()
       }).eq('id', recordId);
 
       // 2. อัปเดตอุปกรณ์เป็น AVAILABLE
-      await supabase.from('equipment').update({ status: 'AVAILABLE' }).eq('id', equipmentId);
+      await _supabase.from('equipment').update({ status: 'AVAILABLE' }).eq('id', equipmentId);
 
       // 3. แจ้งเตือน Google Chat
       sendGoogleChatNotification({
@@ -450,7 +449,7 @@
       const organizer = document.getElementById('event-organizer').value;
       const details = document.getElementById('event-details').value;
 
-      const { error } = await supabase.from('event_queue').insert([{
+      const { error } = await _supabase.from('event_queue').insert([{
         event_title: title,
         location: location,
         event_date: dateVal,
@@ -478,7 +477,7 @@
     }
 
     async function loadEvents() {
-      const { data, error } = await supabase
+      const { data, error } = await _supabase
         .from('event_queue')
         .select('*')
         .order('event_date', { ascending: true });
@@ -506,13 +505,17 @@
     // =========================================================
     function renderInventoryTable(items) {
       const tbody = document.getElementById('table-inventory');
+      if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">ไม่มีข้อมูลอุปกรณ์</td></tr>';
+        return;
+      }
       tbody.innerHTML = items.map(item => `
         <tr class="hover:bg-slate-50 transition">
           <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
           <td class="p-3 font-medium text-slate-800">${item.name}</td>
-          <td class="p-3">${item.brand} ${item.model}</td>
+          <td class="p-3">${item.brand || ''} ${item.model || ''}</td>
           <td class="p-3 font-mono text-xs">${item.serial_number || '-'}</td>
-          <td class="p-3">${item.location}</td>
+          <td class="p-3">${item.location || '-'}</td>
           <td class="p-3">
             ${item.status === 'AVAILABLE' 
               ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมยืม</span>'
@@ -536,7 +539,7 @@
     // 🔔 8. Send Google Chat Notification (Card V2 Format)
     // =========================================================
     async function sendGoogleChatNotification({ title, color, details }) {
-      if (!GOOGLE_CHAT_WEBHOOK_URL || GOOGLE_CHAT_WEBHOOK_URL.includes('YOUR_')) return;
+      if (!GOOGLE_CHAT_WEBHOOK_URL) return;
 
       const payload = {
         cardsV2: [{
@@ -563,5 +566,3 @@
       }
     }
   </script>
-</body>
-</html>
