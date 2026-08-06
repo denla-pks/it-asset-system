@@ -479,37 +479,41 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // STRICT THAI STANDARD TIME PARSER (Direct String Split)
+    // PERFECT TIME FORMATTER: Formats Date Object or ISO String strictly in Asia/Bangkok 24h format
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
-      let str = String(dateInput);
-      let yearBE, month, day, hour, minute;
-
-      if (str.includes('T')) {
-        const parts = str.split('T');
-        const dateParts = parts[0].split('-');
-        const timeParts = parts[1].substring(0, 5).split(':');
-        
-        yearBE = parseInt(dateParts[0], 10) + 543;
-        month = parseInt(dateParts[1], 10);
-        day = parseInt(dateParts[2], 10);
-        hour = timeParts[0];
-        minute = timeParts[1];
-      } else if (str.includes(' ')) {
-        const parts = str.split(' ');
-        const dateParts = parts[0].split('-');
-        const timeParts = parts[1].substring(0, 5).split(':');
-
-        yearBE = parseInt(dateParts[0], 10) + 543;
-        month = parseInt(dateParts[1], 10);
-        day = parseInt(dateParts[2], 10);
-        hour = timeParts[0];
-        minute = timeParts[1];
-      } else {
-        return str;
+      
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) {
+        // Fallback for raw YYYY-MM-DDTHH:mm input
+        let str = String(dateInput);
+        if (str.includes('T') || str.includes(' ')) {
+          const parts = str.split(/[T ]/);
+          const dateParts = parts[0].split('-');
+          const timeParts = parts[1].substring(0, 5).split(':');
+          return `${parseInt(dateParts[2],10)}/${parseInt(dateParts[1],10)}/${parseInt(dateParts[0],10)+543} ${timeParts[0]}.${timeParts[1]} น.`;
+        }
+        return dateInput;
       }
 
-      return `${day}/${month}/${yearBE} ${hour}.${minute} น.`;
+      // Convert accurately to Bangkok Timezone
+      const thaiDate = new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).format(d);
+
+      return `${thaiDate.replace(':', '.')} น.`;
+    }
+
+    // Converts local HTML input value ("2026-08-06T16:00") to Thailand ISO string ("2026-08-06T16:00:00+07:00")
+    function formatLocalToISO(dateTimeLocalStr) {
+      if (!dateTimeLocalStr) return null;
+      return `${dateTimeLocalStr}:00+07:00`;
     }
 
     async function fetchAllAdmins() {
@@ -666,16 +670,17 @@
 
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
-      const rawStart = startVal.replace('T', ' ');
-      const rawEnd = endVal.replace('T', ' ');
+      // Format ISO string with Thailand timezone offset (+07:00)
+      const isoStart = formatLocalToISO(startVal);
+      const isoEnd = formatLocalToISO(endVal);
 
       const { error } = await _supabase.from('event_queue').insert([{
         department: dept, 
         event_title: title, 
         main_host: mainHost,
         location: location, 
-        start_time: rawStart, 
-        end_time: rawEnd, 
+        start_time: isoStart, 
+        end_time: isoEnd, 
         event_date: startVal.split('T')[0], 
         organizer: tagDisplayStr, 
         details: detailsPayload,
@@ -690,8 +695,8 @@
           `<b>ชื่อกิจกรรม:</b> ${title}`,
           `<b>👤 แม่งานผู้รับผิดชอบหลัก:</b> ${mainHost}`,
           `<b>สถานที่:</b> ${location}`,
-          `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(startVal)}`,
-          `<b>เวลาสิ้นสุด:</b> ${formatThaiDateTime(endVal)}`,
+          `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`,
+          `<b>เวลาสิ้นสุด:</b> ${formatThaiDateTime(isoEnd)}`,
           `<b>🏷️ แท็กทีมงานปฏิบัติงาน:</b> <font color="#ef4444"><b>${chatMentionStr}</b></font>`,
           `<b>📝 หมายเหตุ:</b> ${remarks || '-'}`,
           `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
@@ -867,13 +872,19 @@
       document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
     }
 
-    // STRICT UTC CALENDAR RENDERING FIX (Fixes event time mismatch on Calendar view)
+    // FULLCALENDAR INIT WITH BANGKOK TIMEZONE
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        timeZone: 'UTC',
+        timeZone: 'Asia/Bangkok',
         locale: 'th',
+        eventTimeFormat: {
+          hour: '2-digit',
+          minute: '2-digit',
+          meridiem: false,
+          hour12: false
+        },
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
         events: fetchCalendarEvents,
@@ -886,32 +897,26 @@
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'ALL': '#8b5cf6' };
-      const events = (data || []).map(ev => {
-        // Normalize time strings for FullCalendar ISO Rendering without offset shifts
-        let cleanStart = ev.start_time ? ev.start_time.replace(' ', 'T').substring(0, 16) : ev.event_date;
-        let cleanEnd = ev.end_time ? ev.end_time.replace(' ', 'T').substring(0, 16) : null;
-
-        return {
-          id: ev.id,
-          title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
-          start: cleanStart,
-          end: cleanEnd,
-          backgroundColor: deptColors[ev.department] || '#6366f1',
-          borderColor: deptColors[ev.department] || '#6366f1',
-          extendedProps: { 
-            eventId: ev.id,
-            rawTitle: ev.event_title, 
-            dept: ev.department || 'ALL', 
-            mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
-            location: ev.location, 
-            organizer: ev.organizer, 
-            details: ev.details,
-            remarks: ev.remarks,
-            rawStart: ev.start_time,
-            rawEnd: ev.end_time
-          }
-        };
-      });
+      const events = (data || []).map(ev => ({
+        id: ev.id,
+        title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
+        start: ev.start_time || ev.event_date,
+        end: ev.end_time || null,
+        backgroundColor: deptColors[ev.department] || '#6366f1',
+        borderColor: deptColors[ev.department] || '#6366f1',
+        extendedProps: { 
+          eventId: ev.id,
+          rawTitle: ev.event_title, 
+          dept: ev.department || 'ALL', 
+          mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
+          location: ev.location, 
+          organizer: ev.organizer, 
+          details: ev.details,
+          remarks: ev.remarks,
+          rawStart: ev.start_time,
+          rawEnd: ev.end_time
+        }
+      }));
       successCallback(events);
     }
 
@@ -924,8 +929,8 @@
         mainHost: props.mainHost,
         location: props.location,
         organizer: props.organizer,
-        start: formatThaiDateTime(props.rawStart),
-        end: formatThaiDateTime(props.rawEnd),
+        start: formatThaiDateTime(props.rawStart || eventObj.start),
+        end: formatThaiDateTime(props.rawEnd || eventObj.end),
         details: props.details,
         remarks: props.remarks
       };
