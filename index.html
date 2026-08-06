@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th-TH">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +17,11 @@
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
     
+    /* Force 24-Hour Input Visuals */
+    input[type="datetime-local"]::-webkit-datetime-edit-ampm-field {
+      display: none !important;
+    }
+
     @media print {
       body * { visibility: hidden !important; }
       #printable-area, #printable-area * { visibility: visible !important; }
@@ -178,12 +183,12 @@
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (เช่น 08:00, 13:00)</label>
-                <input type="datetime-local" id="event-start" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (ระบบ 24 ชม. เช่น 08:00, 13:00)</label>
+                <input type="datetime-local" id="event-start" required step="60" class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (เช่น 12:00, 16:30)</label>
-                <input type="datetime-local" id="event-end" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (ระบบ 24 ชม. เช่น 12:00, 16:30)</label>
+                <input type="datetime-local" id="event-end" required step="60" class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
               </div>
             </div>
 
@@ -475,11 +480,10 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // STRICT 24-HOUR THAI TIME FORMATTER (No AM/PM)
+    // STRICT THAI TIME 24-HOUR FORMATTER
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       let str = String(dateInput);
-      
       let yearBE, month, day, hour, minute;
 
       if (str.includes('T')) {
@@ -505,7 +509,7 @@
       return `${day}/${month}/${yearBE} ${hour}.${minute} น.`;
     }
 
-    // Preserve Exact Local Time Representation for DB Storage
+    // Preserve Exact 24h Local Input
     function formatLocalToISO(dateTimeLocalStr) {
       if (!dateTimeLocalStr) return null;
       return `${dateTimeLocalStr}:00+07:00`;
@@ -1073,7 +1077,7 @@
             <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
             <td class="p-3">${brandDisplay} ${item.model || ''}</td>
             <td class="p-3">${item.location || '-'}</td>
-            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
+            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
             <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
               <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
               <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
