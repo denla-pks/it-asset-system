@@ -187,9 +187,23 @@
               </div>
             </div>
 
-            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
-              <label class="block text-xs font-bold text-amber-900 mb-1">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (Tag)</label>
-              <input type="text" id="event-organizer" placeholder="ระบุชื่อ หรืออีเมล เช่น @วิชัย @sarinna@denla.ac.th" class="w-full p-2.5 border border-amber-300 rounded-xl text-sm outline-none bg-white">
+            <!-- INTERACTIVE TAG SELECTOR BY DEPT/INDIVIDUAL -->
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
+              <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
+              
+              <!-- Quick Dept Select Buttons -->
+              <div class="flex flex-wrap gap-1 text-[11px]">
+                <button type="button" onclick="selectAllTags('ALL')" class="bg-slate-800 text-white px-2 py-0.5 rounded-lg hover:bg-slate-900">+ แท็กทุกแผนก</button>
+                <button type="button" onclick="selectAllTags('IT')" class="bg-blue-600 text-white px-2 py-0.5 rounded-lg hover:bg-blue-700">+ แท็กฝ่าย IT</button>
+                <button type="button" onclick="selectAllTags('AV')" class="bg-rose-600 text-white px-2 py-0.5 rounded-lg hover:bg-rose-700">+ แท็กฝ่าย AV</button>
+                <button type="button" onclick="selectAllTags('MEDIA')" class="bg-emerald-600 text-white px-2 py-0.5 rounded-lg hover:bg-emerald-700">+ แท็กฝ่าย Media</button>
+                <button type="button" onclick="clearAllTags()" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg hover:bg-slate-300">ล้างเลือก</button>
+              </div>
+
+              <!-- Admin Checklist Container -->
+              <div id="tag-admin-list" class="max-h-36 overflow-y-auto border border-amber-300 rounded-lg p-2 bg-white text-xs space-y-1">
+                <p class="text-slate-400 text-center py-1">กำลังโหลดรายชื่อทีมงาน...</p>
+              </div>
             </div>
 
             <div>
@@ -315,7 +329,7 @@
       <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
         <p class="col-span-2 text-indigo-900 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"><b>👤 แม่งานผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-base text-indigo-700">-</span></p>
         <p><b>📍 สถานที่:</b> <span id="detail-location">-</span></p>
-        <p><b>🏷️ ทีมงานที่แท็ก:</b> <span id="detail-organizer" class="text-indigo-600 font-semibold">-</span></p>
+        <p class="col-span-2"><b>🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-slate-50 p-2 rounded-lg border border-slate-200">-</span></p>
         <p><b>⏰ เวลาเริ่ม:</b> <span id="detail-start">-</span></p>
         <p><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end">-</span></p>
       </div>
@@ -325,9 +339,7 @@
         <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs space-y-1"></div>
       </div>
 
-      <!-- Footer Action Buttons -->
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-        <!-- Admin Delete/Cancel Button -->
         <div>
           <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden px-4 py-2 text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition">
             🗑️ ยกเลิกคิวงาน (Admin Only)
@@ -392,7 +404,7 @@
     </div>
   </div>
 
-  <!-- MODALS LOGIN/REGISTER -->
+  <!-- MODALS LOGIN/REGISTER WITH NICKNAME -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
@@ -407,13 +419,16 @@
       <h3 class="text-lg font-bold text-slate-800">📝 ลงทะเบียนบัญชี Admin ใหม่</h3>
       <div class="grid grid-cols-2 gap-2">
         <div><label class="block text-xs font-medium text-slate-600 mb-1">รหัสพนักงาน *</label><input type="text" id="reg-emp-id" placeholder="เช่น EMP-001" class="w-full p-2.5 border rounded-xl text-sm"></div>
-        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" placeholder="เช่น อ.วิชัย" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" placeholder="เช่น อ.วิชัย ใจดี" class="w-full p-2.5 border rounded-xl text-sm"></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อเล่น *</label><input type="text" id="reg-nickname" placeholder="เช่น ช่างชัย" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">ฝ่ายสังกัด *</label>
+          <select id="reg-dept" class="w-full p-2.5 border rounded-xl text-sm bg-slate-50"><option value="IT">💻 ฝ่ายไอที (IT)</option><option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option><option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option></select>
+        </div>
       </div>
       <div><label class="block text-xs font-medium text-slate-600 mb-1">อีเมลโรงเรียน (สำหรับ Mention) *</label><input type="email" id="reg-email" placeholder="เช่น vichai@denla.ac.th" class="w-full p-2.5 border rounded-xl text-sm"></div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">ฝ่ายสังกัด *</label>
-        <select id="reg-dept" class="w-full p-2.5 border rounded-xl text-sm bg-slate-50"><option value="IT">💻 ฝ่ายไอที (IT)</option><option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option><option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option></select>
-      </div>
       <div class="grid grid-cols-2 gap-2">
         <div><label class="block text-xs font-medium text-slate-600 mb-1">Username *</label><input type="text" id="reg-user" placeholder="admin_vichai" class="w-full p-2.5 border rounded-xl text-sm"></div>
         <div><label class="block text-xs font-medium text-slate-600 mb-1">Password *</label><input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-2.5 border rounded-xl text-sm"></div>
@@ -457,13 +472,49 @@
     }
 
     async function fetchAllAdmins() {
-      const { data } = await _supabase.from('admin_users').select('*');
+      const { data } = await _supabase.from('admin_users').select('*').order('department');
       allAdmins = data || [];
+      renderTagAdminList();
+    }
+
+    // Render Admin List Checklist in Event Form
+    function renderTagAdminList() {
+      const container = document.getElementById('tag-admin-list');
+      if (!allAdmins || allAdmins.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-center py-1">ยังไม่มีรายชื่อ Admin ในระบบ</p>';
+        return;
+      }
+
+      const deptNames = { 'IT': '💻 ไอที', 'AV': '🔊 โสตฯ', 'MEDIA': '📷 สื่อ/ช่างภาพ' };
+
+      container.innerHTML = allAdmins.map(admin => `
+        <label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition">
+          <div class="flex items-center gap-1.5">
+            <input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${admin.department || 'IT'}" class="rounded text-amber-600 focus:ring-0">
+            <span class="font-medium text-slate-800">${admin.full_name}</span>
+            <span class="text-slate-500">(${admin.nickname || 'ไม่มีชื่อเล่น'})</span>
+          </div>
+          <span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${deptNames[admin.department] || admin.department || 'IT'}</span>
+        </label>
+      `).join('');
+    }
+
+    function selectAllTags(deptKey) {
+      document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => {
+        if (deptKey === 'ALL' || cb.dataset.dept === deptKey) {
+          cb.checked = true;
+        }
+      });
+    }
+
+    function clearAllTags() {
+      document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => cb.checked = false);
     }
 
     async function handleRegister() {
       const empId = document.getElementById('reg-emp-id').value;
       const name = document.getElementById('reg-name').value;
+      const nickname = document.getElementById('reg-nickname').value;
       const email = document.getElementById('reg-email').value;
       const dept = document.getElementById('reg-dept').value;
       const user = document.getElementById('reg-user').value;
@@ -476,6 +527,7 @@
       const { error } = await _supabase.from('admin_users').insert([{
         emp_id: empId,
         full_name: name,
+        nickname: nickname,
         email: email,
         department: dept,
         username: user,
@@ -483,7 +535,7 @@
       }]);
 
       if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
-      alert(`🎉 ลงทะเบียน Admin [${name}] เรียบร้อยแล้ว!`);
+      alert(`🎉 ลงทะเบียน Admin [${name} (${nickname})] เรียบร้อยแล้ว!`);
       closeModals();
       await fetchAllAdmins();
     }
@@ -493,7 +545,7 @@
       const pass = document.getElementById('login-pass').value;
 
       if (user === 'admin' && pass === '1234') {
-        currentAdmin = { full_name: 'Super Admin', department: 'ALL' };
+        currentAdmin = { full_name: 'Super Admin', nickname: 'แอดมินหลัก', department: 'ALL' };
         setAdminState(true);
         return;
       }
@@ -508,7 +560,7 @@
     function setAdminState(isLoggedIn) {
       if (isLoggedIn) {
         document.getElementById('admin-banner').classList.remove('hidden');
-        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name}</b> (ฝ่าย <b>${currentAdmin.department || 'IT'}</b>)`;
+        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name} (${currentAdmin.nickname || '-'})</b> [สังกัด: <b>${currentAdmin.department || 'IT'}</b>]`;
         document.getElementById('btn-admin-login').classList.add('hidden');
         document.getElementById('btn-admin-register').classList.add('hidden');
         document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
@@ -548,18 +600,6 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    function parseMentions(tagInput) {
-      if (!tagInput) return '-';
-      let formattedTags = tagInput;
-      allAdmins.forEach(admin => {
-        if (admin.email && (tagInput.includes(admin.full_name) || tagInput.includes(admin.email))) {
-          formattedTags = formattedTags.replace(new RegExp(`@?${admin.full_name}`, 'g'), `<users/${admin.email}>`);
-          formattedTags = formattedTags.replace(new RegExp(`@?${admin.email}`, 'g'), `<users/${admin.email}>`);
-        }
-      });
-      return formattedTags;
-    }
-
     async function handleEventSubmit(e) {
       e.preventDefault();
       const dept = document.getElementById('event-dept').value;
@@ -568,8 +608,20 @@
       const location = document.getElementById('event-location').value;
       const startVal = document.getElementById('event-start').value;
       const endVal = document.getElementById('event-end').value;
-      const organizer = document.getElementById('event-organizer').value;
 
+      // Get Selected Admin Tags
+      const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
+      const selectedAdmins = Array.from(checkedTags).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
+
+      // Format Printable/Display Tags: "ชื่อ-นามสกุล (ชื่อเล่น) [แผนก]"
+      const tagDisplayList = selectedAdmins.map(a => `${a.full_name} (${a.nickname || '-'}) [${a.department}]`);
+      const tagDisplayStr = tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก';
+
+      // Format Google Chat Mention List
+      const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
+      const chatMentionStr = chatMentionList.join(', ') || '-';
+
+      // Checked Equipment
       const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked');
       const selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value);
       const selectedEqNames = Array.from(checkedBoxes).map(cb => {
@@ -587,13 +639,11 @@
         start_time: startVal, 
         end_time: endVal, 
         event_date: startVal, 
-        organizer: organizer, 
+        organizer: tagDisplayStr, 
         details: detailsPayload
       }]);
 
       if (error) { alert('Error: ' + error.message); return; }
-
-      const parsedTag = parseMentions(organizer);
 
       sendGoogleChatNotification({
         title: `📅 มอบหมายคิวงาน [เรียนฝ่าย: ${dept}]`,
@@ -603,18 +653,18 @@
           `<b>สถานที่:</b> ${location}`,
           `<b>เวลาเริ่ม:</b> ${new Date(startVal).toLocaleString('th-TH')}`,
           `<b>เวลาสิ้นสุด:</b> ${new Date(endVal).toLocaleString('th-TH')}`,
-          `<b>🏷️ แท็กทีมงาน:</b> <font color="#ef4444"><b>${parsedTag}</b></font>`,
+          `<b>🏷️ แท็กทีมงานปฏิบัติงาน:</b> <font color="#ef4444"><b>${chatMentionStr}</b></font>`,
           `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
         ]
       });
 
       alert('✅ บันทึกคิวงานเรียบร้อย!');
       document.getElementById('form-event').reset();
+      clearAllTags();
       document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
       if (calendar) calendar.refetchEvents();
     }
 
-    // NEW FUNCTION: Cancel / Delete Event Queue by Admin
     async function cancelEvent() {
       if (!currentAdmin) { alert('🔒 สิทธิ์ไม่ถูกต้อง! เฉพาะ Admin เท่านั้นที่ยกเลิกคิวงานได้'); return; }
       if (!selectedEventForPrint || !selectedEventForPrint.eventId) return;
@@ -624,14 +674,13 @@
       const { error } = await _supabase.from('event_queue').delete().eq('id', selectedEventForPrint.eventId);
       if (error) { alert('เกิดข้อผิดพลาดในการยกเลิก: ' + error.message); return; }
 
-      // Notification to Google Chat
       sendGoogleChatNotification({
         title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`,
         details: [
           `<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`,
           `<b>แม่งานเดิม:</b> ${selectedEventForPrint.mainHost}`,
           `<b>สถานที่:</b> ${selectedEventForPrint.location}`,
-          `<b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.department || 'IT'})`
+          `<b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.nickname || '-'}) [ฝ่าย ${currentAdmin.department || 'IT'}]`
         ]
       });
 
@@ -817,7 +866,6 @@
       } else eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`;
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
 
-      // Show/Hide Admin Cancel Button
       const cancelBtn = document.getElementById('btn-cancel-event');
       if (cancelBtn) {
         if (currentAdmin) cancelBtn.classList.remove('hidden');
