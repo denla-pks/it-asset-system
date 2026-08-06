@@ -96,6 +96,7 @@
             <p><span class="font-bold text-indigo-900">ลาเบล/รหัส:</span> <span id="prev-label" class="bg-indigo-200 px-2 py-0.5 rounded text-indigo-800 text-xs font-mono">-</span></p>
             <p><span class="font-bold text-indigo-900">แผนก:</span> <span id="prev-dept" class="font-medium text-indigo-700">-</span></p>
             <p><span class="font-bold text-indigo-900">สถานที่เก็บ:</span> <span id="prev-location">-</span></p>
+            <p><span class="font-bold text-indigo-900">จำนวนคงเหลือพร้อมยืม:</span> <span id="prev-stock" class="font-bold text-emerald-600">-</span></p>
           </div>
         </div>
 
@@ -246,7 +247,7 @@
           <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</h2>
           <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg">ล้างฟอร์ม / เพิ่มใหม่</button>
         </div>
-        <form id="form-equipment" onsubmit="handleEquipmentSave(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <form id="form-equipment" onsubmit="handleEquipmentSave(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="hidden" id="eq-id">
           <div>
             <label class="block text-xs text-slate-300 mb-1">ลาเบล/รหัสอุปกรณ์ *</label>
@@ -255,6 +256,10 @@
           <div>
             <label class="block text-xs text-slate-300 mb-1">ชื่ออุปกรณ์ *</label>
             <input type="text" id="eq-name" required placeholder="เช่น ชุดตู้ลำโพงหอประชุม" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
+          </div>
+          <div>
+            <label class="block text-xs text-amber-300 font-bold mb-1">จำนวนอุปกรณ์ทั้งหมด (ชิ้น) *</label>
+            <input type="number" id="eq-quantity" min="1" value="1" required class="w-full p-2.5 rounded-xl bg-slate-800 border border-amber-500 font-bold text-amber-300 text-sm outline-none">
           </div>
           <div>
             <label class="block text-xs text-slate-300 mb-1">ฝ่ายที่ดูแล *</label>
@@ -275,7 +280,7 @@
           <div><label class="block text-xs text-slate-300 mb-1">ยี่ห้อ / รุ่น</label><input type="text" id="eq-brand" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
           <div><label class="block text-xs text-slate-300 mb-1">Serial Number</label><input type="text" id="eq-serial" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
           <div><label class="block text-xs text-slate-300 mb-1">สถานที่เก็บ</label><input type="text" id="eq-location" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
-          <div class="md:col-span-3 flex justify-end gap-2 pt-2">
+          <div class="md:col-span-4 flex justify-end gap-2 pt-2">
             <button type="submit" id="btn-save-equipment" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">💾 บันทึกข้อมูลอุปกรณ์</button>
           </div>
         </form>
@@ -285,7 +290,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
             <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์รวม (Admin Zone)</h2>
-            <p class="text-xs text-slate-500">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม</p>
+            <p class="text-xs text-slate-500">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม พร้อมระบบสต็อกคงเหลือ</p>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <select id="inventory-type-filter" onchange="filterInventory()" class="p-2.5 border border-indigo-200 rounded-xl text-sm outline-none bg-indigo-50/50 font-bold text-indigo-900">
@@ -303,16 +308,18 @@
               <tr>
                 <th class="p-3">ลาเบล</th>
                 <th class="p-3">ชื่ออุปกรณ์</th>
+                <th class="p-3 text-center">จำนวนทั้งหมด</th>
+                <th class="p-3 text-center">จำนวนคงเหลือ</th>
                 <th class="p-3">หมวดใช้งาน</th>
                 <th class="p-3">ฝ่ายที่ดูแล</th>
                 <th class="p-3">ยี่ห้อ/รุ่น</th>
                 <th class="p-3">สถานที่เก็บ</th>
-                <th class="p-3">สถานะ</th>
+                <th class="p-3">สถานะสต็อก</th>
                 <th class="p-3 text-center admin-col hidden">จัดการ (Admin)</th>
               </tr>
             </thead>
             <tbody id="table-inventory" class="divide-y divide-slate-100">
-              <tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
+              <tr><td colspan="10" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
             </tbody>
           </table>
         </div>
@@ -455,6 +462,7 @@
 
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let allEquipment = [];
+    let activeBorrowRecords = [];
     let allAdmins = [];
     let calendar = null;
     let currentAdmin = null;
@@ -466,8 +474,8 @@
       document.getElementById('return-date').value = futureDate.toISOString().split('T')[0];
 
       await fetchAllAdmins();
-      await fetchAllEquipment();
       await loadActiveBorrows();
+      await fetchAllEquipment();
       initCalendar();
     });
 
@@ -479,13 +487,10 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // PERFECT TIME FORMATTER: Formats Date Object or ISO String strictly in Asia/Bangkok 24h format
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
-      
       const d = new Date(dateInput);
       if (isNaN(d.getTime())) {
-        // Fallback for raw YYYY-MM-DDTHH:mm input
         let str = String(dateInput);
         if (str.includes('T') || str.includes(' ')) {
           const parts = str.split(/[T ]/);
@@ -496,21 +501,15 @@
         return dateInput;
       }
 
-      // Convert accurately to Bangkok Timezone
       const thaiDate = new Intl.DateTimeFormat('th-TH', {
         timeZone: 'Asia/Bangkok',
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+        day: 'numeric', month: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
       }).format(d);
 
       return `${thaiDate.replace(':', '.')} น.`;
     }
 
-    // Converts local HTML input value ("2026-08-06T16:00") to Thailand ISO string ("2026-08-06T16:00:00+07:00")
     function formatLocalToISO(dateTimeLocalStr) {
       if (!dateTimeLocalStr) return null;
       return `${dateTimeLocalStr}:00+07:00`;
@@ -648,8 +647,8 @@
       const title = document.getElementById('event-title').value;
       const mainHost = document.getElementById('event-main-host').value;
       const location = document.getElementById('event-location').value;
-      const startVal = document.getElementById('event-start').value; // YYYY-MM-DDTHH:mm
-      const endVal = document.getElementById('event-end').value;     // YYYY-MM-DDTHH:mm
+      const startVal = document.getElementById('event-start').value;
+      const endVal = document.getElementById('event-end').value;
       const remarks = document.getElementById('event-remarks').value;
 
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
@@ -670,7 +669,6 @@
 
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
-      // Format ISO string with Thailand timezone offset (+07:00)
       const isoStart = formatLocalToISO(startVal);
       const isoEnd = formatLocalToISO(endVal);
 
@@ -779,12 +777,25 @@
       const deptFilter = document.getElementById('borrow-dept-filter').value;
       const select = document.getElementById('borrow-asset-select');
       select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
-      let filtered = allEquipment.filter(item => item.status === 'AVAILABLE' && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH'));
+      
+      let filtered = allEquipment.filter(item => {
+        const totalQty = item.quantity || 1;
+        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
+        const availableQty = totalQty - borrowedCount;
+
+        return availableQty > 0 && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH');
+      });
+
       if (deptFilter !== 'ALL') filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
+      
       filtered.forEach(item => {
+        const totalQty = item.quantity || 1;
+        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
+        const availableQty = totalQty - borrowedCount;
+
         const opt = document.createElement('option');
         opt.value = item.id;
-        opt.textContent = `[${item.asset_label}] ${item.name} (${item.department || 'IT'})`;
+        opt.textContent = `[${item.asset_label}] ${item.name} (ว่าง ${availableQty}/${totalQty} ชิ้น) (${item.department || 'IT'})`;
         select.appendChild(opt);
       });
       select.onchange = (e) => showEquipmentPreview(e.target.value);
@@ -794,10 +805,16 @@
       const item = allEquipment.find(i => i.id == id);
       const preview = document.getElementById('equipment-preview');
       if (!item) { preview.classList.add('hidden'); return; }
+
+      const totalQty = item.quantity || 1;
+      const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
+      const availableQty = totalQty - borrowedCount;
+
       document.getElementById('prev-name').textContent = `${item.name} ${item.brand && item.brand !== 'undefined' ? item.brand : ''}`;
       document.getElementById('prev-label').textContent = item.asset_label;
       document.getElementById('prev-dept').textContent = item.department || 'IT';
       document.getElementById('prev-location').textContent = item.location || '-';
+      document.getElementById('prev-stock').textContent = `${availableQty} / ${totalQty} ชิ้น`;
       preview.classList.remove('hidden');
     }
 
@@ -809,6 +826,7 @@
       const payload = {
         asset_label: document.getElementById('eq-label').value,
         name: document.getElementById('eq-name').value,
+        quantity: parseInt(document.getElementById('eq-quantity').value || 1, 10),
         department: document.getElementById('eq-dept').value,
         usage_type: document.getElementById('eq-usage-type').value,
         brand: document.getElementById('eq-brand').value || '',
@@ -848,6 +866,7 @@
       document.getElementById('eq-id').value = item.id;
       document.getElementById('eq-label').value = item.asset_label || '';
       document.getElementById('eq-name').value = item.name || '';
+      document.getElementById('eq-quantity').value = item.quantity || 1;
       document.getElementById('eq-dept').value = item.department || 'IT';
       document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
       document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : '';
@@ -867,12 +886,12 @@
     function resetEquipmentForm() {
       document.getElementById('form-equipment').reset();
       document.getElementById('eq-id').value = '';
+      document.getElementById('eq-quantity').value = 1;
       document.getElementById('form-equipment-title').innerHTML = '🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่';
       document.getElementById('btn-save-equipment').innerHTML = '💾 บันทึกข้อมูลอุปกรณ์';
       document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
     }
 
-    // FULLCALENDAR INIT WITH BANGKOK TIMEZONE
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
@@ -1013,8 +1032,22 @@
       if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
       const item = allEquipment.find(i => i.id == equipmentId);
 
+      // Check Available Stock
+      const totalQty = item.quantity || 1;
+      const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
+      const availableQty = totalQty - borrowedCount;
+
+      if (availableQty <= 0) {
+        alert('❌ อุปกรณ์ชิ้นนี้ถูกยืมครบตามจำนวนทั้งหมดแล้ว');
+        return;
+      }
+
       await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`, expected_return_date: returnDate, note: note }]);
-      await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
+      
+      // Update Borrow Status Only If All Stock is Occupied
+      if (availableQty - 1 <= 0) {
+        await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
+      }
 
       sendGoogleChatNotification({
         title: `📦 มีรายการยืมอุปกรณ์ใหม่ [ถึงฝ่าย ${item.department || 'IT'}]`,
@@ -1035,12 +1068,14 @@
 
     async function loadActiveBorrows() {
       const { data } = await _supabase.from('borrow_records').select('*, equipment(*)').eq('status', 'BORROWED');
+      activeBorrowRecords = data || [];
+
       const tbody = document.getElementById('table-active-borrows');
-      if (!data || data.length === 0) {
+      if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">ไม่มีอุปกรณ์ที่ถูกยืมในขณะนี้</td></tr>';
         return;
       }
-      tbody.innerHTML = data.map(record => `
+      tbody.innerHTML = activeBorrowRecords.map(record => `
         <tr class="hover:bg-slate-50 transition">
           <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
           <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
@@ -1071,17 +1106,31 @@
     function renderInventoryTable(items) {
       const tbody = document.getElementById('table-inventory');
       tbody.innerHTML = items.map(item => {
+        const totalQty = item.quantity || 1;
+        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
+        const availableQty = totalQty - borrowedCount;
+
         const usageBadge = (item.usage_type === 'EVENT') ? '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 กิจกรรม</span>' : (item.usage_type === 'BORROW') ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ยืม-คืน</span>' : '<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ทั้งคู่</span>';
         const brandDisplay = (item.brand && item.brand !== 'undefined') ? item.brand : '';
+        
+        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">พร้อมใช้งาน (${availableQty}/${totalQty})</span>`;
+        if (availableQty <= 0) {
+          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">ถูกยืมหมดแล้ว (0/${totalQty})</span>`;
+        } else if (availableQty < totalQty) {
+          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">คงเหลือ ${availableQty}/${totalQty} ชิ้น</span>`;
+        }
+
         return `
           <tr class="hover:bg-slate-50 transition">
             <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
             <td class="p-3 font-medium text-slate-800">${item.name}</td>
+            <td class="p-3 text-center font-bold text-slate-700">${totalQty}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${availableQty}</td>
             <td class="p-3">${usageBadge}</td>
             <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
             <td class="p-3">${brandDisplay} ${item.model || ''}</td>
             <td class="p-3">${item.location || '-'}</td>
-            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
+            <td class="p-3">${stockBadge}</td>
             <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
               <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
               <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
