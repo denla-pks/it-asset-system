@@ -15,7 +15,6 @@
   <style>
     body { font-family: 'Sarabun', sans-serif; }
     
-    /* Custom FullCalendar Modern Styling */
     .fc-event { 
       cursor: pointer; 
       border-radius: 8px !important;
@@ -31,7 +30,6 @@
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
     .fc-button-primary:hover { background-color: #4338ca !important; }
 
-    /* Printable Area Styling */
     @media print {
       body * { visibility: hidden; }
       #printable-area, #printable-area * { visibility: visible; }
@@ -54,12 +52,12 @@
         </div>
       </div>
       
-      <!-- Role Toggle & Tab Controls -->
+      <!-- Nav Tabs -->
       <div class="flex flex-wrap items-center gap-2">
         <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
-          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืน</button>
+          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืนอุปกรณ์</button>
           <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 คิวงาน/ปฏิทิน</button>
-          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">🖥️ คลังอุปกรณ์</button>
+          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">🖥️ คลังอุปกรณ์รวม</button>
         </nav>
 
         <div class="flex gap-1">
@@ -77,7 +75,7 @@
   <main class="max-w-7xl mx-auto px-4 mt-6">
 
     <div id="admin-banner" class="hidden bg-amber-500 text-slate-900 px-4 py-2 rounded-xl mb-4 font-bold text-sm flex justify-between items-center shadow-md">
-      <span id="admin-welcome-text">🛠️ คุณอยู่ในโหมดแอดมิน - สิทธิ์รับคืนอุปกรณ์ และจัดการระบบเปิดใช้งานแล้ว</span>
+      <span id="admin-welcome-text">🛠️ คุณอยู่ในโหมดแอดมิน - สามารถเพิ่ม/แก้ไขอุปกรณ์ และตรวจรับคืนอุปกรณ์ได้</span>
       <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800">ออกจากระบบ Admin</button>
     </div>
 
@@ -85,7 +83,7 @@
     <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม</h2>
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม (ยืมรายวัน)</h2>
           <div class="mb-4">
             <button onclick="toggleScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition">
               📷 เปิด/ปิด สแกน QR Code จากกล้อง
@@ -168,11 +166,10 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: คิวงาน/กิจกรรม (EVENT & CALENDAR) ==================== -->
+    <!-- ==================== TAB 2: คิวงาน/กิจกรรม ==================== -->
     <section id="sec-event" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Add Event Form -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-5 space-y-4">
           <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
           <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-3">
@@ -209,12 +206,11 @@
               <input type="text" id="event-organizer" required placeholder="เช่น @ช่างภาพA @ครูโสตB @ไอทีC" class="w-full p-2.5 border border-amber-300 rounded-xl text-sm outline-none bg-white">
             </div>
 
-            <!-- Multi-Select Equipment Categorized -->
+            <!-- Multi-Select Event Equipment Checklist -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">🛠️ เลือกรายการอุปกรณ์ที่ใช้ (แยกตามแผนก):</label>
-              <div class="border border-slate-200 rounded-xl p-3 max-h-48 overflow-y-auto space-y-3 bg-slate-50 text-xs" id="event-equipment-checklist">
-                <!-- Javascript will render item checkboxes grouped by Dept -->
-                <p class="text-slate-400 text-center py-2">กำลังโหลดรายการอุปกรณ์...</p>
+              <label class="block text-xs font-bold text-indigo-900 mb-1">🎪 เลือกอุปกรณ์เฉพาะสำหรับจัดงานกิจกรรม (Event Assets):</label>
+              <div class="border border-indigo-200 rounded-xl p-3 max-h-48 overflow-y-auto space-y-3 bg-indigo-50/30 text-xs" id="event-equipment-checklist">
+                <p class="text-slate-400 text-center py-2">กำลังโหลดรายการอุปกรณ์จัดงาน...</p>
               </div>
             </div>
 
@@ -224,7 +220,6 @@
           </form>
         </div>
 
-        <!-- FullCalendar -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-7">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
             <h2 class="text-lg font-bold text-slate-800">📅 ปฏิทินคิวงานกิจกรรม</h2>
@@ -241,8 +236,10 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์ ==================== -->
+    <!-- ==================== TAB 3: คลังอุปกรณ์รวม & ADMIN ZONE ==================== -->
     <section id="sec-inventory" class="space-y-6 hidden">
+      
+      <!-- Admin Add/Edit Form -->
       <div id="admin-equipment-form" class="hidden bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่ม / แก้ไขรายการอุปกรณ์</h2>
@@ -252,11 +249,11 @@
           <input type="hidden" id="eq-id">
           <div>
             <label class="block text-xs text-slate-300 mb-1">ลาเบล/รหัสอุปกรณ์ *</label>
-            <input type="text" id="eq-label" required placeholder="เช่น DENLA-IT-001" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none focus:border-amber-400">
+            <input type="text" id="eq-label" required placeholder="เช่น DENLA-AV-001" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none focus:border-amber-400">
           </div>
           <div>
             <label class="block text-xs text-slate-300 mb-1">ชื่ออุปกรณ์ *</label>
-            <input type="text" id="eq-name" required placeholder="เช่น กล้อง VDO Sony" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none focus:border-amber-400">
+            <input type="text" id="eq-name" required placeholder="เช่น ชุดตู้ลำโพงหอประชุม" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none focus:border-amber-400">
           </div>
           <div>
             <label class="block text-xs text-slate-300 mb-1">ฝ่ายที่ดูแล *</label>
@@ -266,9 +263,20 @@
               <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
             </select>
           </div>
+
+          <!-- Important: Separate Item Category -->
+          <div class="md:col-span-2">
+            <label class="block text-xs text-amber-400 font-bold mb-1">🏷️ หมวดหมู่การใช้งานอุปกรณ์ *</label>
+            <select id="eq-usage-type" required class="w-full p-2.5 rounded-xl bg-amber-950/80 border border-amber-500 text-amber-200 text-sm font-bold outline-none">
+              <option value="BORROW">📱 อุปกรณ์สำหรับยืม-คืน รายวัน เท่านั้น</option>
+              <option value="EVENT">🎪 อุปกรณ์สำหรับจัดงานกิจกรรม (Event Asset) เท่านั้น</option>
+              <option value="BOTH">🔄 ใช้ได้ทั้ง ยืม-คืน และ จัดงานกิจกรรม</option>
+            </select>
+          </div>
+
           <div>
             <label class="block text-xs text-slate-300 mb-1">ยี่ห้อ / รุ่น</label>
-            <input type="text" id="eq-brand" placeholder="เช่น Sony PXW-Z90" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
+            <input type="text" id="eq-brand" placeholder="เช่น JBL EON615" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
           </div>
           <div>
             <label class="block text-xs text-slate-300 mb-1">Serial Number</label>
@@ -289,17 +297,16 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
-            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์ IT, AV & Media ทั้งหมด</h2>
-            <p class="text-xs text-slate-500">จัดการและตรวจสอบสถานะอุปกรณ์</p>
+            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์แยกตามประเภทการใช้งาน</h2>
+            <p class="text-xs text-slate-500">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม</p>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <select id="inventory-dept-filter" onchange="filterInventory()" class="p-2.5 border border-slate-200 rounded-xl text-sm outline-none bg-slate-50">
-              <option value="ALL">ทุกหมวดหมู่แผนก</option>
-              <option value="IT">💻 ฝ่ายไอที (IT)</option>
-              <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
-              <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+            <select id="inventory-type-filter" onchange="filterInventory()" class="p-2.5 border border-indigo-200 rounded-xl text-sm outline-none bg-indigo-50/50 font-bold text-indigo-900">
+              <option value="ALL">แสดงทุกประเภท</option>
+              <option value="BORROW">📱 เฉพาะอุปกรณ์ยืม-คืน</option>
+              <option value="EVENT">🎪 เฉพาะอุปกรณ์จัดงานกิจกรรม</option>
             </select>
-            <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาชื่อ, ลาเบล, Serial..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm outline-none">
+            <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาชื่อ, ลาเบล..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm outline-none">
           </div>
         </div>
 
@@ -309,9 +316,9 @@
               <tr>
                 <th class="p-3">ลาเบล</th>
                 <th class="p-3">ชื่ออุปกรณ์</th>
+                <th class="p-3">หมวดใช้งาน</th>
                 <th class="p-3">ฝ่ายที่ดูแล</th>
                 <th class="p-3">ยี่ห้อ/รุ่น</th>
-                <th class="p-3">Serial Number</th>
                 <th class="p-3">สถานที่เก็บ</th>
                 <th class="p-3">สถานะ</th>
                 <th class="p-3 text-center admin-col hidden">จัดการ (Admin)</th>
@@ -347,9 +354,7 @@
 
       <div class="border-t border-slate-100 pt-3">
         <h4 class="font-bold text-slate-800 text-sm mb-2">🛠️ รายการอุปกรณ์ที่จัดเตรียม & Checklist:</h4>
-        <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs space-y-1">
-          <!-- Item list -->
-        </div>
+        <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs space-y-1"></div>
       </div>
 
       <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
@@ -361,7 +366,7 @@
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE (HIDDEN UNTIL PRINT) -->
+  <!-- PRINTABLE TEMPLATE -->
   <div id="printable-area" class="hidden p-8 font-sans">
     <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
       <div>
@@ -386,7 +391,7 @@
     </div>
 
     <div class="mb-8">
-      <h3 class="font-bold text-base mb-2">📋 รายการอุปกรณ์ที่ต้องจัดเตรียม & ใบตรวจเช็กหน้างาน (Setting & Check List)</h3>
+      <h3 class="font-bold text-base mb-2">📋 รายการอุปกรณ์จัดเตรียม & ใบตรวจเช็กหน้างาน (Setting & Check List)</h3>
       <table class="w-full border-collapse border border-slate-300 text-xs text-left">
         <thead>
           <tr class="bg-slate-100">
@@ -397,81 +402,43 @@
             <th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th>
           </tr>
         </thead>
-        <tbody id="print-equipment-table">
-          <!-- Render printable rows -->
-        </tbody>
+        <tbody id="print-equipment-table"></tbody>
       </table>
     </div>
 
     <div class="grid grid-cols-3 gap-4 text-center text-xs mt-12 pt-8 border-t border-slate-300">
-      <div>
-        <p class="mb-10">ลงชื่อ ...........................................................</p>
-        <p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p>
-      </div>
-      <div>
-        <p class="mb-10">ลงชื่อ ...........................................................</p>
-        <p class="font-bold">( เจ้าหน้าที่ผู้ปฏิบัติงาน / แท็กรับงาน )</p>
-      </div>
-      <div>
-        <p class="mb-10">ลงชื่อ ...........................................................</p>
-        <p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p>
-      </div>
+      <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p></div>
+      <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( เจ้าหน้าที่ผู้ปฏิบัติงาน / แท็กรับงาน )</p></div>
+      <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p></div>
     </div>
   </div>
 
-  <!-- MODAL: ADMIN LOGIN -->
+  <!-- MODAL: ADMIN LOGIN & REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Username / อีเมลแอดมิน</label>
-        <input type="text" id="login-user" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Password</label>
-        <input type="password" id="login-pass" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400">
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
-        <button onclick="handleLogin()" class="px-5 py-2 text-xs font-bold bg-amber-400 hover:bg-amber-500 text-slate-900 rounded-xl shadow">เข้าสู่ระบบ</button>
-      </div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Username</label><input type="text" id="login-user" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Password</label><input type="password" id="login-pass" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></div>
+      <div class="flex justify-end gap-2 pt-2"><button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 rounded-xl">ยกเลิก</button><button onclick="handleLogin()" class="px-5 py-2 text-xs font-bold bg-amber-400 text-slate-900 rounded-xl shadow">เข้าสู่ระบบ</button></div>
     </div>
   </div>
 
-  <!-- MODAL: ADMIN REGISTER -->
   <div id="modal-register" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">📝 ลงทะเบียนบัญชี Admin ใหม่</h3>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล / ตำแหน่ง *</label>
-        <input type="text" id="reg-name" placeholder="เช่น อ.วิชัย" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
-      </div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล / ตำแหน่ง *</label><input type="text" id="reg-name" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></div>
       <div>
         <label class="block text-xs font-medium text-slate-600 mb-1">หน่วยงาน / ฝ่ายสังกัด *</label>
         <select id="reg-dept" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none bg-slate-50">
           <option value="IT">💻 ฝ่ายไอที (IT)</option>
           <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
           <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
-          <option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ / แม่บ้าน</option>
         </select>
       </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Username ตั้งใหม่ *</label>
-        <input type="text" id="reg-user" placeholder="เช่น admin_vichai" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
-      </div>
-      <div>
-        <label class="block text-xs font-medium text-slate-600 mb-1">Password ตั้งใหม่ *</label>
-        <input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-indigo-700 mb-1">🔑 Master Key (รหัสอนุมัติสมัคร Admin) *</label>
-        <input type="password" id="reg-master-key" placeholder="กรอกรหัส Master Key" class="w-full p-2.5 border border-indigo-200 bg-indigo-50/50 rounded-xl text-sm outline-none">
-        <p class="text-[10px] text-slate-400 mt-1">* Master Key ค่าเริ่มต้นคือ: <b>DENLA2026</b></p>
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
-        <button onclick="handleRegister()" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow">ยืนยันสมัคร Admin</button>
-      </div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Username *</label><input type="text" id="reg-user" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Password *</label><input type="password" id="reg-pass" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></div>
+      <div><label class="block text-xs font-bold text-indigo-700 mb-1">🔑 Master Key *</label><input type="password" id="reg-master-key" class="w-full p-2.5 border border-indigo-200 bg-indigo-50/50 rounded-xl text-sm outline-none"></div>
+      <div class="flex justify-end gap-2 pt-2"><button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 rounded-xl">ยกเลิก</button><button onclick="handleRegister()" class="px-5 py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl shadow">ยืนยันสมัคร Admin</button></div>
     </div>
   </div>
 
@@ -516,16 +483,9 @@
       if (!name || !user || !pass) { alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
       if (key !== MASTER_KEY) { alert('❌ Master Key ไม่ถูกต้อง!'); return; }
 
-      const { error } = await _supabase.from('admin_users').insert([{
-        full_name: name,
-        department: dept,
-        username: user,
-        password: pass
-      }]);
-
+      const { error } = await _supabase.from('admin_users').insert([{ full_name: name, department: dept, username: user, password: pass }]);
       if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
-
-      alert(`🎉 ลงทะเบียน Admin [ฝ่าย ${dept}] เรียบร้อยแล้ว! สามารถล็อกอินเข้าใช้งานได้ทันที`);
+      alert(`🎉 ลงทะเบียน Admin [ฝ่าย ${dept}] เรียบร้อยแล้ว!`);
       closeModals();
     }
 
@@ -539,13 +499,7 @@
         return;
       }
 
-      const { data, error } = await _supabase
-        .from('admin_users')
-        .select('*')
-        .eq('username', user)
-        .eq('password', pass)
-        .single();
-
+      const { data, error } = await _supabase.from('admin_users').select('*').eq('username', user).eq('password', pass).single();
       if (error || !data) { alert('❌ Username หรือ Password ไม่ถูกต้อง!'); return; }
 
       currentAdmin = data;
@@ -555,12 +509,11 @@
     function setAdminState(isLoggedIn) {
       if (isLoggedIn) {
         document.getElementById('admin-banner').classList.remove('hidden');
-        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name}</b> (สังกัดฝ่าย: <b>${currentAdmin.department || 'IT'}</b>) - สิทธิ์รับคืนอุปกรณ์ และจัดการข้อมูลเปิดแล้ว`;
+        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name}</b> (ฝ่าย <b>${currentAdmin.department || 'IT'}</b>)`;
         document.getElementById('admin-equipment-form').classList.remove('hidden');
         document.getElementById('btn-admin-login').classList.add('hidden');
         document.getElementById('btn-admin-register').classList.add('hidden');
         document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
-        alert(`✅ เข้าสู่ระบบสำเร็จ คุณ ${currentAdmin.full_name}`);
       } else {
         currentAdmin = null;
         document.getElementById('admin-banner').classList.add('hidden');
@@ -587,13 +540,11 @@
       const activeBtn = document.getElementById(`tab-${tabName}`);
       activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow';
 
-      if (tabName === 'event' && calendar) {
-        setTimeout(() => calendar.render(), 100);
-      }
+      if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
     // =========================================================
-    // 📦 4. Equipment & Multi-Select Checklist Render
+    // 📦 4. Equipment Fetch & Filter Logic
     // =========================================================
     async function fetchAllEquipment() {
       const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
@@ -609,9 +560,12 @@
       const container = document.getElementById('event-equipment-checklist');
       const depts = { 'AV': '🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)', 'IT': '💻 ฝ่ายไอที (IT)', 'MEDIA': '📷 ฝ่ายช่างภาพ/สื่อ (Media)' };
       
+      // Filter ONLY Event Assets (EVENT or BOTH)
+      const eventAssets = allEquipment.filter(i => (i.usage_type || 'BOTH') === 'EVENT' || (i.usage_type || 'BOTH') === 'BOTH');
+
       let html = '';
       Object.keys(depts).forEach(deptKey => {
-        const items = allEquipment.filter(i => (i.department || 'IT') === deptKey);
+        const items = eventAssets.filter(i => (i.department || 'IT') === deptKey);
         if (items.length > 0) {
           html += `<div class="font-bold text-slate-700 mt-1 mb-1">${depts[deptKey]}</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-2">`;
           items.forEach(item => {
@@ -625,7 +579,7 @@
           html += `</div>`;
         }
       });
-      container.innerHTML = html || '<p class="text-slate-400">ไม่มีอุปกรณ์ในระบบ</p>';
+      container.innerHTML = html || '<p class="text-slate-400 text-center">ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ ( Admin สามารถเพิ่มได้ในคลังอุปกรณ์ )</p>';
     }
 
     function renderEquipmentDropdown() {
@@ -633,7 +587,12 @@
       const select = document.getElementById('borrow-asset-select');
       select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
       
-      let filtered = allEquipment.filter(item => item.status === 'AVAILABLE');
+      // Filter ONLY Borrowable Assets (BORROW or BOTH)
+      let filtered = allEquipment.filter(item => 
+        item.status === 'AVAILABLE' && 
+        ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH')
+      );
+
       if (deptFilter !== 'ALL') {
         filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
       }
@@ -669,6 +628,7 @@
         asset_label: document.getElementById('eq-label').value,
         name: document.getElementById('eq-name').value,
         department: document.getElementById('eq-dept').value,
+        usage_type: document.getElementById('eq-usage-type').value,
         brand: document.getElementById('eq-brand').value,
         serial_number: document.getElementById('eq-serial').value,
         location: document.getElementById('eq-location').value,
@@ -695,6 +655,7 @@
       document.getElementById('eq-label').value = item.asset_label;
       document.getElementById('eq-name').value = item.name;
       document.getElementById('eq-dept').value = item.department || 'IT';
+      document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
       document.getElementById('eq-brand').value = item.brand || '';
       document.getElementById('eq-serial').value = item.serial_number || '';
       document.getElementById('eq-location').value = item.location || '';
@@ -715,22 +676,16 @@
     }
 
     // =========================================================
-    // 📅 5. FullCalendar Modern Styling & Event Details Modal
+    // 📅 5. FullCalendar Logic
     // =========================================================
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
         events: fetchCalendarEvents,
-        eventClick: function(info) {
-          openEventDetailModal(info.event);
-        }
+        eventClick: function(info) { openEventDetailModal(info.event); }
       });
       calendar.render();
     }
@@ -748,13 +703,7 @@
         end: ev.end_time || null,
         backgroundColor: deptColors[ev.department] || '#6366f1',
         borderColor: deptColors[ev.department] || '#6366f1',
-        extendedProps: {
-          rawTitle: ev.event_title,
-          dept: ev.department || 'ALL',
-          location: ev.location,
-          organizer: ev.organizer,
-          details: ev.details
-        }
+        extendedProps: { rawTitle: ev.event_title, dept: ev.department || 'ALL', location: ev.location, organizer: ev.organizer, details: ev.details }
       }));
 
       successCallback(events);
@@ -779,7 +728,6 @@
       document.getElementById('detail-start').textContent = selectedEventForPrint.start;
       document.getElementById('detail-end').textContent = selectedEventForPrint.end;
 
-      // Parse Equipment IDs or details
       let eqHtml = '';
       if (props.details && props.details.includes('EQ_IDS:')) {
         const ids = props.details.split('EQ_IDS:')[1].split(',');
@@ -789,9 +737,7 @@
             eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span>[${item.asset_label}] ${item.name} (${item.department})</span><span class="text-slate-400">เก็บ: ${item.location || '-'}</span></div>`;
           }
         });
-      } else {
-        eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`;
-      }
+      } else { eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`; }
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
@@ -824,9 +770,7 @@
             `;
           }
         });
-      } else {
-        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center">[   ]</td><td colspan="4" class="border border-slate-300 p-2">${selectedEventForPrint.details || 'ไม่มีอุปกรณ์ระบุ'}</td></tr>`;
-      }
+      } else { tableHtml = `<tr><td class="border border-slate-300 p-2 text-center">[   ]</td><td colspan="4" class="border border-slate-300 p-2">${selectedEventForPrint.details || 'ไม่มีอุปกรณ์ระบุ'}</td></tr>`; }
 
       document.getElementById('print-equipment-table').innerHTML = tableHtml;
       window.print();
@@ -841,7 +785,6 @@
       const endVal = document.getElementById('event-end').value;
       const organizer = document.getElementById('event-organizer').value;
 
-      // Get Checked Equipment IDs
       const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked');
       const selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value);
       const selectedEqNames = Array.from(checkedBoxes).map(cb => {
@@ -852,14 +795,7 @@
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
       const { error } = await _supabase.from('event_queue').insert([{
-        department: dept,
-        event_title: title,
-        location: location,
-        start_time: startVal,
-        end_time: endVal,
-        event_date: startVal,
-        organizer: organizer,
-        details: detailsPayload
+        department: dept, event_title: title, location: location, start_time: startVal, end_time: endVal, event_date: startVal, organizer: organizer, details: detailsPayload
       }]);
 
       if (error) { alert('Error: ' + error.message); return; }
@@ -872,19 +808,16 @@
           `<b>เวลาเริ่ม:</b> ${new Date(startVal).toLocaleString('th-TH')}`,
           `<b>เวลาสิ้นสุด:</b> ${new Date(endVal).toLocaleString('th-TH')}`,
           `<b>🏷️ ผู้รับผิดชอบ/แท็กทีมงาน:</b> <font color="#ef4444"><b>${organizer}</b></font>`,
-          `<b>🛠️ อุปกรณ์ที่ต้องจัดเตรียม (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
+          `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
         ]
       });
 
-      alert('✅ บันทึกคิวงานและแจ้งเตือนเข้า Google Chat เรียบร้อย!');
+      alert('✅ บันทึกคิวงานเรียบร้อย!');
       document.getElementById('form-event').reset();
       document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
       if (calendar) calendar.refetchEvents();
     }
 
-    // =========================================================
-    // 📝 6. Borrow & Return Handlers
-    // =========================================================
     async function handleBorrowSubmit(e) {
       e.preventDefault();
       const equipmentId = document.getElementById('borrow-asset-select').value;
@@ -897,13 +830,7 @@
 
       const item = allEquipment.find(i => i.id == equipmentId);
 
-      await _supabase.from('borrow_records').insert([{
-        equipment_id: equipmentId,
-        borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`,
-        expected_return_date: returnDate,
-        note: note
-      }]);
-
+      await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`, expected_return_date: returnDate, note: note }]);
       await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
 
       sendGoogleChatNotification({
@@ -961,38 +888,46 @@
 
     function renderInventoryTable(items) {
       const tbody = document.getElementById('table-inventory');
-      tbody.innerHTML = items.map(item => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
-          <td class="p-3 font-medium text-slate-800">${item.name}</td>
-          <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
-          <td class="p-3">${item.brand || ''} ${item.model || ''}</td>
-          <td class="p-3 font-mono text-xs">${item.serial_number || '-'}</td>
-          <td class="p-3">${item.location || '-'}</td>
-          <td class="p-3">
-            ${item.status === 'AVAILABLE' 
-              ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมยืม</span>'
-              : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}
-          </td>
-          <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
-            <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
-            <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = items.map(item => {
+        const usageBadge = (item.usage_type === 'EVENT') 
+          ? '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 กิจกรรม</span>'
+          : (item.usage_type === 'BORROW') 
+            ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ยืม-คืน</span>'
+            : '<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ทั้งคู่</span>';
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
+            <td class="p-3 font-medium text-slate-800">${item.name}</td>
+            <td class="p-3">${usageBadge}</td>
+            <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
+            <td class="p-3">${item.brand || ''} ${item.model || ''}</td>
+            <td class="p-3">${item.location || '-'}</td>
+            <td class="p-3">
+              ${item.status === 'AVAILABLE' 
+                ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>'
+                : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}
+            </td>
+            <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
+              <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
+              <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function filterInventory() {
       const q = document.getElementById('search-inventory').value.toLowerCase();
-      const deptFilter = document.getElementById('inventory-dept-filter').value;
+      const typeFilter = document.getElementById('inventory-type-filter').value;
       
       let filtered = allEquipment.filter(i => 
         i.name.toLowerCase().includes(q) ||
         i.asset_label.toLowerCase().includes(q)
       );
 
-      if (deptFilter !== 'ALL') {
-        filtered = filtered.filter(i => (i.department || 'IT') === deptFilter);
+      if (typeFilter !== 'ALL') {
+        filtered = filtered.filter(i => (i.usage_type || 'BOTH') === typeFilter || (i.usage_type || 'BOTH') === 'BOTH');
       }
 
       renderInventoryTable(filtered);
@@ -1009,9 +944,8 @@
           }
         }]
       };
-      try {
-        await fetch(GOOGLE_CHAT_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      } catch (err) { console.error('Chat err:', err); }
+      try { await fetch(GOOGLE_CHAT_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
+      catch (err) { console.error('Chat err:', err); }
     }
 
     function toggleScanner() {
