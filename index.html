@@ -154,8 +154,14 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-5 space-y-4">
-          <h2 class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
+          <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+            <h2 id="form-event-title" class="text-lg font-bold text-slate-800">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
+            <button id="btn-cancel-edit-event" onclick="resetEventForm()" class="hidden text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-lg">ยกเลิกการแก้ไข</button>
+          </div>
+
           <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-3">
+            <input type="hidden" id="event-id">
+
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">ส่วนงานที่รับผิดชอบหลัก *</label>
               <select id="event-dept-select" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-bold text-indigo-900">
@@ -220,7 +226,7 @@
               <textarea id="event-remarks" rows="2" placeholder="เช่น ขอปลั๊กสามตาเพิ่ม 2 จุด, ตั้งเวทีฝั่งขวา" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
             </div>
 
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน</button>
+            <button type="submit" id="btn-submit-event" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน</button>
           </form>
         </div>
 
@@ -275,6 +281,13 @@
               <option value="BORROW">📱 อุปกรณ์สำหรับยืม-คืน รายวัน เท่านั้น</option>
               <option value="EVENT">🎪 อุปกรณ์สำหรับจัดงานกิจกรรม (Event Asset) เท่านั้น</option>
               <option value="BOTH">🔄 ใช้ได้ทั้ง ยืม-คืน และ จัดงานกิจกรรม</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs text-emerald-400 font-bold mb-1">⚡ สถานะสต็อกอุปกรณ์ (พร้อมใช้งาน/ส่งซ่อม) *</label>
+            <select id="eq-status" required class="w-full p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 text-sm font-bold outline-none">
+              <option value="AVAILABLE">🟢 พร้อมใช้งานปกติ (Available)</option>
+              <option value="UNAVAILABLE">🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม (Unavailable)</option>
             </select>
           </div>
           <div><label class="block text-xs text-slate-300 mb-1">ยี่ห้อ / รุ่น</label><input type="text" id="eq-brand" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
@@ -354,9 +367,12 @@
       </div>
 
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-        <div>
-          <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden px-4 py-2 text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition">
-            🗑️ ยกเลิกคิวงาน (Admin Only)
+        <div class="flex gap-2">
+          <button id="btn-edit-event" onclick="editEventFromModal()" class="admin-col hidden px-3.5 py-2 text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl transition">
+            ✏️ แก้ไขคิวงาน (Admin)
+          </button>
+          <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden px-3.5 py-2 text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition">
+            🗑️ ยกเลิกคิวงาน (Admin)
           </button>
         </div>
         <div class="flex gap-2">
@@ -459,7 +475,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
     const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
     const MASTER_KEY = 'DENLA2026';
-    const SESSION_DURATION_MINUTES = 60; // 60 นาที
+    const SESSION_DURATION_MINUTES = 60;
 
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let allEquipment = [];
@@ -478,8 +494,8 @@
       await loadActiveBorrows();
       await fetchAllEquipment();
       initCalendar();
-      checkAdminSession(); // ตรวจสอบเซสชันการล็อกอินเมื่อกดรีเฟรชหน้าเว็บ
-      setupActivityListeners(); // ติดตั้งตัวตรวจจับการใช้งานเพื่อต่ออายุเซสชัน
+      checkAdminSession();
+      setupActivityListeners();
     });
 
     function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
@@ -490,20 +506,17 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // ==================== ADMIN SESSION PERSISTENCE & AUTO LOGOUT ====================
     function checkAdminSession() {
       const storedSession = localStorage.getItem('denla_admin_session');
       if (storedSession) {
         try {
           const sessionData = JSON.parse(storedSession);
-          const now = new Date().getTime();
-          
-          if (now < sessionData.expiry) {
+          if (new Date().getTime() < sessionData.expiry) {
             currentAdmin = sessionData.admin;
-            setAdminState(true, false); // ล็อกอินคงเดิม ไม่ต้องแจ้ง alert
-            refreshAdminSession(); // อัปเดตเวลาให้เป็น 60 นาทีถัดไป
+            setAdminState(true, false);
+            refreshAdminSession();
           } else {
-            logoutAdmin(true); // หมดเวลา 60 นาทีแล้วให้ออโต้ logout
+            logoutAdmin(true);
           }
         } catch (e) {
           localStorage.removeItem('denla_admin_session');
@@ -513,38 +526,28 @@
 
     function refreshAdminSession() {
       if (!currentAdmin) return;
-      const now = new Date().getTime();
-      const expiryTime = now + (SESSION_DURATION_MINUTES * 60 * 1000); // 60 นาที
-      const sessionData = {
-        admin: currentAdmin,
-        expiry: expiryTime
-      };
-      localStorage.setItem('denla_admin_session', JSON.stringify(sessionData));
+      const expiryTime = new Date().getTime() + (SESSION_DURATION_MINUTES * 60 * 1000);
+      localStorage.setItem('denla_admin_session', JSON.stringify({ admin: currentAdmin, expiry: expiryTime }));
     }
 
     function setupActivityListeners() {
-      // ต่อเวลาเซสชันทุกครั้งเมื่อมีการขยับเมาส์ พิมพ์ หรือคลิกในระบบ
       ['click', 'mousemove', 'keydown', 'scroll'].forEach(evt => {
         window.addEventListener(evt, () => {
           if (currentAdmin) refreshAdminSession();
         }, { passive: true });
       });
 
-      // ตรวจสอบการหมดเวลาทุกๆ 1 นาที
       setInterval(() => {
         const storedSession = localStorage.getItem('denla_admin_session');
         if (storedSession) {
           const sessionData = JSON.parse(storedSession);
-          if (new Date().getTime() > sessionData.expiry) {
-            logoutAdmin(true);
-          }
+          if (new Date().getTime() > sessionData.expiry) logoutAdmin(true);
         }
       }, 60000);
     }
 
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
-      
       const d = new Date(dateInput);
       if (isNaN(d.getTime())) {
         let str = String(dateInput);
@@ -569,6 +572,21 @@
     function formatLocalToISO(dateTimeLocalStr) {
       if (!dateTimeLocalStr) return null;
       return `${dateTimeLocalStr}:00+07:00`;
+    }
+
+    // Convert ISO/DB Timestamp to Input HTML Format (YYYY-MM-DDTHH:mm)
+    function isoToDatetimeLocal(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return isoStr.substring(0, 16).replace(' ', 'T');
+      
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
     async function fetchAllAdmins() {
@@ -656,7 +674,7 @@
 
     function setAdminState(isLoggedIn, showNotify = true) {
       if (isLoggedIn) {
-        refreshAdminSession(); // บันทึกลง LocalStorage
+        refreshAdminSession();
         document.getElementById('admin-banner').classList.remove('hidden');
         document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name} (${currentAdmin.nickname || '-'})</b> [สังกัด: <b>${currentAdmin.department || 'IT'}</b>]`;
         document.getElementById('btn-admin-login').classList.add('hidden');
@@ -707,8 +725,10 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
+    // EVENT CREATE & UPDATE LOGIC (Support Admin Editing)
     async function handleEventSubmit(e) {
       e.preventDefault();
+      const rawEventId = document.getElementById('event-id').value;
       const dept = document.getElementById('event-dept-select').value;
       const title = document.getElementById('event-title').value;
       const mainHost = document.getElementById('event-main-host').value;
@@ -738,7 +758,7 @@
       const isoStart = formatLocalToISO(startVal);
       const isoEnd = formatLocalToISO(endVal);
 
-      const { error } = await _supabase.from('event_queue').insert([{
+      const payload = {
         department: dept, 
         event_title: title, 
         main_host: mainHost,
@@ -749,12 +769,24 @@
         organizer: tagDisplayStr, 
         details: detailsPayload,
         remarks: remarks
-      }]);
+      };
 
-      if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
+      let error = null;
+      if (rawEventId && rawEventId !== '') {
+        // UPDATE EVENT
+        const evId = parseInt(rawEventId, 10);
+        const res = await _supabase.from('event_queue').update(payload).eq('id', evId);
+        error = res.error;
+      } else {
+        // INSERT EVENT
+        const res = await _supabase.from('event_queue').insert([payload]);
+        error = res.error;
+      }
+
+      if (error) { alert('เกิดข้อผิดพลาดในการบันทึกคิวงาน: ' + error.message); return; }
 
       sendGoogleChatNotification({
-        title: `📅 มอบหมายคิวงาน [เรียนฝ่าย: ${dept}]`,
+        title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [ฝ่าย: ${dept}]` : `📅 มอบหมายคิวงาน [เรียนฝ่าย: ${dept}]`,
         details: [
           `<b>ชื่อกิจกรรม:</b> ${title}`,
           `<b>👤 แม่งานผู้รับผิดชอบหลัก:</b> ${mainHost}`,
@@ -767,11 +799,53 @@
         ]
       });
 
-      alert('✅ บันทึกคิวงานเรียบร้อย!');
-      document.getElementById('form-event').reset();
+      alert(rawEventId ? '✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!' : '✅ บันทึกคิวงานเรียบร้อย!');
+      resetEventForm();
+      if (calendar) calendar.refetchEvents();
+    }
+
+    function editEventFromModal() {
+      if (!currentAdmin || !selectedEventForPrint) return;
+
+      document.getElementById('event-id').value = selectedEventForPrint.eventId;
+      document.getElementById('event-dept-select').value = selectedEventForPrint.dept || 'IT';
+      document.getElementById('event-title').value = selectedEventForPrint.title || '';
+      document.getElementById('event-main-host').value = selectedEventForPrint.mainHost || '';
+      document.getElementById('event-location').value = selectedEventForPrint.location || '';
+      document.getElementById('event-start').value = isoToDatetimeLocal(selectedEventForPrint.rawStart);
+      document.getElementById('event-end').value = isoToDatetimeLocal(selectedEventForPrint.rawEnd);
+      document.getElementById('event-remarks').value = selectedEventForPrint.remarks || '';
+
+      // Check Equipments
       clearAllTags();
       document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
-      if (calendar) calendar.refetchEvents();
+
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
+        const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split(',');
+        ids.forEach(id => {
+          const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`);
+          if (cb) cb.checked = true;
+        });
+      }
+
+      document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] แก้ไขคิวงาน (ID: ${selectedEventForPrint.eventId})`;
+      document.getElementById('btn-submit-event').innerHTML = '💾 ยืนยันการอัปเดตคิวงาน';
+      document.getElementById('btn-submit-event').className = 'w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition';
+      document.getElementById('btn-cancel-edit-event').classList.remove('hidden');
+
+      closeModals();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetEventForm() {
+      document.getElementById('form-event').reset();
+      document.getElementById('event-id').value = '';
+      clearAllTags();
+      document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      document.getElementById('form-event-title').innerHTML = '➕ ลงคิวงาน / กิจกรรมใหม่';
+      document.getElementById('btn-submit-event').innerHTML = '📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน';
+      document.getElementById('btn-submit-event').className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition';
+      document.getElementById('btn-cancel-edit-event').classList.add('hidden');
     }
 
     async function cancelEvent() {
@@ -807,6 +881,7 @@
       renderEventEquipmentAccordion();
     }
 
+    // ACCORDION EVENT EQUIPMENT: Hide / Disable Unavailable Items
     function renderEventEquipmentAccordion() {
       const container = document.getElementById('event-equipment-accordion');
       const depts = { 'AV': '🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)', 'IT': '💻 ฝ่ายไอที (IT)', 'MEDIA': '📷 ฝ่ายช่างภาพ/สื่อ (Media)' };
@@ -825,11 +900,14 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">
           `;
           items.forEach(item => {
+            const isUnavailable = (item.status === 'UNAVAILABLE');
             const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
+            const statusLabel = isUnavailable ? ' <span class="text-rose-500 font-bold">[🔴 ไม่พร้อมใช้งาน/ส่งซ่อม]</span>' : '';
+            
             html += `
-              <label class="flex items-center gap-1.5 cursor-pointer hover:text-indigo-600">
-                <input type="checkbox" name="event-eq-item" value="${item.id}" class="rounded text-indigo-600 focus:ring-0">
-                <span>[${item.asset_label}] ${item.name} ${brandStr}</span>
+              <label class="flex items-center gap-1.5 ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}">
+                <input type="checkbox" name="event-eq-item" value="${item.id}" ${isUnavailable ? 'disabled' : ''} class="rounded text-indigo-600 focus:ring-0">
+                <span>[${item.asset_label}] ${item.name} ${brandStr}${statusLabel}</span>
               </label>
             `;
           });
@@ -839,12 +917,15 @@
       container.innerHTML = html || '<p class="text-slate-400 text-center">ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ</p>';
     }
 
+    // BORROW DROPDOWN: Filter Out Unavailable Stock
     function renderEquipmentDropdown() {
       const deptFilter = document.getElementById('borrow-dept-filter').value;
       const select = document.getElementById('borrow-asset-select');
       select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
       
       let filtered = allEquipment.filter(item => {
+        if (item.status === 'UNAVAILABLE') return false; // ไม่ให้เลือกถ้าไม่พร้อมใช้งาน
+        
         const totalQty = item.quantity || 1;
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
         const availableQty = totalQty - borrowedCount;
@@ -895,10 +976,10 @@
         quantity: parseInt(document.getElementById('eq-quantity').value || 1, 10),
         department: document.getElementById('eq-dept').value,
         usage_type: document.getElementById('eq-usage-type').value,
+        status: document.getElementById('eq-status').value, // AVAILABLE or UNAVAILABLE
         brand: document.getElementById('eq-brand').value || '',
         serial_number: document.getElementById('eq-serial').value || '',
-        location: document.getElementById('eq-location').value || '',
-        status: 'AVAILABLE'
+        location: document.getElementById('eq-location').value || ''
       };
 
       let error = null;
@@ -935,6 +1016,7 @@
       document.getElementById('eq-quantity').value = item.quantity || 1;
       document.getElementById('eq-dept').value = item.department || 'IT';
       document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
+      document.getElementById('eq-status').value = item.status || 'AVAILABLE';
       document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : '';
       document.getElementById('eq-serial').value = item.serial_number || '';
       document.getElementById('eq-location').value = item.location || '';
@@ -953,6 +1035,7 @@
       document.getElementById('form-equipment').reset();
       document.getElementById('eq-id').value = '';
       document.getElementById('eq-quantity').value = 1;
+      document.getElementById('eq-status').value = 'AVAILABLE';
       document.getElementById('form-equipment-title').innerHTML = '🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่';
       document.getElementById('btn-save-equipment').innerHTML = '💾 บันทึกข้อมูลอุปกรณ์';
       document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
@@ -1016,6 +1099,8 @@
         organizer: props.organizer,
         start: formatThaiDateTime(props.rawStart || eventObj.start),
         end: formatThaiDateTime(props.rawEnd || eventObj.end),
+        rawStart: props.rawStart,
+        rawEnd: props.rawEnd,
         details: props.details,
         remarks: props.remarks
       };
@@ -1041,10 +1126,14 @@
       } else eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`;
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
 
+      const editBtn = document.getElementById('btn-edit-event');
       const cancelBtn = document.getElementById('btn-cancel-event');
-      if (cancelBtn) {
-        if (currentAdmin) cancelBtn.classList.remove('hidden');
-        else cancelBtn.classList.add('hidden');
+      if (currentAdmin) {
+        if (editBtn) editBtn.classList.remove('hidden');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+      } else {
+        if (editBtn) editBtn.classList.add('hidden');
+        if (cancelBtn) cancelBtn.classList.add('hidden');
       }
 
       document.getElementById('modal-event-detail').classList.remove('hidden');
@@ -1108,10 +1197,6 @@
       }
 
       await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`, expected_return_date: returnDate, note: note }]);
-      
-      if (availableQty - 1 <= 0) {
-        await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
-      }
 
       sendGoogleChatNotification({
         title: `📦 มีรายการยืมอุปกรณ์ใหม่ [ถึงฝ่าย ${item.department || 'IT'}]`,
@@ -1161,7 +1246,6 @@
       if (!confirm(`ยืนยันรับคืนอุปกรณ์โดย Admin: ${currentAdmin.full_name} ?`)) return;
 
       await _supabase.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString() }).eq('id', recordId);
-      await _supabase.from('equipment').update({ status: 'AVAILABLE' }).eq('id', equipmentId);
       alert('✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
       await fetchAllEquipment();
       await loadActiveBorrows();
@@ -1177,11 +1261,14 @@
         const usageBadge = (item.usage_type === 'EVENT') ? '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 กิจกรรม</span>' : (item.usage_type === 'BORROW') ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ยืม-คืน</span>' : '<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ทั้งคู่</span>';
         const brandDisplay = (item.brand && item.brand !== 'undefined') ? item.brand : '';
         
-        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">พร้อมใช้งาน (${availableQty}/${totalQty})</span>`;
-        if (availableQty <= 0) {
-          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">ถูกยืมหมดแล้ว (0/${totalQty})</span>`;
+        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 พร้อมใช้งาน (${availableQty}/${totalQty})</span>`;
+        
+        if (item.status === 'UNAVAILABLE') {
+          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม</span>`;
+        } else if (availableQty <= 0) {
+          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ถูกยืมหมดแล้ว (0/${totalQty})</span>`;
         } else if (availableQty < totalQty) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">คงเหลือ ${availableQty}/${totalQty} ชิ้น</span>`;
+          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 คงเหลือ ${availableQty}/${totalQty} ชิ้น</span>`;
         }
 
         return `
@@ -1189,7 +1276,7 @@
             <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
             <td class="p-3 font-medium text-slate-800">${item.name}</td>
             <td class="p-3 text-center font-bold text-slate-700">${totalQty}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${availableQty}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.status === 'UNAVAILABLE' ? 0 : availableQty}</td>
             <td class="p-3">${usageBadge}</td>
             <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
             <td class="p-3">${brandDisplay} ${item.model || ''}</td>
