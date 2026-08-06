@@ -211,7 +211,6 @@
               </div>
             </div>
 
-            <!-- NEW FIELD: Remarks / Extra Details -->
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุ / รายละเอียดเพิ่มเติม</label>
               <textarea id="event-remarks" rows="2" placeholder="เช่น ขอปลั๊กสามตาเพิ่ม 2 จุด, ตั้งเวทีฝั่งขวา" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
@@ -241,18 +240,18 @@
     <section id="sec-inventory" class="space-y-6 hidden admin-col">
       <div id="admin-equipment-form" class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่ม / แก้ไขรายการอุปกรณ์</h2>
-          <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg">ล้างฟอร์ม</button>
+          <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</h2>
+          <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg">ล้างฟอร์ม / เพิ่มใหม่</button>
         </div>
         <form id="form-equipment" onsubmit="handleEquipmentSave(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <input type="hidden" id="eq-id">
           <div>
             <label class="block text-xs text-slate-300 mb-1">ลาเบล/รหัสอุปกรณ์ *</label>
-            <input type="text" id="eq-label" required placeholder="เช่น DENLA-AV-001" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
+            <input type="text" id="eq-label" required placeholder="เช่น DENLA-AV-001" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none focus:border-amber-400">
           </div>
           <div>
             <label class="block text-xs text-slate-300 mb-1">ชื่ออุปกรณ์ *</label>
-            <input type="text" id="eq-name" required placeholder="เช่น ชุดตู้ลำโพงหอประชุม" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
+            <input type="text" id="eq-name" required placeholder="เช่น ชุดตู้ลำโพงหอประชุม" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none focus:border-amber-400">
           </div>
           <div>
             <label class="block text-xs text-slate-300 mb-1">ฝ่ายที่ดูแล *</label>
@@ -274,7 +273,7 @@
           <div><label class="block text-xs text-slate-300 mb-1">Serial Number</label><input type="text" id="eq-serial" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
           <div><label class="block text-xs text-slate-300 mb-1">สถานที่เก็บ</label><input type="text" id="eq-location" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
           <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">💾 บันทึกข้อมูลอุปกรณ์</button>
+            <button type="submit" id="btn-save-equipment" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">💾 บันทึกข้อมูลอุปกรณ์</button>
           </div>
         </form>
       </div>
@@ -477,7 +476,6 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // Helper: Format DateTime Output (Thai Locale Correct Timezone)
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       const d = new Date(dateInput);
@@ -624,7 +622,6 @@
       const endVal = document.getElementById('event-end').value;
       const remarks = document.getElementById('event-remarks').value;
 
-      // Get Selected Admin Tags
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
       const selectedAdmins = Array.from(checkedTags).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
 
@@ -634,7 +631,6 @@
       const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
       const chatMentionStr = chatMentionList.join(', ') || '-';
 
-      // Checked Equipment
       const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked');
       const selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value);
       const selectedEqNames = Array.from(checkedBoxes).map(cb => {
@@ -771,38 +767,62 @@
       preview.classList.remove('hidden');
     }
 
+    // FIXED: Equipment Update Logic
     async function handleEquipmentSave(e) {
       e.preventDefault();
       if (!currentAdmin) return;
-      const id = document.getElementById('eq-id').value;
+
+      const rawId = document.getElementById('eq-id').value;
       const payload = {
         asset_label: document.getElementById('eq-label').value,
         name: document.getElementById('eq-name').value,
         department: document.getElementById('eq-dept').value,
         usage_type: document.getElementById('eq-usage-type').value,
-        brand: document.getElementById('eq-brand').value,
-        serial_number: document.getElementById('eq-serial').value,
-        location: document.getElementById('eq-location').value,
+        brand: document.getElementById('eq-brand').value || '',
+        serial_number: document.getElementById('eq-serial').value || '',
+        location: document.getElementById('eq-location').value || '',
         status: 'AVAILABLE'
       };
-      if (id) await _supabase.from('equipment').update(payload).eq('id', id);
-      else await _supabase.from('equipment').insert([payload]);
+
+      let error = null;
+      if (rawId && rawId !== '') {
+        // UPDATE Existing Item (Ensure BigInt/Number cast)
+        const eqId = parseInt(rawId, 10);
+        const res = await _supabase.from('equipment').update(payload).eq('id', eqId);
+        error = res.error;
+      } else {
+        // INSERT New Item
+        const res = await _supabase.from('equipment').insert([payload]);
+        error = res.error;
+      }
+
+      if (error) {
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+        return;
+      }
+
+      alert('✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!');
       resetEquipmentForm();
       await fetchAllEquipment();
-      alert('✅ บันทึกข้อมูลเรียบร้อย!');
     }
 
     function editEquipment(id) {
       const item = allEquipment.find(i => i.id == id);
       if (!item) return;
+
+      document.getElementById('form-equipment-title').innerHTML = `✏️ [Admin Zone] แก้ไขรายการอุปกรณ์ (ID: ${item.id})`;
+      document.getElementById('btn-save-equipment').innerHTML = '💾 ยืนยันการอัปเดตข้อมูล';
+      document.getElementById('btn-save-equipment').className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
+
       document.getElementById('eq-id').value = item.id;
-      document.getElementById('eq-label').value = item.asset_label;
-      document.getElementById('eq-name').value = item.name;
+      document.getElementById('eq-label').value = item.asset_label || '';
+      document.getElementById('eq-name').value = item.name || '';
       document.getElementById('eq-dept').value = item.department || 'IT';
       document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
       document.getElementById('eq-brand').value = item.brand || '';
       document.getElementById('eq-serial').value = item.serial_number || '';
       document.getElementById('eq-location').value = item.location || '';
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -813,7 +833,13 @@
       await fetchAllEquipment();
     }
 
-    function resetEquipmentForm() { document.getElementById('form-equipment').reset(); document.getElementById('eq-id').value = ''; }
+    function resetEquipmentForm() {
+      document.getElementById('form-equipment').reset();
+      document.getElementById('eq-id').value = '';
+      document.getElementById('form-equipment-title').innerHTML = '🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่';
+      document.getElementById('btn-save-equipment').innerHTML = '💾 บันทึกข้อมูลอุปกรณ์';
+      document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
+    }
 
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
