@@ -17,7 +17,6 @@
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
     
-    /* Force 24-Hour Input Visuals */
     input[type="datetime-local"]::-webkit-datetime-edit-ampm-field {
       display: none !important;
     }
@@ -183,12 +182,12 @@
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (ระบบ 24 ชม. เช่น 08:00, 13:00)</label>
-                <input type="datetime-local" id="event-start" required step="60" class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (ระบบ 24 ชม.)</label>
+                <input type="datetime-local" id="event-start" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (ระบบ 24 ชม. เช่น 12:00, 16:30)</label>
-                <input type="datetime-local" id="event-end" required step="60" class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (ระบบ 24 ชม.)</label>
+                <input type="datetime-local" id="event-end" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
               </div>
             </div>
 
@@ -480,39 +479,38 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // STRICT THAI TIME 24-HOUR FORMATTER
+    // STRICT TIME FORMATTER (Direct String Parsing to Prevent Timezone Offsets)
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       let str = String(dateInput);
+      
       let yearBE, month, day, hour, minute;
 
       if (str.includes('T')) {
         const parts = str.split('T');
         const dateParts = parts[0].split('-');
-        const timeParts = parts[1].split(':');
+        const timeParts = parts[1].substring(0, 5).split(':');
         
         yearBE = parseInt(dateParts[0], 10) + 543;
         month = parseInt(dateParts[1], 10);
         day = parseInt(dateParts[2], 10);
         hour = timeParts[0];
-        minute = timeParts[1].substring(0, 2);
+        minute = timeParts[1];
+      } else if (str.includes(' ')) {
+        const parts = str.split(' ');
+        const dateParts = parts[0].split('-');
+        const timeParts = parts[1].substring(0, 5).split(':');
+
+        yearBE = parseInt(dateParts[0], 10) + 543;
+        month = parseInt(dateParts[1], 10);
+        day = parseInt(dateParts[2], 10);
+        hour = timeParts[0];
+        minute = timeParts[1];
       } else {
-        const d = new Date(dateInput);
-        if (isNaN(d.getTime())) return dateInput;
-        day = d.getDate();
-        month = d.getMonth() + 1;
-        yearBE = d.getFullYear() + 543;
-        hour = String(d.getHours()).padStart(2, '0');
-        minute = String(d.getMinutes()).padStart(2, '0');
+        return str;
       }
 
       return `${day}/${month}/${yearBE} ${hour}.${minute} น.`;
-    }
-
-    // Preserve Exact 24h Local Input
-    function formatLocalToISO(dateTimeLocalStr) {
-      if (!dateTimeLocalStr) return null;
-      return `${dateTimeLocalStr}:00+07:00`;
     }
 
     async function fetchAllAdmins() {
@@ -647,8 +645,8 @@
       const title = document.getElementById('event-title').value;
       const mainHost = document.getElementById('event-main-host').value;
       const location = document.getElementById('event-location').value;
-      const startVal = document.getElementById('event-start').value;
-      const endVal = document.getElementById('event-end').value;
+      const startVal = document.getElementById('event-start').value; // e.g. "2026-08-06T16:00"
+      const endVal = document.getElementById('event-end').value;     // e.g. "2026-08-06T16:20"
       const remarks = document.getElementById('event-remarks').value;
 
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
@@ -669,16 +667,17 @@
 
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
-      const isoStart = formatLocalToISO(startVal);
-      const isoEnd = formatLocalToISO(endVal);
+      // Store EXACT raw String Representation (Prevent Date Object Timezone Mutation)
+      const formattedStart = startVal.replace('T', ' ');
+      const formattedEnd = endVal.replace('T', ' ');
 
       const { error } = await _supabase.from('event_queue').insert([{
         department: dept, 
         event_title: title, 
         main_host: mainHost,
         location: location, 
-        start_time: isoStart, 
-        end_time: isoEnd, 
+        start_time: formattedStart, 
+        end_time: formattedEnd, 
         event_date: startVal.split('T')[0], 
         organizer: tagDisplayStr, 
         details: detailsPayload,
@@ -875,12 +874,6 @@
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'th',
-        eventTimeFormat: {
-          hour: '2-digit',
-          minute: '2-digit',
-          meridiem: false,
-          hour12: false
-        },
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
         events: fetchCalendarEvents,
@@ -925,8 +918,8 @@
         mainHost: props.mainHost,
         location: props.location,
         organizer: props.organizer,
-        start: formatThaiDateTime(props.rawStart || eventObj.start),
-        end: formatThaiDateTime(props.rawEnd || eventObj.end),
+        start: formatThaiDateTime(props.rawStart),
+        end: formatThaiDateTime(props.rawEnd),
         details: props.details,
         remarks: props.remarks
       };
@@ -1077,7 +1070,7 @@
             <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
             <td class="p-3">${brandDisplay} ${item.model || ''}</td>
             <td class="p-3">${item.location || '-'}</td>
-            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
+            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
             <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
               <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
               <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
