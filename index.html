@@ -3,58 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบยืม-คืนอุปกรณ์ IT & ลงคิวงานกิจกรรม</title>
-  <!-- Tailwind CSS & Lucide Icons -->
+  <title>ระบบยืม-คืนอุปกรณ์ IT & ลงคิวงานกิจกรรม - เด่นหล้า</title>
+  
+  <!-- Tailwind CSS & Libraries -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  
+  <!-- FullCalendar CSS & JS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Sarabun', sans-serif; }
+    .fc-event { cursor: pointer; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
 
-  <!-- Config Check Notice -->
-  <div id="config-warning" class="hidden bg-amber-500 text-white text-center py-2 px-4 font-semibold text-sm">
-    ⚠️ กรุณาตั้งค่า https://hfslkxzkuewrkbdfdqem.supabase.co/rest/v1/, sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino และ https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M ในไฟล์โค้ดก่อนเริ่มต้นใช้งาน
-  </div>
-
- 
-<!-- Header Navigation -->
+  <!-- Header Navigation -->
   <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-40">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
       <div class="flex items-center space-x-3">
-        <!-- ใส่โลโก้ Denla แทนไอคอนกล่อง -->
         <div class="bg-white p-1 rounded-full shadow-md flex items-center justify-center">
           <img src="logo.png" alt="Denla Logo" class="h-10 w-10 object-contain">
         </div>
         <div>
-          <h1 class="text-xl font-bold">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
-          <p class="text-xs text-indigo-200">Denla IT Management System</p>
+          <h1 class="text-xl font-bold">ระบบจัดการอุปกรณ์ IT & คิวงาน (QWP-AVS-001)</h1>
+          <p class="text-xs text-indigo-200">Denla IT, AV, Media & Facility Management</p>
         </div>
       </div>
+      
       <!-- Tab Controls -->
-      <nav class="flex space-x-1 bg-indigo-800/60 p-1 rounded-xl">
-        <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-white text-indigo-700 shadow">
+      <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
+        <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition bg-white text-indigo-700 shadow">
           📱 ยืม-คืนอุปกรณ์
         </button>
-        <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-indigo-100 hover:text-white">
-          📅 จองคิวงาน/กิจกรรม
+        <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition text-indigo-100 hover:text-white">
+          📅 คิวงาน/กิจกรรม (ปฏิทิน)
         </button>
-        <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-indigo-100 hover:text-white">
-          🖥️ รายการอุปกรณ์ (37)
+        <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-3 py-2 rounded-lg text-sm font-medium transition text-indigo-100 hover:text-white">
+          🖥️ คลังอุปกรณ์แยกแผนก
         </button>
       </nav>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 mt-6">
+  <main class="max-w-7xl mx-auto px-4 mt-6">
 
     <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ ==================== -->
     <section id="sec-borrow" class="space-y-6">
-      
-      <!-- Scan & Form Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         <!-- Quick Scan / Select Item -->
@@ -63,7 +61,6 @@
             🔍 1. เลือกอุปกรณ์ที่ต้องการยืม
           </h2>
           
-          <!-- Scanner Toggle -->
           <div class="mb-4">
             <button onclick="toggleScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition">
               📷 เปิด/ปิด สแกน QR Code จากกล้อง
@@ -72,18 +69,30 @@
           </div>
 
           <!-- Dropdown Select -->
-          <div>
-            <label class="block text-sm font-medium text-slate-600 mb-1">หรือเลือกจากรายการอุปกรณ์</label>
-            <select id="borrow-asset-select" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
-              <option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>
-            </select>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">เลือกหมวดหมู่แผนก</label>
+              <select id="borrow-dept-filter" onchange="renderEquipmentDropdown()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none">
+                <option value="ALL">-- ทุกแผนก --</option>
+                <option value="IT">💻 ฝ่ายไอที (IT)</option>
+                <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+                <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">เลือกรายการอุปกรณ์</label>
+              <select id="borrow-asset-select" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>
+              </select>
+            </div>
           </div>
 
           <!-- Preview Equipment Info -->
           <div id="equipment-preview" class="mt-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 text-sm space-y-1 hidden">
             <p><span class="font-bold text-indigo-900">ชื่ออุปกรณ์:</span> <span id="prev-name">-</span></p>
             <p><span class="font-bold text-indigo-900">ลาเบล/รหัส:</span> <span id="prev-label" class="bg-indigo-200 px-2 py-0.5 rounded text-indigo-800 text-xs font-mono">-</span></p>
-            <p><span class="font-bold text-indigo-900">Serial No:</span> <span id="prev-serial">-</span></p>
+            <p><span class="font-bold text-indigo-900">แผนก:</span> <span id="prev-dept" class="font-medium text-indigo-700">-</span></p>
             <p><span class="font-bold text-indigo-900">สถานที่เก็บ:</span> <span id="prev-location">-</span></p>
           </div>
         </div>
@@ -96,28 +105,28 @@
           <form id="form-borrow" onsubmit="handleBorrowSubmit(event)" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อ-นามสกุล ผู้ยืม *</label>
-              <input type="text" id="borrower-name" required placeholder="เช่น อ.สมชาย ใจดี" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <input type="text" id="borrower-name" required placeholder="เช่น อ.สมชาย ใจดี" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">แผนก/ฝ่าย</label>
-              <input type="text" id="borrower-dept" placeholder="เช่น ฝ่ายโสตฯ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="block text-sm font-medium text-slate-600 mb-1">แผนก/ฝ่ายผู้ยืม</label>
+              <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
-              <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1">วัตถุประสงค์การใช้งาน</label>
-              <input type="text" id="borrow-note" placeholder="เช่น ใช้สอนห้อง ป.2/1" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <input type="text" id="borrow-note" placeholder="เช่น ใช้สอนห้อง ป.2/1" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <button type="submit" id="btn-borrow-submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md shadow-indigo-200 transition">
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition">
               🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat
             </button>
           </form>
         </div>
       </div>
 
-      <!-- Active Borrow Records Table -->
+      <!-- Active Borrow Table -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
           <span>🔄 รายการอุปกรณ์ที่กำลังถูกยืมอยู่</span>
@@ -143,63 +152,90 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: จองคิวงาน/กิจกรรม ==================== -->
+    <!-- ==================== TAB 2: คิวงาน/กิจกรรม (ปฏิทิน) ==================== -->
     <section id="sec-event" class="space-y-6 hidden">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Add Event Form -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 md:col-span-1">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
           <h2 class="text-lg font-bold text-slate-800 mb-4">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
-          <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-4">
+          <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">ส่วนงานที่รับผิดชอบหลัก *</label>
+              <select id="event-dept" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none">
+                <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+                <option value="IT">💻 ฝ่ายไอที (IT)</option>
+                <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+                <option value="ALL">🌐 รวมงานทุกแผนก (All Services)</option>
+              </select>
+            </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อกิจกรรม / งาน *</label>
-              <input type="text" id="event-title" required placeholder="เช่น ถ่ายทำวิดีโอวันแม่" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <input type="text" id="event-title" required placeholder="เช่น ถ่ายทำวิดีโอวันแม่" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1">สถานที่ *</label>
-              <input type="text" id="event-location" required placeholder="เช่น หอประชุมชั้น 5" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <input type="text" id="event-location" required placeholder="เช่น หอประชุมชั้น 5" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">เริ่มงาน *</label>
+                <input type="datetime-local" id="event-start" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">เสร็จงาน *</label>
+                <input type="datetime-local" id="event-end" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+              </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">วัน-เวลา จัดกิจกรรม *</label>
-              <input type="datetime-local" id="event-date" required class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="block text-sm font-medium text-slate-600 mb-1">ผู้รับผิดชอบ / แท็กชื่อคนเกี่ยวข้อง 🏷️</label>
+              <input type="text" id="event-organizer" required placeholder="เช่น @ช่างภาพA @ครูโสตB" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+              <p class="text-[11px] text-indigo-500 mt-1">* แท็กชื่อใส่ @ นำหน้าเพื่อเด้งเตือนเข้า Google Chat</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">ผู้รับผิดชอบ / ผู้ลงคิว *</label>
-              <input type="text" id="event-organizer" required placeholder="เช่น ครูโสตฯ" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+              <label class="block text-sm font-medium text-slate-600 mb-1">อุปกรณ์ที่ต้องจัดเตรียม</label>
+              <textarea id="event-details" rows="2" placeholder="เช่น ไมค์ Saramonic, กล้อง VDO 2 ตัว" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">อุปกรณ์ที่ต้องเตรียม</label>
-              <textarea id="event-details" rows="3" placeholder="เช่น ไมค์ไลฟ์สด Saramonic, กล้อง VDO 2 ตัว" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-            </div>
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md shadow-emerald-100 transition">
-              📅 บันทึกคิวงาน & แจ้งเตือน Google Chat
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">
+              📅 บันทึกคิวงาน & แท็กแจ้งเตือน Google Chat
             </button>
           </form>
         </div>
 
-        <!-- Event List -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 md:col-span-2">
-          <h2 class="text-lg font-bold text-slate-800 mb-4 flex justify-between items-center">
-            <span>📅 ตารางคิวงาน/กิจกรรมที่จะถึง</span>
-            <button onclick="loadEvents()" class="text-sm text-indigo-600 hover:underline">🔄 รีเฟรช</button>
-          </h2>
-          <div id="event-list-container" class="space-y-3">
-            <p class="text-center text-slate-400 py-6">กำลังโหลดตารางงาน...</p>
+        <!-- FullCalendar View -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+            <h2 class="text-lg font-bold text-slate-800">📅 ตารางปฏิทินงานกิจกรรม (Calendar)</h2>
+            <div class="flex gap-2 text-xs">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> โสตฯ</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> ไอที</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> ช่างภาพ</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-purple-500 inline-block"></span> ทุกแผนก</span>
+            </div>
           </div>
+          <div id="calendar" class="min-h-[500px]"></div>
         </div>
 
       </div>
     </section>
 
-    <!-- ==================== TAB 3: รายการอุปกรณ์ทั้งหมด ==================== -->
+    <!-- ==================== TAB 3: คลังอุปกรณ์แยกแผนก ==================== -->
     <section id="sec-inventory" class="space-y-6 hidden">
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
-            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์ IT ทั้งหมด (37 รายการ)</h2>
-            <p class="text-xs text-slate-500">ข้อมูลตั้งต้นจากไฟล์ระบบ</p>
+            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์ IT, AV & Media (จำแนกตามฝ่าย)</h2>
+            <p class="text-xs text-slate-500">จัดการข้อมูลอุปกรณ์แยกตามความรับผิดชอบ</p>
           </div>
-          <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาอุปกรณ์, ลาเบล, Serial..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm w-full md:w-72 focus:ring-2 focus:ring-indigo-500 outline-none">
+          <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <select id="inventory-dept-filter" onchange="filterInventory()" class="p-2.5 border border-slate-200 rounded-xl text-sm outline-none bg-slate-50">
+              <option value="ALL">ทุกหมวดหมู่แผนก</option>
+              <option value="IT">💻 ฝ่ายไอที (IT)</option>
+              <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+              <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+            </select>
+            <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาชื่อ, ลาเบล, Serial..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm outline-none">
+          </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -208,6 +244,7 @@
               <tr>
                 <th class="p-3">ลาเบล</th>
                 <th class="p-3">ชื่ออุปกรณ์</th>
+                <th class="p-3">ฝ่ายที่ดูแล</th>
                 <th class="p-3">ยี่ห้อ/รุ่น</th>
                 <th class="p-3">Serial Number</th>
                 <th class="p-3">สถานที่เก็บ</th>
@@ -215,7 +252,7 @@
               </tr>
             </thead>
             <tbody id="table-inventory" class="divide-y divide-slate-100">
-              <tr><td colspan="6" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
+              <tr><td colspan="7" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
             </tbody>
           </table>
         </div>
@@ -224,72 +261,74 @@
 
   </main>
 
-   <!-- JavaScript Logic -->
+  <!-- JavaScript Logic -->
   <script>
     // =========================================================
-    // ⚙️ 1. ตั้งค่าการเชื่อมต่อ (แก้ไข URL ให้ถูกต้องเรียบร้อยแล้ว)
+    // ⚙️ 1. Config & Supabase Init
     // =========================================================
     const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
     const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
 
-    // สร้าง Client สำหรับเชื่อมต่อ Supabase
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let allEquipment = [];
-    let html5QrcodeScanner = null;
+    let calendar = null;
 
     // =========================================================
-    // 🚀 2. Initial Loading & Tab Switching
+    // 🚀 2. Initial Setup
     // =========================================================
     document.addEventListener('DOMContentLoaded', async () => {
-      // กำหนดวันคืนเริ่มต้นเป็น 3 วันข้างหน้า
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 3);
       document.getElementById('return-date').value = futureDate.toISOString().split('T')[0];
 
       await fetchAllEquipment();
       await loadActiveBorrows();
-      await loadEvents();
+      initCalendar();
     });
 
     function switchTab(tabName) {
       ['borrow', 'event', 'inventory'].forEach(t => {
         document.getElementById(`sec-${t}`).classList.add('hidden');
         const btn = document.getElementById(`tab-${t}`);
-        btn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition text-indigo-100 hover:text-white';
+        btn.className = 'tab-btn px-3 py-2 rounded-lg text-sm font-medium transition text-indigo-100 hover:text-white';
       });
 
       document.getElementById(`sec-${tabName}`).classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-${tabName}`);
-      activeBtn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition bg-white text-indigo-700 shadow';
-    }
+      activeBtn.className = 'tab-btn px-3 py-2 rounded-lg text-sm font-medium transition bg-white text-indigo-700 shadow';
 
-    // =========================================================
-    // 📦 3. Equipment Fetching & Preview
-    // =========================================================
-    async function fetchAllEquipment() {
-      try {
-        const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
-        if (error) { console.error('Error fetching equipment:', error); return; }
-        
-        allEquipment = data || [];
-        renderEquipmentDropdown();
-        renderInventoryTable(allEquipment);
-      } catch (err) {
-        console.error('Unexpected error:', err);
+      if (tabName === 'event' && calendar) {
+        setTimeout(() => calendar.render(), 100);
       }
     }
 
+    // =========================================================
+    // 📦 3. Fetch Equipment & Filter
+    // =========================================================
+    async function fetchAllEquipment() {
+      const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
+      if (error) { console.error('Error:', error); return; }
+      
+      allEquipment = data || [];
+      renderEquipmentDropdown();
+      renderInventoryTable(allEquipment);
+    }
+
     function renderEquipmentDropdown() {
+      const deptFilter = document.getElementById('borrow-dept-filter').value;
       const select = document.getElementById('borrow-asset-select');
       select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
       
-      const availableItems = allEquipment.filter(item => item.status === 'AVAILABLE');
-      
-      availableItems.forEach(item => {
+      let filtered = allEquipment.filter(item => item.status === 'AVAILABLE');
+      if (deptFilter !== 'ALL') {
+        filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
+      }
+
+      filtered.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item.id;
-        opt.textContent = `[${item.asset_label}] ${item.name} ${item.brand || ''} ${item.model || ''}`;
+        opt.textContent = `[${item.asset_label}] ${item.name} (${item.department || 'IT'})`;
         select.appendChild(opt);
       });
 
@@ -301,40 +340,114 @@
       const preview = document.getElementById('equipment-preview');
       if (!item) { preview.classList.add('hidden'); return; }
 
-      document.getElementById('prev-name').textContent = `${item.name} ${item.brand || ''} ${item.model || ''}`;
+      document.getElementById('prev-name').textContent = `${item.name} ${item.brand || ''}`;
       document.getElementById('prev-label').textContent = item.asset_label;
-      document.getElementById('prev-serial').textContent = item.serial_number || '-';
+      document.getElementById('prev-dept').textContent = item.department || 'IT';
       document.getElementById('prev-location').textContent = item.location || '-';
       preview.classList.remove('hidden');
     }
 
     // =========================================================
-    // 📷 4. QR Code Scanner Logic
+    // 📅 4. FullCalendar Logic (Day/Week/Month)
     // =========================================================
-    function toggleScanner() {
-      const readerDiv = document.getElementById('reader');
-      if (readerDiv.classList.contains('hidden')) {
-        readerDiv.classList.remove('hidden');
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render((decodedText) => {
-          const matchedItem = allEquipment.find(i => i.asset_label.toLowerCase() === decodedText.toLowerCase());
-          if (matchedItem) {
-            document.getElementById('borrow-asset-select').value = matchedItem.id;
-            showEquipmentPreview(matchedItem.id);
-            alert(`✅ เจออุปกรณ์: ${matchedItem.name} [${matchedItem.asset_label}]`);
-            toggleScanner();
-          } else {
-            alert(`⚠️ ไม่พบอุปกรณ์รหัส: ${decodedText}`);
-          }
-        });
-      } else {
-        readerDiv.classList.add('hidden');
-        if (html5QrcodeScanner) html5QrcodeScanner.clear();
-      }
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+          today: 'วันนี้',
+          month: 'เดือน',
+          week: 'สัปดาห์',
+          day: 'วัน'
+        },
+        events: fetchCalendarEvents,
+        eventClick: function(info) {
+          const props = info.event.extendedProps;
+          alert(`📌 ${info.event.title}\n📍 สถานที่: ${props.location}\n⏰ เวลา: ${info.event.start.toLocaleString('th-TH')}\n🏷️ ผู้เกี่ยวข้อง: ${props.organizer}\n🛠️ อุปกรณ์: ${props.details || '-'}`);
+        }
+      });
+      calendar.render();
+    }
+
+    async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
+      const { data, error } = await _supabase.from('event_queue').select('*');
+      if (error) { failureCallback(error); return; }
+
+      const deptColors = {
+        'AV': '#ef4444',     // Red
+        'IT': '#3b82f6',     // Blue
+        'MEDIA': '#10b981',  // Green
+        'ALL': '#a855f7'     // Purple
+      };
+
+      const events = (data || []).map(ev => ({
+        id: ev.id,
+        title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
+        start: ev.start_time || ev.event_date,
+        end: ev.end_time || null,
+        backgroundColor: deptColors[ev.department] || '#6366f1',
+        borderColor: deptColors[ev.department] || '#6366f1',
+        extendedProps: {
+          location: ev.location,
+          organizer: ev.organizer,
+          details: ev.details
+        }
+      }));
+
+      successCallback(events);
     }
 
     // =========================================================
-    // 📝 5. Borrowing Logic & Google Chat Notification
+    // 📝 5. Submit Event & Tag Notification
+    // =========================================================
+    async function handleEventSubmit(e) {
+      e.preventDefault();
+      const dept = document.getElementById('event-dept').value;
+      const title = document.getElementById('event-title').value;
+      const location = document.getElementById('event-location').value;
+      const startVal = document.getElementById('event-start').value;
+      const endVal = document.getElementById('event-end').value;
+      const organizer = document.getElementById('event-organizer').value;
+      const details = document.getElementById('event-details').value;
+
+      const { error } = await _supabase.from('event_queue').insert([{
+        department: dept,
+        event_title: title,
+        location: location,
+        start_time: startVal,
+        end_time: endVal,
+        event_date: startVal,
+        organizer: organizer,
+        details: details
+      }]);
+
+      if (error) { alert('Error: ' + error.message); return; }
+
+      // ส่งแจ้งเตือน Google Chat พร้อม Tag
+      sendGoogleChatNotification({
+        title: `📅 คิวงานใหม่ [ฝ่าย: ${dept}]`,
+        details: [
+          `<b>ชื่อกิจกรรม:</b> ${title}`,
+          `<b>สถานที่:</b> ${location}`,
+          `<b>เวลาเริ่ม:</b> ${new Date(startVal).toLocaleString('th-TH')}`,
+          `<b>เวลาสิ้นสุด:</b> ${new Date(endVal).toLocaleString('th-TH')}`,
+          `<b>🏷️ แท็กผู้รับผิดชอบ:</b> <font color="#ef4444">${organizer}</font>`,
+          `<b>🛠️ อุปกรณ์ที่ต้องเตรียม:</b> ${details || '-'}`
+        ]
+      });
+
+      alert('✅ บันทึกคิวงานและแจ้งเตือนเข้า Google Chat เรียบร้อย!');
+      document.getElementById('form-event').reset();
+      if (calendar) calendar.refetchEvents();
+    }
+
+    // =========================================================
+    // 📝 6. Borrow & Return Handlers
     // =========================================================
     async function handleBorrowSubmit(e) {
       e.preventDefault();
@@ -344,56 +457,43 @@
       const returnDate = document.getElementById('return-date').value;
       const note = document.getElementById('borrow-note').value;
 
-      if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์ที่ต้องการยืม'); return; }
+      if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
 
       const item = allEquipment.find(i => i.id == equipmentId);
 
-      // 1. บันทึกลง borrow_records
-      const { error: insertErr } = await _supabase.from('borrow_records').insert([{
+      await _supabase.from('borrow_records').insert([{
         equipment_id: equipmentId,
         borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`,
         expected_return_date: returnDate,
         note: note
       }]);
 
-      if (insertErr) { alert(' เกิดข้อผิดพลาด: ' + insertErr.message); return; }
-
-      // 2. อัปเดตสถานะอุปกรณ์เป็น BORROWED
       await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
 
-      // 3. ยิงแจ้งเตือนเข้า Google Chat
       sendGoogleChatNotification({
-        title: '📦 มีรายการยืมอุปกรณ์ IT ใหม่',
-        color: '#4f46e5',
+        title: '📦 มีรายการยืมอุปกรณ์ใหม่',
         details: [
-          `<b>อุปกรณ์:</b> ${item.name} (${item.brand || ''} ${item.model || ''})`,
-          `<b>รหัสลาเบล:</b> ${item.asset_label}`,
-          `<b>ผู้ยืม:</b> ${borrowerName} ${dept ? '[' + dept + ']' : ''}`,
-          `<b>กำหนดส่งคืน:</b> ${returnDate}`,
+          `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`,
+          `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`,
+          `<b>ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`,
+          `<b>กำหนดคืน:</b> ${returnDate}`,
           `<b>หมายเหตุ:</b> ${note || '-'}`
         ]
       });
 
-      alert('✅ บันทึกการยืมและแจ้งเตือนเข้า Google Chat เรียบร้อย!');
+      alert('✅ บันทึกการยืมเรียบร้อย!');
       document.getElementById('form-borrow').reset();
-      document.getElementById('equipment-preview').classList.add('hidden');
       await fetchAllEquipment();
       await loadActiveBorrows();
     }
 
     async function loadActiveBorrows() {
-      const { data, error } = await _supabase
-        .from('borrow_records')
-        .select('*, equipment(*)')
-        .eq('status', 'BORROWED')
-        .order('borrow_date', { ascending: false });
-
+      const { data } = await _supabase.from('borrow_records').select('*, equipment(*)').eq('status', 'BORROWED');
       const tbody = document.getElementById('table-active-borrows');
-      if (error || !data || data.length === 0) {
+      if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">ไม่มีอุปกรณ์ที่ถูกยืมในขณะนี้</td></tr>';
         return;
       }
-
       tbody.innerHTML = data.map(record => `
         <tr class="hover:bg-slate-50 transition">
           <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
@@ -402,117 +502,31 @@
           <td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td>
           <td class="p-3 text-amber-600 font-medium">${new Date(record.expected_return_date).toLocaleDateString('th-TH')}</td>
           <td class="p-3 text-center">
-            <button onclick="returnEquipment(${record.id}, ${record.equipment_id}, '${record.equipment?.name}', '${record.equipment?.asset_label}')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1 rounded-lg text-xs font-medium transition">
-              ↩️ กดคืนอุปกรณ์
-            </button>
+            <button onclick="returnEquipment(${record.id}, ${record.equipment_id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-medium hover:bg-emerald-200">↩️ คืนอุปกรณ์</button>
           </td>
         </tr>
       `).join('');
     }
 
-    async function returnEquipment(recordId, equipmentId, name, label) {
-      if (!confirm(`ยืนยันรับคืนอุปกรณ์ ${name} [${label}] ?`)) return;
-
-      // 1. อัปเดต record
-      await _supabase.from('borrow_records').update({
-        status: 'RETURNED',
-        actual_return_date: new Date().toISOString()
-      }).eq('id', recordId);
-
-      // 2. อัปเดตอุปกรณ์เป็น AVAILABLE
+    async function returnEquipment(recordId, equipmentId) {
+      if (!confirm('ยืนยันรับคืนอุปกรณ์?')) return;
+      await _supabase.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString() }).eq('id', recordId);
       await _supabase.from('equipment').update({ status: 'AVAILABLE' }).eq('id', equipmentId);
-
-      // 3. แจ้งเตือน Google Chat
-      sendGoogleChatNotification({
-        title: '✅ คืนอุปกรณ์ IT เรียบร้อย',
-        color: '#10b981',
-        details: [
-          `<b>อุปกรณ์:</b> ${name}`,
-          `<b>รหัสลาเบล:</b> ${label}`,
-          `<b>สถานะ:</b> คืนเข้าคลังเรียบร้อย พร้อมใช้งาน`
-        ]
-      });
-
-      alert('✅ คืนอุปกรณ์เรียบร้อยแล้ว');
+      alert('✅ รับคืนเรียบร้อยแล้ว');
       await fetchAllEquipment();
       await loadActiveBorrows();
     }
 
     // =========================================================
-    // 📅 6. Event Queue Logic
-    // =========================================================
-    async function handleEventSubmit(e) {
-      e.preventDefault();
-      const title = document.getElementById('event-title').value;
-      const location = document.getElementById('event-location').value;
-      const dateVal = document.getElementById('event-date').value;
-      const organizer = document.getElementById('event-organizer').value;
-      const details = document.getElementById('event-details').value;
-
-      const { error } = await _supabase.from('event_queue').insert([{
-        event_title: title,
-        location: location,
-        event_date: dateVal,
-        organizer: organizer,
-        details: details
-      }]);
-
-      if (error) { alert('Error: ' + error.message); return; }
-
-      sendGoogleChatNotification({
-        title: '📅 มีการลงคิวงาน/กิจกรรมใหม่',
-        color: '#059669',
-        details: [
-          `<b>ชื่อกิจกรรม:</b> ${title}`,
-          `<b>สถานที่:</b> ${location}`,
-          `<b>วัน-เวลา:</b> ${new Date(dateVal).toLocaleString('th-TH')}`,
-          `<b>ผู้รับผิดชอบ:</b> ${organizer}`,
-          `<b>อุปกรณ์ที่ต้องใช้:</b> ${details || '-'}`
-        ]
-      });
-
-      alert('✅ บันทึกคิวงานเรียบร้อย!');
-      document.getElementById('form-event').reset();
-      await loadEvents();
-    }
-
-    async function loadEvents() {
-      const { data, error } = await _supabase
-        .from('event_queue')
-        .select('*')
-        .order('event_date', { ascending: true });
-
-      const container = document.getElementById('event-list-container');
-      if (error || !data || data.length === 0) {
-        container.innerHTML = '<p class="text-center text-slate-400 py-6">ยังไม่มีคิวงานในระบบ</p>';
-        return;
-      }
-
-      container.innerHTML = data.map(ev => `
-        <div class="p-4 border border-slate-100 bg-slate-50 rounded-xl space-y-1 hover:border-indigo-200 transition">
-          <div class="flex justify-between items-start">
-            <h3 class="font-bold text-slate-800 text-base">${ev.event_title}</h3>
-            <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-medium">📌 ${ev.location}</span>
-          </div>
-          <p class="text-xs text-slate-500">⏰ วันที่: <span class="font-medium text-slate-700">${new Date(ev.event_date).toLocaleString('th-TH')}</span> | ผู้รับผิดชอบ: ${ev.organizer}</p>
-          ${ev.details ? `<p class="text-xs text-indigo-700 bg-indigo-50 p-2 rounded-lg mt-2">🛠️ อุปกรณ์: ${ev.details}</p>` : ''}
-        </div>
-      `).join('');
-    }
-
-    // =========================================================
-    // 🖥️ 7. Inventory Table & Search
+    // 🖥️ 7. Render Inventory Table
     // =========================================================
     function renderInventoryTable(items) {
       const tbody = document.getElementById('table-inventory');
-      if (!items || items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">ไม่มีข้อมูลอุปกรณ์</td></tr>';
-        return;
-      }
       tbody.innerHTML = items.map(item => `
         <tr class="hover:bg-slate-50 transition">
           <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
           <td class="p-3 font-medium text-slate-800">${item.name}</td>
+          <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
           <td class="p-3">${item.brand || ''} ${item.model || ''}</td>
           <td class="p-3 font-mono text-xs">${item.serial_number || '-'}</td>
           <td class="p-3">${item.location || '-'}</td>
@@ -527,42 +541,55 @@
 
     function filterInventory() {
       const q = document.getElementById('search-inventory').value.toLowerCase();
-      const filtered = allEquipment.filter(i => 
+      const deptFilter = document.getElementById('inventory-dept-filter').value;
+      
+      let filtered = allEquipment.filter(i => 
         i.name.toLowerCase().includes(q) ||
-        i.asset_label.toLowerCase().includes(q) ||
-        (i.serial_number && i.serial_number.toLowerCase().includes(q))
+        i.asset_label.toLowerCase().includes(q)
       );
+
+      if (deptFilter !== 'ALL') {
+        filtered = filtered.filter(i => (i.department || 'IT') === deptFilter);
+      }
+
       renderInventoryTable(filtered);
     }
 
     // =========================================================
-    // 🔔 8. Send Google Chat Notification (Card V2 Format)
+    // 🔔 8. Google Chat Notification
     // =========================================================
-    async function sendGoogleChatNotification({ title, color, details }) {
+    async function sendGoogleChatNotification({ title, details }) {
       if (!GOOGLE_CHAT_WEBHOOK_URL) return;
-
       const payload = {
         cardsV2: [{
           cardId: 'notificationCard',
           card: {
-            header: { title: title, subtitle: 'ระบบแจ้งเตือน IT System' },
-            sections: [{
-              widgets: [{
-                textParagraph: { text: details.join('<br>') }
-              }]
-            }]
+            header: { title: title, subtitle: 'ระบบแจ้งเตือน IT, AV & Media เด่นหล้า' },
+            sections: [{ widgets: [{ textParagraph: { text: details.join('<br>') } }] }]
           }
         }]
       };
-
       try {
-        await fetch(GOOGLE_CHAT_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        await fetch(GOOGLE_CHAT_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } catch (err) { console.error('Chat err:', err); }
+    }
+
+    function toggleScanner() {
+      const readerDiv = document.getElementById('reader');
+      if (readerDiv.classList.contains('hidden')) {
+        readerDiv.classList.remove('hidden');
+        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render((decodedText) => {
+          const item = allEquipment.find(i => i.asset_label.toLowerCase() === decodedText.toLowerCase());
+          if (item) {
+            document.getElementById('borrow-asset-select').value = item.id;
+            showEquipmentPreview(item.id);
+            alert(`✅ เจออุปกรณ์: ${item.name}`);
+            toggleScanner();
+          }
         });
-      } catch (err) {
-        console.error('Error sending Google Chat notification:', err);
-      }
+      } else { readerDiv.classList.add('hidden'); }
     }
   </script>
+</body>
+</html>
