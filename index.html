@@ -191,7 +191,6 @@
               </div>
             </div>
 
-            <!-- Tag Admin Checklist -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
               
@@ -480,7 +479,7 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // STRICT THAI STANDARD TIME PARSER (Direct String Split to prevent Timezone Shifts)
+    // STRICT THAI STANDARD TIME PARSER (Direct String Split)
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       let str = String(dateInput);
@@ -639,10 +638,9 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // FIXED: Department Selection & Raw Input Time Storage
     async function handleEventSubmit(e) {
       e.preventDefault();
-      const dept = document.getElementById('event-dept-select').value; // Read exact select value
+      const dept = document.getElementById('event-dept-select').value;
       const title = document.getElementById('event-title').value;
       const mainHost = document.getElementById('event-main-host').value;
       const location = document.getElementById('event-location').value;
@@ -668,7 +666,6 @@
 
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
-      // Save Local String to Supabase without Date-object Mutation
       const rawStart = startVal.replace('T', ' ');
       const rawEnd = endVal.replace('T', ' ');
 
@@ -870,10 +867,12 @@
       document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
     }
 
+    // STRICT UTC CALENDAR RENDERING FIX (Fixes event time mismatch on Calendar view)
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
+        timeZone: 'UTC',
         locale: 'th',
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
@@ -887,30 +886,35 @@
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'ALL': '#8b5cf6' };
-      const events = (data || []).map(ev => ({
-        id: ev.id,
-        title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
-        start: ev.start_time || ev.event_date,
-        end: ev.end_time || null,
-        backgroundColor: deptColors[ev.department] || '#6366f1',
-        borderColor: deptColors[ev.department] || '#6366f1',
-        extendedProps: { 
-          eventId: ev.id,
-          rawTitle: ev.event_title, 
-          dept: ev.department || 'ALL', 
-          mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
-          location: ev.location, 
-          organizer: ev.organizer, 
-          details: ev.details,
-          remarks: ev.remarks,
-          rawStart: ev.start_time,
-          rawEnd: ev.end_time
-        }
-      }));
+      const events = (data || []).map(ev => {
+        // Normalize time strings for FullCalendar ISO Rendering without offset shifts
+        let cleanStart = ev.start_time ? ev.start_time.replace(' ', 'T').substring(0, 16) : ev.event_date;
+        let cleanEnd = ev.end_time ? ev.end_time.replace(' ', 'T').substring(0, 16) : null;
+
+        return {
+          id: ev.id,
+          title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
+          start: cleanStart,
+          end: cleanEnd,
+          backgroundColor: deptColors[ev.department] || '#6366f1',
+          borderColor: deptColors[ev.department] || '#6366f1',
+          extendedProps: { 
+            eventId: ev.id,
+            rawTitle: ev.event_title, 
+            dept: ev.department || 'ALL', 
+            mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
+            location: ev.location, 
+            organizer: ev.organizer, 
+            details: ev.details,
+            remarks: ev.remarks,
+            rawStart: ev.start_time,
+            rawEnd: ev.end_time
+          }
+        };
+      });
       successCallback(events);
     }
 
-    // FIXED: Use raw DB String for Popup Time Display
     function openEventDetailModal(eventObj) {
       const props = eventObj.extendedProps;
       selectedEventForPrint = {
@@ -1072,7 +1076,7 @@
             <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
             <td class="p-3">${brandDisplay} ${item.model || ''}</td>
             <td class="p-3">${item.location || '-'}</td>
-            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
+            <td class="p-3">${item.status === 'AVAILABLE' ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมใช้งาน</span>' : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}</td>
             <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
               <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
               <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
