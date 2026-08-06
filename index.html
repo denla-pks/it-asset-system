@@ -187,11 +187,10 @@
               </div>
             </div>
 
-            <!-- INTERACTIVE TAG SELECTOR BY DEPT/INDIVIDUAL -->
+            <!-- Tag Admin Checklist -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
               
-              <!-- Quick Dept Select Buttons -->
               <div class="flex flex-wrap gap-1 text-[11px]">
                 <button type="button" onclick="selectAllTags('ALL')" class="bg-slate-800 text-white px-2 py-0.5 rounded-lg hover:bg-slate-900">+ แท็กทุกแผนก</button>
                 <button type="button" onclick="selectAllTags('IT')" class="bg-blue-600 text-white px-2 py-0.5 rounded-lg hover:bg-blue-700">+ แท็กฝ่าย IT</button>
@@ -200,7 +199,6 @@
                 <button type="button" onclick="clearAllTags()" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg hover:bg-slate-300">ล้างเลือก</button>
               </div>
 
-              <!-- Admin Checklist Container -->
               <div id="tag-admin-list" class="max-h-36 overflow-y-auto border border-amber-300 rounded-lg p-2 bg-white text-xs space-y-1">
                 <p class="text-slate-400 text-center py-1">กำลังโหลดรายชื่อทีมงาน...</p>
               </div>
@@ -211,6 +209,12 @@
               <div id="event-equipment-accordion" class="space-y-2 text-xs">
                 <p class="text-slate-400 text-center py-2">กำลังโหลดรายการอุปกรณ์จัดงาน...</p>
               </div>
+            </div>
+
+            <!-- NEW FIELD: Remarks / Extra Details -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุ / รายละเอียดเพิ่มเติม</label>
+              <textarea id="event-remarks" rows="2" placeholder="เช่น ขอปลั๊กสามตาเพิ่ม 2 จุด, ตั้งเวทีฝั่งขวา" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
             </div>
 
             <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน</button>
@@ -315,7 +319,7 @@
 
   </main>
 
-  <!-- MODAL: EVENT DETAILS & CANCEL ACTION -->
+  <!-- MODAL: EVENT DETAILS -->
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
@@ -330,8 +334,9 @@
         <p class="col-span-2 text-indigo-900 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"><b>👤 แม่งานผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-base text-indigo-700">-</span></p>
         <p><b>📍 สถานที่:</b> <span id="detail-location">-</span></p>
         <p class="col-span-2"><b>🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-slate-50 p-2 rounded-lg border border-slate-200">-</span></p>
-        <p><b>⏰ เวลาเริ่ม:</b> <span id="detail-start">-</span></p>
-        <p><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end">-</span></p>
+        <p><b>⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800">-</span></p>
+        <p><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800">-</span></p>
+        <p class="col-span-2 bg-amber-50 p-2 rounded-lg border border-amber-100"><b>📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700">-</span></p>
       </div>
 
       <div class="border-t border-slate-100 pt-3">
@@ -378,6 +383,7 @@
         <p><b>สถานที่จัดงาน:</b> <span id="print-location"></span></p>
         <p><b>เวลากิจกรรม:</b> <span id="print-start"></span> ถึง <span id="print-end"></span></p>
         <p class="col-span-2"><b>ทีมงานผู้รับผิดชอบ (Tagged):</b> <span id="print-organizer"></span></p>
+        <p class="col-span-2"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks"></span></p>
       </div>
     </div>
 
@@ -404,7 +410,7 @@
     </div>
   </div>
 
-  <!-- MODALS LOGIN/REGISTER WITH NICKNAME -->
+  <!-- MODALS LOGIN/REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
@@ -471,13 +477,23 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
+    // Helper: Format DateTime Output (Thai Locale Correct Timezone)
+    function formatThaiDateTime(dateInput) {
+      if (!dateInput) return '-';
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return dateInput;
+      return d.toLocaleString('th-TH', {
+        year: 'numeric', month: 'numeric', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+    }
+
     async function fetchAllAdmins() {
       const { data } = await _supabase.from('admin_users').select('*').order('department');
       allAdmins = data || [];
       renderTagAdminList();
     }
 
-    // Render Admin List Checklist in Event Form
     function renderTagAdminList() {
       const container = document.getElementById('tag-admin-list');
       if (!allAdmins || allAdmins.length === 0) {
@@ -501,9 +517,7 @@
 
     function selectAllTags(deptKey) {
       document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => {
-        if (deptKey === 'ALL' || cb.dataset.dept === deptKey) {
-          cb.checked = true;
-        }
+        if (deptKey === 'ALL' || cb.dataset.dept === deptKey) cb.checked = true;
       });
     }
 
@@ -608,16 +622,15 @@
       const location = document.getElementById('event-location').value;
       const startVal = document.getElementById('event-start').value;
       const endVal = document.getElementById('event-end').value;
+      const remarks = document.getElementById('event-remarks').value;
 
       // Get Selected Admin Tags
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
       const selectedAdmins = Array.from(checkedTags).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
 
-      // Format Printable/Display Tags: "ชื่อ-นามสกุล (ชื่อเล่น) [แผนก]"
       const tagDisplayList = selectedAdmins.map(a => `${a.full_name} (${a.nickname || '-'}) [${a.department}]`);
       const tagDisplayStr = tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก';
 
-      // Format Google Chat Mention List
       const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
       const chatMentionStr = chatMentionList.join(', ') || '-';
 
@@ -640,10 +653,11 @@
         end_time: endVal, 
         event_date: startVal, 
         organizer: tagDisplayStr, 
-        details: detailsPayload
+        details: detailsPayload,
+        remarks: remarks
       }]);
 
-      if (error) { alert('Error: ' + error.message); return; }
+      if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
 
       sendGoogleChatNotification({
         title: `📅 มอบหมายคิวงาน [เรียนฝ่าย: ${dept}]`,
@@ -651,9 +665,10 @@
           `<b>ชื่อกิจกรรม:</b> ${title}`,
           `<b>👤 แม่งานผู้รับผิดชอบหลัก:</b> ${mainHost}`,
           `<b>สถานที่:</b> ${location}`,
-          `<b>เวลาเริ่ม:</b> ${new Date(startVal).toLocaleString('th-TH')}`,
-          `<b>เวลาสิ้นสุด:</b> ${new Date(endVal).toLocaleString('th-TH')}`,
+          `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(startVal)}`,
+          `<b>เวลาสิ้นสุด:</b> ${formatThaiDateTime(endVal)}`,
           `<b>🏷️ แท็กทีมงานปฏิบัติงาน:</b> <font color="#ef4444"><b>${chatMentionStr}</b></font>`,
+          `<b>📝 หมายเหตุ:</b> ${remarks || '-'}`,
           `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
         ]
       });
@@ -716,10 +731,11 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">
           `;
           items.forEach(item => {
+            const brandStr = item.brand ? `(${item.brand})` : '';
             html += `
               <label class="flex items-center gap-1.5 cursor-pointer hover:text-indigo-600">
                 <input type="checkbox" name="event-eq-item" value="${item.id}" class="rounded text-indigo-600 focus:ring-0">
-                <span>[${item.asset_label}] ${item.name}</span>
+                <span>[${item.asset_label}] ${item.name} ${brandStr}</span>
               </label>
             `;
           });
@@ -829,7 +845,8 @@
           mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
           location: ev.location, 
           organizer: ev.organizer, 
-          details: ev.details 
+          details: ev.details,
+          remarks: ev.remarks
         }
       }));
       successCallback(events);
@@ -844,9 +861,10 @@
         mainHost: props.mainHost,
         location: props.location,
         organizer: props.organizer,
-        start: eventObj.start ? eventObj.start.toLocaleString('th-TH') : '-',
-        end: eventObj.end ? eventObj.end.toLocaleString('th-TH') : '-',
-        details: props.details
+        start: formatThaiDateTime(eventObj.start),
+        end: formatThaiDateTime(eventObj.end),
+        details: props.details,
+        remarks: props.remarks
       };
       document.getElementById('detail-dept-badge').textContent = `ฝ่าย: ${props.dept}`;
       document.getElementById('detail-title').textContent = props.rawTitle;
@@ -855,13 +873,17 @@
       document.getElementById('detail-organizer').textContent = props.organizer || '-';
       document.getElementById('detail-start').textContent = selectedEventForPrint.start;
       document.getElementById('detail-end').textContent = selectedEventForPrint.end;
+      document.getElementById('detail-remarks').textContent = props.remarks || '-';
 
       let eqHtml = '';
       if (props.details && props.details.includes('EQ_IDS:')) {
         const ids = props.details.split('EQ_IDS:')[1].split(',');
         ids.forEach(id => {
           const item = allEquipment.find(i => i.id == id.trim());
-          if (item) eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span><b>[${item.asset_label}]</b> ${item.name} (${item.department})</span><span class="text-slate-400">เก็บ: ${item.location || '-'}</span></div>`;
+          if (item) {
+            const brandStr = item.brand ? `(${item.brand})` : '';
+            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span><b>[${item.asset_label}]</b> ${item.name} ${brandStr} [${item.department}]</span><span class="text-slate-400">เก็บ: ${item.location || '-'}</span></div>`;
+          }
         });
       } else eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`;
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
@@ -890,13 +912,17 @@
       document.getElementById('print-start').textContent = selectedEventForPrint.start;
       document.getElementById('print-end').textContent = selectedEventForPrint.end;
       document.getElementById('print-organizer').textContent = selectedEventForPrint.organizer || '-';
+      document.getElementById('print-remarks').textContent = selectedEventForPrint.remarks || '-';
 
       let tableHtml = '';
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
         const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split(',');
         ids.forEach(id => {
           const item = allEquipment.find(i => i.id == id.trim());
-          if (item) tableHtml += `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td class="border border-slate-400 p-2"><b>[${item.asset_label}]</b> ${item.name} (${item.brand || ''})</td><td class="border border-slate-400 p-2">${item.department || 'IT'}</td><td class="border border-slate-400 p-2">${item.location || '-'}</td><td class="border border-slate-400 p-2">⚪ พร้อมใช้งาน</td></tr>`;
+          if (item) {
+            const brandStr = item.brand ? `(${item.brand})` : '';
+            tableHtml += `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td class="border border-slate-400 p-2"><b>[${item.asset_label}]</b> ${item.name} ${brandStr}</td><td class="border border-slate-400 p-2">${item.department || 'IT'}</td><td class="border border-slate-400 p-2">${item.location || '-'}</td><td class="border border-slate-400 p-2">⚪ พร้อมใช้งาน</td></tr>`;
+          }
         });
       } else tableHtml = `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td colspan="4" class="border border-slate-400 p-2">${selectedEventForPrint.details || 'ไม่มีอุปกรณ์ระบุ'}</td></tr>`;
 
