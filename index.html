@@ -29,7 +29,6 @@
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
     .fc-button-primary:hover { background-color: #4338ca !important; }
 
-    /* Fix Print Stylesheet Issue */
     @media print {
       body * { visibility: hidden !important; }
       #printable-area, #printable-area * { visibility: visible !important; }
@@ -64,7 +63,9 @@
         <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
           <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืนอุปกรณ์</button>
           <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 คิวงาน/ปฏิทิน</button>
-          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">🖥️ คลังอุปกรณ์รวม</button>
+          
+          <!-- ADMIN ONLY NAV TAB -->
+          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">🖥️ คลังอุปกรณ์รวม (Admin)</button>
         </nav>
 
         <div class="flex gap-1">
@@ -195,7 +196,6 @@
               <input type="text" id="event-title" required placeholder="เช่น ถ่ายทำวิดีโอวันแม่" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
 
-            <!-- NEW FIELD: Main Person In Charge (แม่งาน) -->
             <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
               <label class="block text-xs font-bold text-indigo-900 mb-1">👤 แม่งาน / ผู้รับผิดชอบหลักงานนี้ *</label>
               <input type="text" id="event-main-host" required placeholder="เช่น อ.วิชัย (ฝ่ายโสตฯ) / ครูสมชาย" class="w-full p-2 border border-indigo-200 rounded-lg text-sm outline-none bg-white">
@@ -222,7 +222,6 @@
               <input type="text" id="event-organizer" placeholder="เช่น @ช่างภาพA @ครูโสตB @ไอทีC" class="w-full p-2.5 border border-amber-300 rounded-xl text-sm outline-none bg-white">
             </div>
 
-            <!-- Accordion Clean Equipment Checklist -->
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">🎪 เลือกอุปกรณ์เฉพาะสำหรับจัดงานกิจกรรม (คลิกเพื่อเปิดแผนก):</label>
               <div id="event-equipment-accordion" class="space-y-2 text-xs">
@@ -252,9 +251,9 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์ ==================== -->
-    <section id="sec-inventory" class="space-y-6 hidden">
-      <div id="admin-equipment-form" class="hidden bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
+    <!-- ==================== TAB 3: คลังอุปกรณ์ (ADMIN ONLY TAB) ==================== -->
+    <section id="sec-inventory" class="space-y-6 hidden admin-col">
+      <div id="admin-equipment-form" class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่ม / แก้ไขรายการอุปกรณ์</h2>
           <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg">ล้างฟอร์ม</button>
@@ -297,7 +296,7 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
-            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์แยกตามประเภทการใช้งาน</h2>
+            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์รวม (Admin Zone)</h2>
             <p class="text-xs text-slate-500">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม</p>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -367,7 +366,7 @@
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE (PRINT ENGINE FIX) -->
+  <!-- PRINTABLE TEMPLATE -->
   <div id="printable-area" class="hidden p-8 font-sans">
     <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
       <div>
@@ -507,17 +506,18 @@
       if (isLoggedIn) {
         document.getElementById('admin-banner').classList.remove('hidden');
         document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name}</b> (ฝ่าย <b>${currentAdmin.department || 'IT'}</b>)`;
-        document.getElementById('admin-equipment-form').classList.remove('hidden');
         document.getElementById('btn-admin-login').classList.add('hidden');
         document.getElementById('btn-admin-register').classList.add('hidden');
         document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
       } else {
         currentAdmin = null;
         document.getElementById('admin-banner').classList.add('hidden');
-        document.getElementById('admin-equipment-form').classList.add('hidden');
         document.getElementById('btn-admin-login').classList.remove('hidden');
         document.getElementById('btn-admin-register').classList.remove('hidden');
         document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
+        
+        // Return to borrow tab if user was in admin inventory tab
+        switchTab('borrow');
       }
       closeModals();
       loadActiveBorrows();
@@ -527,22 +527,32 @@
     function logoutAdmin() { setAdminState(false); alert('🔒 ออกจากระบบ Admin เรียบร้อย'); }
 
     function switchTab(tabName) {
+      if (tabName === 'inventory' && !currentAdmin) {
+        alert('🔒 หน้าคลังอุปกรณ์รวมเปิดให้เข้าถึงเฉพาะ Admin เท่านั้น');
+        return;
+      }
+
       ['borrow', 'event', 'inventory'].forEach(t => {
-        document.getElementById(`sec-${t}`).classList.add('hidden');
+        const sec = document.getElementById(`sec-${t}`);
+        if (sec) sec.classList.add('hidden');
+        
         const btn = document.getElementById(`tab-${t}`);
-        btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white';
+        if (btn && t !== 'inventory') {
+          btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white';
+        }
       });
 
-      document.getElementById(`sec-${tabName}`).classList.remove('hidden');
+      const activeSec = document.getElementById(`sec-${tabName}`);
+      if (activeSec) activeSec.classList.remove('hidden');
+      
       const activeBtn = document.getElementById(`tab-${tabName}`);
-      activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow';
+      if (activeBtn && tabName !== 'inventory') {
+        activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow';
+      }
 
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // =========================================================
-    // 📦 4. Equipment Logic & Accordion Render
-    // =========================================================
     async function fetchAllEquipment() {
       const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
       if (error) { console.error('Error:', error); return; }
@@ -677,9 +687,6 @@
       document.getElementById('eq-id').value = '';
     }
 
-    // =========================================================
-    // 📅 5. FullCalendar Logic & Details Modal
-    // =========================================================
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
@@ -788,7 +795,6 @@
 
       document.getElementById('print-equipment-table').innerHTML = tableHtml;
 
-      // Unhide Printable Area Temporary & Print
       const printArea = document.getElementById('printable-area');
       printArea.classList.remove('hidden');
       window.print();
