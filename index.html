@@ -178,16 +178,15 @@
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (ระบบ 24 ชม.)</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (เช่น 08:00, 13:00)</label>
                 <input type="datetime-local" id="event-start" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (ระบบ 24 ชม.)</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (เช่น 12:00, 16:30)</label>
                 <input type="datetime-local" id="event-end" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
               </div>
             </div>
 
-            <!-- Tag Admin Checklist -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
               
@@ -476,43 +475,39 @@
       document.getElementById('modal-event-detail').classList.add('hidden');
     }
 
-    // TIME FORMATTER FIX (Exact 24-Hour Thai Standard)
+    // STRICT 24-HOUR THAI TIME FORMATTER (No AM/PM)
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       let str = String(dateInput);
       
-      // If it's HTML datetime-local format (YYYY-MM-DDTHH:mm)
+      let yearBE, month, day, hour, minute;
+
       if (str.includes('T')) {
         const parts = str.split('T');
         const dateParts = parts[0].split('-');
         const timeParts = parts[1].split(':');
         
-        const yearBE = parseInt(dateParts[0], 10) + 543;
-        const month = parseInt(dateParts[1], 10);
-        const day = parseInt(dateParts[2], 10);
-        const hour = timeParts[0];
-        const minute = timeParts[1].substring(0, 2);
-
-        return `${day}/${month}/${yearBE} ${hour}:${minute} น.`;
+        yearBE = parseInt(dateParts[0], 10) + 543;
+        month = parseInt(dateParts[1], 10);
+        day = parseInt(dateParts[2], 10);
+        hour = timeParts[0];
+        minute = timeParts[1].substring(0, 2);
+      } else {
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return dateInput;
+        day = d.getDate();
+        month = d.getMonth() + 1;
+        yearBE = d.getFullYear() + 543;
+        hour = String(d.getHours()).padStart(2, '0');
+        minute = String(d.getMinutes()).padStart(2, '0');
       }
 
-      // Fallback for standard Date parse
-      const d = new Date(dateInput);
-      if (isNaN(d.getTime())) return dateInput;
-      
-      const day = d.getDate();
-      const month = d.getMonth() + 1;
-      const yearBE = d.getFullYear() + 543;
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-
-      return `${day}/${month}/${yearBE} ${hours}:${minutes} น.`;
+      return `${day}/${month}/${yearBE} ${hour}.${minute} น.`;
     }
 
-    // FORMATTER FOR SUPABASE TIMESTAMPTZ (Keep EXACT local selection)
+    // Preserve Exact Local Time Representation for DB Storage
     function formatLocalToISO(dateTimeLocalStr) {
       if (!dateTimeLocalStr) return null;
-      // Append Asia/Bangkok Timezone offset +07:00
       return `${dateTimeLocalStr}:00+07:00`;
     }
 
@@ -670,7 +665,6 @@
 
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
-      // ISO Time with Exact Thai Offset
       const isoStart = formatLocalToISO(startVal);
       const isoEnd = formatLocalToISO(endVal);
 
@@ -876,7 +870,13 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        timeZone: 'local',
+        locale: 'th',
+        eventTimeFormat: {
+          hour: '2-digit',
+          minute: '2-digit',
+          meridiem: false,
+          hour12: false
+        },
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
         buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
         events: fetchCalendarEvents,
