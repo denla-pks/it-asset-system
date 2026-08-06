@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบจัดการอุปกรณ์ IT & คิวงาน - เด่นหล้า (QWP-AVS-001)</title>
+  <title>ระบบจัดการอุปกรณ์ IT & คิวงาน - เด่นหล้า</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -16,6 +16,7 @@
     .fc-event { cursor: pointer; border-radius: 8px !important; padding: 3px 6px !important; font-size: 0.82rem !important; border: none !important; }
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
+    
     @media print {
       body * { visibility: hidden !important; }
       #printable-area, #printable-area * { visibility: visible !important; }
@@ -189,7 +190,6 @@
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
               <label class="block text-xs font-bold text-amber-900 mb-1">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (Tag)</label>
               <input type="text" id="event-organizer" placeholder="ระบุชื่อ หรืออีเมล เช่น @วิชัย @sarinna@denla.ac.th" class="w-full p-2.5 border border-amber-300 rounded-xl text-sm outline-none bg-white">
-              <p class="text-[10px] text-amber-700 mt-1">* พิมพ์ชื่อหรืออีเมลแอดมิน ระบบจะค้นหาและแท็กเด้งเตือนให้ใน Google Chat</p>
             </div>
 
             <div>
@@ -332,16 +332,20 @@
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE -->
+  <!-- PRINTABLE TEMPLATE (WITH SCHOOL LOGO & DYNAMIC DOC ID) -->
   <div id="printable-area" class="hidden p-8 font-sans">
     <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
-      <div>
-        <h1 class="text-2xl font-bold">โรงเรียนอนุบาลเด่นหล้า (Denla Kindergarten)</h1>
-        <p class="text-sm text-slate-600">ใบคำสั่งงานบริการโสตทัศนูปกรณ์, IT และสื่อกิจกรรม (QWP-AVS-001 / FM-AVS-001)</p>
+      <div class="flex items-center gap-3">
+        <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain">
+        <div>
+          <h1 class="text-2xl font-bold">โรงเรียนอนุบาลเด่นหล้า (Denla Kindergarten)</h1>
+          <p class="text-sm text-slate-600">ใบคำสั่งงานบริการโสตทัศนูปกรณ์, IT และสื่อกิจกรรม</p>
+        </div>
       </div>
       <div class="text-right text-xs">
-        <p class="font-bold">วันที่พิมพ์: <span id="print-now-date"></span></p>
-        <p>รหัสเอกสาร: FM-AVS-001</p>
+        <p class="font-bold text-indigo-900 text-sm">เลขที่เอกสาร: <span id="print-doc-id" class="font-mono">-</span></p>
+        <p>วันที่พิมพ์: <span id="print-now-date"></span></p>
+        <p class="text-slate-500">แบบฟอร์ม FM-AVS-001</p>
       </div>
     </div>
 
@@ -379,7 +383,7 @@
     </div>
   </div>
 
-  <!-- MODAL: ADMIN LOGIN -->
+  <!-- MODAL LOGIN/REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
@@ -389,7 +393,6 @@
     </div>
   </div>
 
-  <!-- MODAL: ADMIN REGISTER (NEW FIELDS: EMP_ID & EMAIL) -->
   <div id="modal-register" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-3">
       <h3 class="text-lg font-bold text-slate-800">📝 ลงทะเบียนบัญชี Admin ใหม่</h3>
@@ -536,19 +539,15 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // Parse Mentions Convert Name/Email to Google Chat Mentions
     function parseMentions(tagInput) {
       if (!tagInput) return '-';
       let formattedTags = tagInput;
-
-      // Find matching Admin by name or email
       allAdmins.forEach(admin => {
         if (admin.email && (tagInput.includes(admin.full_name) || tagInput.includes(admin.email))) {
           formattedTags = formattedTags.replace(new RegExp(`@?${admin.full_name}`, 'g'), `<users/${admin.email}>`);
           formattedTags = formattedTags.replace(new RegExp(`@?${admin.email}`, 'g'), `<users/${admin.email}>`);
         }
       });
-
       return formattedTags;
     }
 
@@ -585,7 +584,6 @@
 
       if (error) { alert('Error: ' + error.message); return; }
 
-      // Convert Tag to Mention format
       const parsedTag = parseMentions(organizer);
 
       sendGoogleChatNotification({
@@ -740,7 +738,15 @@
         end: ev.end_time || null,
         backgroundColor: deptColors[ev.department] || '#6366f1',
         borderColor: deptColors[ev.department] || '#6366f1',
-        extendedProps: { rawTitle: ev.event_title, dept: ev.department || 'ALL', mainHost: ev.main_host || 'ไม่ระบุแม่งาน', location: ev.location, organizer: ev.organizer, details: ev.details }
+        extendedProps: { 
+          eventId: ev.id,
+          rawTitle: ev.event_title, 
+          dept: ev.department || 'ALL', 
+          mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
+          location: ev.location, 
+          organizer: ev.organizer, 
+          details: ev.details 
+        }
       }));
       successCallback(events);
     }
@@ -748,6 +754,7 @@
     function openEventDetailModal(eventObj) {
       const props = eventObj.extendedProps;
       selectedEventForPrint = {
+        eventId: props.eventId,
         title: props.rawTitle,
         dept: props.dept,
         mainHost: props.mainHost,
@@ -779,6 +786,12 @@
 
     function printEventReport() {
       if (!selectedEventForPrint) return;
+
+      // Dynamic Doc ID Generation
+      const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+      const docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
+
+      document.getElementById('print-doc-id').textContent = docId;
       document.getElementById('print-now-date').textContent = new Date().toLocaleDateString('th-TH');
       document.getElementById('print-title').textContent = selectedEventForPrint.title;
       document.getElementById('print-dept').textContent = selectedEventForPrint.dept;
@@ -798,6 +811,7 @@
       } else tableHtml = `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td colspan="4" class="border border-slate-400 p-2">${selectedEventForPrint.details || 'ไม่มีอุปกรณ์ระบุ'}</td></tr>`;
 
       document.getElementById('print-equipment-table').innerHTML = tableHtml;
+
       const printArea = document.getElementById('printable-area');
       printArea.classList.remove('hidden');
       window.print();
