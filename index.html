@@ -40,10 +40,15 @@
           <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">🖥️ คลังอุปกรณ์</button>
         </nav>
 
-        <!-- Admin Toggle Button -->
-        <button id="btn-admin-toggle" onclick="toggleAdminMode()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow flex items-center gap-1 transition">
-          🔐 เข้าสู่ระบบ Admin
-        </button>
+        <!-- Admin Buttons -->
+        <div class="flex gap-1">
+          <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition">
+            🔐 เข้าสู่ระบบ Admin
+          </button>
+          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-medium px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition border border-indigo-500">
+            📝 ลงทะเบียน Admin
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -52,14 +57,13 @@
 
     <!-- Status Banner for Admin -->
     <div id="admin-banner" class="hidden bg-amber-500 text-slate-900 px-4 py-2 rounded-xl mb-4 font-bold text-sm flex justify-between items-center shadow-md">
-      <span>🛠️ คุณอยู่ในโหมดแอดมิน (Admin Mode) - สามารถเพิ่ม/แก้ไขอุปกรณ์ และมอบหมายแท็กทีมงานได้</span>
-      <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800">ออกจากโหมด Admin</button>
+      <span id="admin-welcome-text">🛠️ คุณอยู่ในโหมดแอดมิน - สามารถตรวจรับคืนอุปกรณ์, เพิ่ม/แก้ไขอุปกรณ์ และมอบหมายแท็กทีมงานได้</span>
+      <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800">ออกจากระบบ Admin</button>
     </div>
 
-    <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ (USER & ADMIN) ==================== -->
+    <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ ==================== -->
     <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Quick Scan / Select Item -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม</h2>
           <div class="mb-4">
@@ -93,7 +97,6 @@
           </div>
         </div>
 
-        <!-- Borrow Form -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📝 2. กรอกข้อมูลการยืม</h2>
           <form id="form-borrow" onsubmit="handleBorrowSubmit(event)" class="space-y-4">
@@ -120,7 +123,6 @@
         </div>
       </div>
 
-      <!-- Active Borrow Table -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
           <span>🔄 รายการอุปกรณ์ที่กำลังถูกยืมอยู่</span>
@@ -135,7 +137,7 @@
                 <th class="p-3">ผู้ยืม</th>
                 <th class="p-3">วันที่ยืม</th>
                 <th class="p-3">กำหนดคืน</th>
-                <th class="p-3 text-center">การจัดการ</th>
+                <th class="p-3 text-center">การจัดการคืน (เฉพาะ Admin)</th>
               </tr>
             </thead>
             <tbody id="table-active-borrows" class="divide-y divide-slate-100">
@@ -146,10 +148,9 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: คิวงาน/กิจกรรม (CALENDAR & TAGGING) ==================== -->
+    <!-- ==================== TAB 2: คิวงาน/กิจกรรม ==================== -->
     <section id="sec-event" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Event Form -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
           <h2 class="text-lg font-bold text-slate-800 mb-4">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
           <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-3">
@@ -181,11 +182,10 @@
               </div>
             </div>
 
-            <!-- Admin Special Tagging Field -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
               <label class="block text-sm font-bold text-amber-900 mb-1">🏷️ มอบหมาย / แท็กทีมงานรับผิดชอบ *</label>
               <input type="text" id="event-organizer" required placeholder="เช่น @ช่างภาพA @ครูโสตB @ไอทีC" class="w-full p-2.5 border border-amber-300 rounded-xl text-sm outline-none bg-white">
-              <p class="text-[11px] text-amber-700 mt-1">* ใส่ @ นำหน้าชื่อทีมงานเพื่อส่งแจ้งเตือนเจาะจงบุคคลใน Google Chat</p>
+              <p class="text-[11px] text-amber-700 mt-1">* ระบุ @ชื่อ หรือ @แผนก เช่น @IT @AV @MEDIA เพื่อให้เด้งเตือนตรงกลุ่ม</p>
             </div>
 
             <div>
@@ -198,7 +198,6 @@
           </form>
         </div>
 
-        <!-- FullCalendar -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
             <h2 class="text-lg font-bold text-slate-800">📅 ตารางปฏิทินงานกิจกรรม (Calendar)</h2>
@@ -214,10 +213,8 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์ & ADMIN MANAGEMENT ==================== -->
+    <!-- ==================== TAB 3: คลังอุปกรณ์ ==================== -->
     <section id="sec-inventory" class="space-y-6 hidden">
-      
-      <!-- Admin Only: Add/Edit Equipment Form -->
       <div id="admin-equipment-form" class="hidden bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่ม / แก้ไขรายการอุปกรณ์</h2>
@@ -261,7 +258,6 @@
         </form>
       </div>
 
-      <!-- Inventory Table -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
@@ -303,24 +299,74 @@
 
   </main>
 
+  <!-- MODAL: ADMIN LOGIN -->
+  <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
+      <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Username / อีเมลแอดมิน</label>
+        <input type="text" id="login-user" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Password</label>
+        <input type="password" id="login-pass" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
+        <button onclick="handleLogin()" class="px-5 py-2 text-xs font-bold bg-amber-400 hover:bg-amber-500 text-slate-900 rounded-xl shadow">เข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADMIN REGISTER -->
+  <div id="modal-register" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
+      <h3 class="text-lg font-bold text-slate-800">📝 ลงทะเบียนบัญชี Admin ใหม่</h3>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล / ตำแหน่ง *</label>
+        <input type="text" id="reg-name" placeholder="เช่น อ.วิชัย" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">หน่วยงาน / ฝ่ายสังกัด *</label>
+        <select id="reg-dept" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none bg-slate-50">
+          <option value="IT">💻 ฝ่ายไอที (IT)</option>
+          <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+          <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+          <option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ / แม่บ้าน</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Username ตั้งใหม่ *</label>
+        <input type="text" id="reg-user" placeholder="เช่น admin_vichai" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 mb-1">Password ตั้งใหม่ *</label>
+        <input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-indigo-700 mb-1">🔑 Master Key (รหัสอนุมัติสมัคร Admin) *</label>
+        <input type="password" id="reg-master-key" placeholder="กรอกรหัส Master Key" class="w-full p-2.5 border border-indigo-200 bg-indigo-50/50 rounded-xl text-sm outline-none">
+        <p class="text-[10px] text-slate-400 mt-1">* Master Key ค่าเริ่มต้นคือ: <b>DENLA2026</b></p>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
+        <button onclick="handleRegister()" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow">ยืนยันสมัคร Admin</button>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript Logic -->
   <script>
-    // =========================================================
-    // ⚙️ 1. Config & State
-    // =========================================================
     const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
     const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
-    const ADMIN_PIN = '1234'; // 🔑 รหัสผ่านแอดมินสำหรับเข้าใช้งาน
+    const MASTER_KEY = 'DENLA2026';
 
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let allEquipment = [];
     let calendar = null;
-    let isAdminMode = false;
+    let currentAdmin = null;
 
-    // =========================================================
-    // 🚀 2. Initial Setup & Admin Toggle
-    // =========================================================
     document.addEventListener('DOMContentLoaded', async () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 3);
@@ -331,32 +377,84 @@
       initCalendar();
     });
 
-    function toggleAdminMode() {
-      if (isAdminMode) {
-        logoutAdmin();
-      } else {
-        const pwd = prompt('🔒 กรุณากรอกรหัสผ่าน Admin:');
-        if (pwd === ADMIN_PIN) {
-          isAdminMode = true;
-          document.getElementById('admin-banner').classList.remove('hidden');
-          document.getElementById('admin-equipment-form').classList.remove('hidden');
-          document.getElementById('btn-admin-toggle').innerHTML = '🔓 โหมด Admin (เปิดอยู่)';
-          document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
-          renderInventoryTable(allEquipment);
-          alert('✅ ยินดีต้อนรับเข้าสู่โหมด Admin!');
-        } else if (pwd !== null) {
-          alert('❌ รหัสผ่านไม่ถูกต้อง!');
-        }
+    function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
+    function openRegisterModal() { document.getElementById('modal-register').classList.remove('hidden'); }
+    function closeModals() {
+      document.getElementById('modal-login').classList.add('hidden');
+      document.getElementById('modal-register').classList.add('hidden');
+    }
+
+    async function handleRegister() {
+      const name = document.getElementById('reg-name').value;
+      const dept = document.getElementById('reg-dept').value;
+      const user = document.getElementById('reg-user').value;
+      const pass = document.getElementById('reg-pass').value;
+      const key = document.getElementById('reg-master-key').value;
+
+      if (!name || !user || !pass) { alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
+      if (key !== MASTER_KEY) { alert('❌ Master Key ไม่ถูกต้อง!'); return; }
+
+      const { error } = await _supabase.from('admin_users').insert([{
+        full_name: name,
+        department: dept,
+        username: user,
+        password: pass
+      }]);
+
+      if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
+
+      alert(`🎉 ลงทะเบียน Admin [ฝ่าย ${dept}] เรียบร้อยแล้ว! สามารถล็อกอินเข้าใช้งานได้ทันที`);
+      closeModals();
+    }
+
+    async function handleLogin() {
+      const user = document.getElementById('login-user').value;
+      const pass = document.getElementById('login-pass').value;
+
+      if (user === 'admin' && pass === '1234') {
+        currentAdmin = { full_name: 'Super Admin', department: 'ALL' };
+        setAdminState(true);
+        return;
       }
+
+      const { data, error } = await _supabase
+        .from('admin_users')
+        .select('*')
+        .eq('username', user)
+        .eq('password', pass)
+        .single();
+
+      if (error || !data) { alert('❌ Username หรือ Password ไม่ถูกต้อง!'); return; }
+
+      currentAdmin = data;
+      setAdminState(true);
+    }
+
+    function setAdminState(isLoggedIn) {
+      if (isLoggedIn) {
+        document.getElementById('admin-banner').classList.remove('hidden');
+        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name}</b> (สังกัดฝ่าย: <b>${currentAdmin.department || 'IT'}</b>) - สิทธิ์รับคืนอุปกรณ์ และจัดการข้อมูลระบบเปิดใช้งานแล้ว`;
+        document.getElementById('admin-equipment-form').classList.remove('hidden');
+        document.getElementById('btn-admin-login').classList.add('hidden');
+        document.getElementById('btn-admin-register').classList.add('hidden');
+        document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
+        alert(`✅ เข้าสู่ระบบสำเร็จ ยินดีต้อนรับคุณ ${currentAdmin.full_name} (ฝ่าย ${currentAdmin.department || 'IT'})`);
+      } else {
+        currentAdmin = null;
+        document.getElementById('admin-banner').classList.add('hidden');
+        document.getElementById('admin-equipment-form').classList.add('hidden');
+        document.getElementById('btn-admin-login').classList.remove('hidden');
+        document.getElementById('btn-admin-register').classList.remove('hidden');
+        document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
+      }
+      closeModals();
+      loadActiveBorrows();
+      renderInventoryTable(allEquipment);
     }
 
     function logoutAdmin() {
-      isAdminMode = false;
-      document.getElementById('admin-banner').classList.add('hidden');
-      document.getElementById('admin-equipment-form').classList.add('hidden');
-      document.getElementById('btn-admin-toggle').innerHTML = '🔐 เข้าสู่ระบบ Admin';
-      document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
-      renderInventoryTable(allEquipment);
+      setAdminState(false);
+      alert('🔒 ออกจากระบบ Admin เรียบร้อยแล้ว');
     }
 
     function switchTab(tabName) {
@@ -375,9 +473,6 @@
       }
     }
 
-    // =========================================================
-    // 📦 3. Fetch Equipment & Filter
-    // =========================================================
     async function fetchAllEquipment() {
       const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
       if (error) { console.error('Error:', error); return; }
@@ -419,12 +514,9 @@
       preview.classList.remove('hidden');
     }
 
-    // =========================================================
-    // 🛠️ 4. Admin CRUD Operations for Equipment
-    // =========================================================
     async function handleEquipmentSave(e) {
       e.preventDefault();
-      if (!isAdminMode) return;
+      if (!currentAdmin) return;
 
       const id = document.getElementById('eq-id').value;
       const payload = {
@@ -476,9 +568,6 @@
       document.getElementById('eq-id').value = '';
     }
 
-    // =========================================================
-    // 📅 5. FullCalendar Logic
-    // =========================================================
     function initCalendar() {
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
@@ -517,9 +606,6 @@
       successCallback(events);
     }
 
-    // =========================================================
-    // 📝 6. Submit Event & Tag Notification
-    // =========================================================
     async function handleEventSubmit(e) {
       e.preventDefault();
       const dept = document.getElementById('event-dept').value;
@@ -544,13 +630,13 @@
       if (error) { alert('Error: ' + error.message); return; }
 
       sendGoogleChatNotification({
-        title: `📅 มีการมอบหมายคิวงานใหม่ [ฝ่าย: ${dept}]`,
+        title: `📅 มอบหมายคิวงาน [เรียนฝ่าย: ${dept}]`,
         details: [
           `<b>ชื่อกิจกรรม:</b> ${title}`,
           `<b>สถานที่:</b> ${location}`,
           `<b>เวลาเริ่ม:</b> ${new Date(startVal).toLocaleString('th-TH')}`,
           `<b>เวลาสิ้นสุด:</b> ${new Date(endVal).toLocaleString('th-TH')}`,
-          `<b>🏷️ แท็กผู้รับผิดชอบ:</b> <font color="#ef4444"><b>${organizer}</b></font>`,
+          `<b>🏷️ ผู้รับผิดชอบ/แท็กทีมงาน:</b> <font color="#ef4444"><b>${organizer}</b></font>`,
           `<b>🛠️ อุปกรณ์ที่ต้องเตรียม:</b> ${details || '-'}`
         ]
       });
@@ -560,9 +646,6 @@
       if (calendar) calendar.refetchEvents();
     }
 
-    // =========================================================
-    // 📝 7. Borrow & Return Handlers
-    // =========================================================
     async function handleBorrowSubmit(e) {
       e.preventDefault();
       const equipmentId = document.getElementById('borrow-asset-select').value;
@@ -585,7 +668,7 @@
       await _supabase.from('equipment').update({ status: 'BORROWED' }).eq('id', equipmentId);
 
       sendGoogleChatNotification({
-        title: '📦 มีรายการยืมอุปกรณ์ใหม่',
+        title: `📦 มีรายการยืมอุปกรณ์ใหม่ [ถึงฝ่าย ${item.department || 'IT'}]`,
         details: [
           `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`,
           `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`,
@@ -616,24 +699,27 @@
           <td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td>
           <td class="p-3 text-amber-600 font-medium">${new Date(record.expected_return_date).toLocaleDateString('th-TH')}</td>
           <td class="p-3 text-center">
-            <button onclick="returnEquipment(${record.id}, ${record.equipment_id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-medium hover:bg-emerald-200">↩️ คืนอุปกรณ์</button>
+            ${currentAdmin 
+              ? `<button onclick="returnEquipment(${record.id}, ${record.equipment_id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ รับคืนโดย Admin [${currentAdmin.department || 'IT'}]</button>`
+              : `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`
+            }
           </td>
         </tr>
       `).join('');
     }
 
     async function returnEquipment(recordId, equipmentId) {
-      if (!confirm('ยืนยันรับคืนอุปกรณ์?')) return;
+      if (!currentAdmin) { alert('🔒 กรุณาล็อกอินเป็น Admin ก่อนตรวจรับคืน'); return; }
+      if (!confirm(`ยืนยันรับคืนอุปกรณ์โดย Admin: ${currentAdmin.full_name} (ฝ่าย ${currentAdmin.department || 'IT'}) ?`)) return;
+
       await _supabase.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString() }).eq('id', recordId);
       await _supabase.from('equipment').update({ status: 'AVAILABLE' }).eq('id', equipmentId);
-      alert('✅ รับคืนเรียบร้อยแล้ว');
+      
+      alert('✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
       await fetchAllEquipment();
       await loadActiveBorrows();
     }
 
-    // =========================================================
-    // 🖥️ 8. Render Inventory Table & Search
-    // =========================================================
     function renderInventoryTable(items) {
       const tbody = document.getElementById('table-inventory');
       tbody.innerHTML = items.map(item => `
@@ -649,7 +735,7 @@
               ? '<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-medium">พร้อมยืม</span>'
               : '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">ถูกยืมอยู่</span>'}
           </td>
-          <td class="p-3 text-center admin-col ${isAdminMode ? '' : 'hidden'}">
+          <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
             <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
             <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
           </td>
@@ -673,16 +759,13 @@
       renderInventoryTable(filtered);
     }
 
-    // =========================================================
-    // 🔔 9. Google Chat Notification
-    // =========================================================
     async function sendGoogleChatNotification({ title, details }) {
       if (!GOOGLE_CHAT_WEBHOOK_URL) return;
       const payload = {
         cardsV2: [{
           cardId: 'notificationCard',
           card: {
-            header: { title: title, subtitle: 'ระบบแจ้งเตือน IT, AV & Media เด่นหล้า' },
+            header: { title: title, subtitle: 'ระบบแจ้งเตือน IT, AV, Media & Facility เด่นหล้า' },
             sections: [{ widgets: [{ textParagraph: { text: details.join('<br>') } }] }]
           }
         }]
