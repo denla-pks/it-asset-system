@@ -301,7 +301,7 @@
 
   </main>
 
-  <!-- MODAL: EVENT DETAILS -->
+  <!-- MODAL: EVENT DETAILS & CANCEL ACTION -->
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
@@ -325,14 +325,23 @@
         <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs space-y-1"></div>
       </div>
 
-      <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
-        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ปิด</button>
-        <button onclick="printEventReport()" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow flex items-center gap-1">🖨️ พิมพ์ใบงาน & Checklist อุปกรณ์ (PDF)</button>
+      <!-- Footer Action Buttons -->
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+        <!-- Admin Delete/Cancel Button -->
+        <div>
+          <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden px-4 py-2 text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition">
+            🗑️ ยกเลิกคิวงาน (Admin Only)
+          </button>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ปิด</button>
+          <button onclick="printEventReport()" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow flex items-center gap-1">🖨️ พิมพ์ใบงาน & Checklist อุปกรณ์ (PDF)</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE (WITH SCHOOL LOGO & DYNAMIC DOC ID) -->
+  <!-- PRINTABLE TEMPLATE -->
   <div id="printable-area" class="hidden p-8 font-sans">
     <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
       <div class="flex items-center gap-3">
@@ -383,7 +392,7 @@
     </div>
   </div>
 
-  <!-- MODAL LOGIN/REGISTER -->
+  <!-- MODALS LOGIN/REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
@@ -605,6 +614,32 @@
       if (calendar) calendar.refetchEvents();
     }
 
+    // NEW FUNCTION: Cancel / Delete Event Queue by Admin
+    async function cancelEvent() {
+      if (!currentAdmin) { alert('🔒 สิทธิ์ไม่ถูกต้อง! เฉพาะ Admin เท่านั้นที่ยกเลิกคิวงานได้'); return; }
+      if (!selectedEventForPrint || !selectedEventForPrint.eventId) return;
+
+      if (!confirm(`⚠️ ยืนยันยกเลิกคิวงานกิจกรรม: "${selectedEventForPrint.title}" ?\n\nดำเนินการโดย Admin: ${currentAdmin.full_name}`)) return;
+
+      const { error } = await _supabase.from('event_queue').delete().eq('id', selectedEventForPrint.eventId);
+      if (error) { alert('เกิดข้อผิดพลาดในการยกเลิก: ' + error.message); return; }
+
+      // Notification to Google Chat
+      sendGoogleChatNotification({
+        title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`,
+        details: [
+          `<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`,
+          `<b>แม่งานเดิม:</b> ${selectedEventForPrint.mainHost}`,
+          `<b>สถานที่:</b> ${selectedEventForPrint.location}`,
+          `<b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.department || 'IT'})`
+        ]
+      });
+
+      alert('✅ ยกเลิกคิวงานกิจกรรมเรียบร้อยแล้ว');
+      closeModals();
+      if (calendar) calendar.refetchEvents();
+    }
+
     async function fetchAllEquipment() {
       const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
       if (error) { console.error('Error:', error); return; }
@@ -781,13 +816,20 @@
         });
       } else eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`;
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
+
+      // Show/Hide Admin Cancel Button
+      const cancelBtn = document.getElementById('btn-cancel-event');
+      if (cancelBtn) {
+        if (currentAdmin) cancelBtn.classList.remove('hidden');
+        else cancelBtn.classList.add('hidden');
+      }
+
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
     function printEventReport() {
       if (!selectedEventForPrint) return;
 
-      // Dynamic Doc ID Generation
       const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
       const docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
 
