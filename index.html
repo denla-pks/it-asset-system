@@ -18,6 +18,10 @@
     .fc-event { cursor: pointer; border-radius: 8px !important; padding: 3px 6px !important; font-size: 0.82rem !important; border: none !important; }
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
+    
+    input[type="datetime-local"]::-webkit-datetime-edit-ampm-field {
+      display: none !important;
+    }
 
     @media print {
       body * { visibility: hidden !important; }
@@ -36,21 +40,27 @@
           <img src="logo.png" alt="Denla Logo" class="h-10 w-10 object-contain">
         </div>
         <div>
-          <h1 class="text-xl font-bold">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
-          <p class="text-xs text-indigo-200">Denla IT, AV, Media & Facility Management</p>
+          <h1 id="app-title" class="text-xl font-bold">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
+          <p id="app-subtitle" class="text-xs text-indigo-200">Denla IT, AV, Media & Facility Management</p>
         </div>
       </div>
       
       <div class="flex flex-wrap items-center gap-2">
         <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
-          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืน & เบิกส่งมอบ</button>
-          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 คิวงาน/ปฏิทิน</button>
-          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">🖥️ คลังอุปกรณ์รวม (Admin)</button>
+          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 <span data-i18n="navBorrow">ยืม-คืน & เบิกส่งมอบ</span></button>
+          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 <span data-i18n="navCalendar">คิวงาน/ปฏิทิน</span></button>
+          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">🖥️ <span data-i18n="navInventory">คลังอุปกรณ์รวม (Admin)</span></button>
         </nav>
 
+        <!-- Language Selector -->
+        <div class="flex items-center bg-indigo-900/80 rounded-xl p-0.5 border border-indigo-500/50">
+          <button onclick="changeLanguage('th')" id="lang-th" class="px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow">🇹🇭 TH</button>
+          <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white">🇬🇧 EN</button>
+        </div>
+
         <div class="flex gap-1">
-          <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition">🔐 เข้าสู่ระบบ Admin</button>
-          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-medium px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition border border-indigo-500">📝 ลงทะเบียน Admin</button>
+          <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition">🔐 <span data-i18n="btnLogin">เข้าสู่ระบบ Admin</span></button>
+          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-medium px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition border border-indigo-500">📝 <span data-i18n="btnRegister">ลงทะเบียน Admin</span></button>
         </div>
       </div>
     </div>
@@ -60,109 +70,109 @@
 
     <div id="admin-banner" class="hidden bg-amber-500 text-slate-900 px-4 py-2 rounded-xl mb-4 font-bold text-sm flex justify-between items-center shadow-md">
       <span id="admin-welcome-text">🛠️ คุณอยู่ในโหมดแอดมิน - สิทธิ์จัดการระบบเปิดใช้งานแล้ว</span>
-      <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800">ออกจากระบบ Admin</button>
+      <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800" data-i18n="btnLogout">ออกจากระบบ Admin</button>
     </div>
 
     <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ & เบิกส่งมอบระยะยาว ==================== -->
     <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม / เบิก</h2>
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 <span data-i18n="selectBorrowTitle">1. เลือกอุปกรณ์ที่ต้องการยืม / เบิก</span></h2>
           <div class="mb-4">
-            <button onclick="toggleScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition">📷 เปิด/ปิด สแกน QR Code จากกล้อง</button>
+            <button onclick="toggleScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition">📷 <span data-i18n="btnQRScanner">เปิด/ปิด สแกน QR Code จากกล้อง</span></button>
             <div id="reader" class="mt-3 hidden rounded-xl overflow-hidden border border-slate-200"></div>
           </div>
           <div class="space-y-3">
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">เลือกหมวดหมู่แผนก</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblDeptFilter">เลือกหมวดหมู่แผนก</label>
               <select id="borrow-dept-filter" onchange="renderEquipmentDropdown()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none">
-                <option value="ALL">-- ทุกแผนก --</option>
-                <option value="IT">💻 ฝ่ายไอที (IT)</option>
-                <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
-                <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+                <option value="ALL" data-i18n="optAllDepts">-- ทุกแผนก --</option>
+                <option value="IT" data-i18n="optIT">💻 ฝ่ายไอที (IT)</option>
+                <option value="AV" data-i18n="optAV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+                <option value="MEDIA" data-i18n="optMEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">เลือกรายการอุปกรณ์</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblSelectEquipment">เลือกรายการอุปกรณ์</label>
               <select id="borrow-asset-select" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
                 <option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>
               </select>
             </div>
           </div>
           <div id="equipment-preview" class="mt-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 text-sm space-y-1 hidden">
-            <p><span class="font-bold text-indigo-900">ชื่ออุปกรณ์:</span> <span id="prev-name">-</span></p>
-            <p><span class="font-bold text-indigo-900">ลาเบล/รหัส:</span> <span id="prev-label" class="bg-indigo-200 px-2 py-0.5 rounded text-indigo-800 text-xs font-mono">-</span></p>
-            <p><span class="font-bold text-indigo-900">แผนก:</span> <span id="prev-dept" class="font-medium text-indigo-700">-</span></p>
-            <p><span class="font-bold text-indigo-900">สถานที่เก็บ:</span> <span id="prev-location">-</span></p>
-            <p><span class="font-bold text-indigo-900">จำนวนคงเหลือพร้อมยืม:</span> <span id="prev-stock" class="font-bold text-emerald-600">-</span></p>
+            <p><span class="font-bold text-indigo-900" data-i18n="prevName">ชื่ออุปกรณ์:</span> <span id="prev-name">-</span></p>
+            <p><span class="font-bold text-indigo-900" data-i18n="prevLabel">ลาเบล/รหัส:</span> <span id="prev-label" class="bg-indigo-200 px-2 py-0.5 rounded text-indigo-800 text-xs font-mono">-</span></p>
+            <p><span class="font-bold text-indigo-900" data-i18n="prevDept">แผนก:</span> <span id="prev-dept" class="font-medium text-indigo-700">-</span></p>
+            <p><span class="font-bold text-indigo-900" data-i18n="prevLocation">สถานที่เก็บ:</span> <span id="prev-location">-</span></p>
+            <p><span class="font-bold text-indigo-900" data-i18n="prevStock">จำนวนคงเหลือพร้อมยืม:</span> <span id="prev-stock" class="font-bold text-emerald-600">-</span></p>
           </div>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📝 2. กรอกข้อมูลการยืม / เบิกส่งมอบ</h2>
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📝 <span data-i18n="borrowFormTitle">2. กรอกข้อมูลการยืม / เบิกส่งมอบ</span></h2>
           <form id="form-borrow" onsubmit="handleBorrowSubmit(event)" class="space-y-4">
             
             <div>
-              <label class="block text-xs font-bold text-indigo-900 mb-1">📋 ประเภทการเบิกใช้งาน *</label>
+              <label class="block text-xs font-bold text-indigo-900 mb-1" data-i18n="lblBorrowType">📋 ประเภทการเบิกใช้งาน *</label>
               <select id="borrow-type-select" onchange="toggleBorrowTypeMode()" class="w-full p-2.5 border border-indigo-200 rounded-xl bg-indigo-50 text-sm font-bold text-indigo-900 outline-none">
-                <option value="SHORT_TERM">📱 ยืมใช้งานรายวัน (ยืม-คืนปกติ)</option>
-                <option value="LONG_TERM">🏢 เบิกใช้งานระยะยาว / ประจำตำแหน่ง (ส่งมอบอุปกรณ์)</option>
+                <option value="SHORT_TERM" data-i18n="optShortTerm">📱 ยืมใช้งานรายวัน (ยืม-คืนปกติ)</option>
+                <option value="LONG_TERM" data-i18n="optLongTerm">🏢 เบิกใช้งานระยะยาว / ประจำตำแหน่ง (ส่งมอบอุปกรณ์)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อ-นามสกุล ผู้ยืม/ผู้รับมอบ *</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblBorrowerName">ชื่อ-นามสกุล ผู้ยืม/ผู้รับมอบ *</label>
               <input type="text" id="borrower-name" required placeholder="เช่น อ.สมชาย ใจดี" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">แผนก/ฝ่ายผู้ยืม/ประจำตำแหน่ง</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblBorrowerDept">แผนก/ฝ่ายผู้ยืม/ประจำตำแหน่ง</label>
               <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div id="box-return-date">
-              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblReturnDate">กำหนดส่งคืน *</label>
               <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">วัตถุประสงค์ / หมายเหตุการส่งมอบ</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblNote">วัตถุประสงค์ / หมายเหตุการส่งมอบ</label>
               <input type="text" id="borrow-note" placeholder="เช่น เครื่องประจำตำแหน่งครูสอน ป.2" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <button type="submit" id="btn-submit-borrow" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition">🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat</button>
+            <button type="submit" id="btn-submit-borrow" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition">🚀 <span data-i18n="btnSubmitBorrow">ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat</span></button>
           </form>
         </div>
       </div>
 
-      <!-- BORROW RECORDS TABLE WITH 4-STATUS FILTER & EXPORT -->
+      <!-- BORROW RECORDS TABLE WITH FILTER SEARCH -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <span>🔄 รายการอุปกรณ์ยืม-คืน & ส่งมอบครอบครอง</span>
+            <span>🔄 <span data-i18n="tableBorrowTitle">รายการอุปกรณ์ยืม-คืน & ส่งมอบครอบครอง</span></span>
           </h2>
 
           <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto text-xs">
             <div>
-              <label class="block font-medium text-slate-500 mb-0.5">สถานะการยืม</label>
+              <label class="block font-medium text-slate-500 mb-0.5" data-i18n="filterStatusLbl">สถานะการยืม</label>
               <select id="filter-borrow-status" onchange="loadActiveBorrows()" class="p-2 border border-slate-200 rounded-xl bg-slate-50 outline-none font-bold text-slate-700">
-                <option value="SHORT_TERM_BORROWED">🟡 1. กำลังยืม (ยืมใช้งานรายวัน)</option>
-                <option value="LONG_TERM_BORROWED">🟣 2. เบิกครอบครองอยู่ (ระยะยาว)</option>
-                <option value="RETURNED">🟢 3. คืนเรียบร้อยแล้ว</option>
-                <option value="ALL">🌐 4. ทั้งหมด (แสดงทั้งกำลังยืมและคืนแล้ว)</option>
+                <option value="SHORT_TERM_BORROWED" data-i18n="stShortTerm">🟡 1. กำลังยืม (ยืมใช้งานรายวัน)</option>
+                <option value="LONG_TERM_BORROWED" data-i18n="stLongTerm">🟣 2. เบิกครอบครองอยู่ (ระยะยาว)</option>
+                <option value="RETURNED" data-i18n="stReturned">🟢 3. คืนเรียบร้อยแล้ว</option>
+                <option value="ALL" data-i18n="stAll">🌐 4. ทั้งหมด (แสดงทั้งกำลังยืมและคืนแล้ว)</option>
               </select>
             </div>
 
             <div>
-              <label class="block font-medium text-slate-500 mb-0.5">ตั้งแต่วันที่</label>
+              <label class="block font-medium text-slate-500 mb-0.5" data-i18n="filterStartLbl">ตั้งแต่วันที่</label>
               <input type="date" id="filter-start-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
             <div>
-              <label class="block font-medium text-slate-500 mb-0.5">ถึงวันที่</label>
+              <label class="block font-medium text-slate-500 mb-0.5" data-i18n="filterEndLbl">ถึงวันที่</label>
               <input type="date" id="filter-end-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
             <div class="self-end pb-0.5 flex gap-1">
-              <button onclick="clearBorrowFilters()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-medium transition">ล้างเลือก</button>
-              <button onclick="loadActiveBorrows()" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-bold transition">🔄 รีเฟรช</button>
-              <button onclick="exportBorrowToExcel()" class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow transition flex items-center gap-1">📊 ส่งออก Excel</button>
+              <button onclick="clearBorrowFilters()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-medium transition" data-i18n="btnClear">ล้างเลือก</button>
+              <button onclick="loadActiveBorrows()" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-bold transition">🔄 <span data-i18n="btnRefresh">รีเฟรช</span></button>
+              <button onclick="exportBorrowToExcel()" class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow transition flex items-center gap-1">📊 <span data-i18n="btnExportExcel">ส่งออก Excel</span></button>
             </div>
           </div>
         </div>
@@ -171,14 +181,14 @@
           <table class="w-full text-left text-sm text-slate-600">
             <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th class="p-3">ลาเบล</th>
-                <th class="p-3">อุปกรณ์</th>
-                <th class="p-3">ประเภท</th>
-                <th class="p-3">ผู้ยืม / ผู้ครอบครอง</th>
-                <th class="p-3">วันที่ยืม/ส่งมอบ</th>
-                <th class="p-3">กำหนดคืน</th>
-                <th class="p-3">สถานะการคืน</th>
-                <th class="p-3 text-center">การจัดการคืน (เฉพาะ Admin)</th>
+                <th class="p-3" data-i18n="thLabel">ลาเบล</th>
+                <th class="p-3" data-i18n="thName">อุปกรณ์</th>
+                <th class="p-3" data-i18n="thType">ประเภท</th>
+                <th class="p-3" data-i18n="thBorrower">ผู้ยืม / ผู้ครอบครอง</th>
+                <th class="p-3" data-i18n="thBorrowDate">วันที่ยืม/ส่งมอบ</th>
+                <th class="p-3" data-i18n="thDueDate">กำหนดคืน</th>
+                <th class="p-3" data-i18n="thReturnStatus">สถานะการคืน</th>
+                <th class="p-3 text-center" data-i18n="thAction">การจัดการคืน (เฉพาะ Admin)</th>
               </tr>
             </thead>
             <tbody id="table-active-borrows" class="divide-y divide-slate-100">
@@ -195,80 +205,78 @@
         
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-5 space-y-4">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-            <h2 id="form-event-title" class="text-lg font-bold text-slate-800">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
-            <button id="btn-cancel-edit-event" onclick="resetEventForm()" class="hidden text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-lg">ยกเลิกการแก้ไข</button>
+            <h2 id="form-event-title" class="text-lg font-bold text-slate-800">➕ <span data-i18n="eventFormTitle">ลงคิวงาน / กิจกรรมใหม่</span></h2>
+            <button id="btn-cancel-edit-event" onclick="resetEventForm()" class="hidden text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-lg" data-i18n="btnCancelEdit">ยกเลิกการแก้ไข</button>
           </div>
 
           <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-3">
             <input type="hidden" id="event-id">
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">ส่วนงานที่รับผิดชอบหลัก *</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblEventDept">ส่วนงานที่รับผิดชอบหลัก *</label>
               <select id="event-dept-select" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-bold text-indigo-900">
-                <option value="IT">💻 ฝ่ายไอที (IT)</option>
-                <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
-                <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
-                <option value="ALL">🌐 รวมงานทุกแผนก (All Services)</option>
+                <option value="IT" data-i18n="optIT">💻 ฝ่ายไอที (IT)</option>
+                <option value="AV" data-i18n="optAV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+                <option value="MEDIA" data-i18n="optMEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+                <option value="ALL" data-i18n="optALL">🌐 รวมงานทุกแผนก (All Services)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อกิจกรรม / งาน *</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblEventTitle">ชื่อกิจกรรม / งาน *</label>
               <input type="text" id="event-title" required placeholder="เช่น ถ่ายทำวิดีโอวันแม่" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
 
             <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
-              <label class="block text-xs font-bold text-indigo-900 mb-1">👤 แม่งาน / ผู้รับผิดชอบหลักงานนี้ *</label>
+              <label class="block text-xs font-bold text-indigo-900 mb-1" data-i18n="lblEventHost">👤 แม่งาน / ผู้รับผิดชอบหลักงานนี้ *</label>
               <input type="text" id="event-main-host" required placeholder="เช่น อ.วิชัย (ฝ่ายโสตฯ) / ครูสมชาย" class="w-full p-2 border border-indigo-200 rounded-lg text-sm outline-none bg-white">
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">สถานที่ *</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblEventLocation">สถานที่ *</label>
               <input type="text" id="event-location" required placeholder="เช่น หอประชุมชั้น 5" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
 
-            <!-- STRICT DAY / MONTH / YEAR & 5-MIN TIME SELECTORS -->
+            <!-- SEPARATE DATE & TIME SELECTORS -->
             <div class="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <p class="text-xs font-bold text-indigo-900 border-b border-slate-200 pb-1">⏰ กำหนดวันและเวลา (รูปแบบ วัน / เดือน / ปี พ.ศ. และเวลา 24 ชม.):</p>
+              <p class="text-xs font-bold text-indigo-900 border-b border-slate-200 pb-1" data-i18n="lblDateTimeTitle">⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):</p>
               
-              <!-- START DATE & TIME -->
               <div class="space-y-1">
-                <label class="block text-[11px] font-bold text-slate-700">📅 วัน-เวลา เริ่มงาน *</label>
+                <label class="block text-[11px] font-bold text-slate-700" data-i18n="lblStartDateTime">📅 วัน-เวลา เริ่มงาน *</label>
                 <div class="grid grid-cols-3 gap-1">
                   <select id="start-day" required class="p-1.5 border border-slate-200 rounded-lg text-xs outline-none bg-white font-medium"></select>
                   <select id="start-month" required class="p-1.5 border border-slate-200 rounded-lg text-xs outline-none bg-white font-medium"></select>
                   <select id="start-year" required class="p-1.5 border border-slate-200 rounded-lg text-xs outline-none bg-white font-medium"></select>
                 </div>
                 <div class="pt-1">
-                  <label class="block text-[10px] text-slate-500 mb-0.5">เวลาเริ่ม (24 ชม. - ทุก 5 นาที)</label>
+                  <label class="block text-[10px] text-slate-500 mb-0.5" data-i18n="lblStartTimeSub">เวลาเริ่ม (24 ชม. - ทุก 5 นาที)</label>
                   <select id="event-start-time" required class="w-full p-2 border border-indigo-200 rounded-xl text-xs outline-none bg-white font-bold text-indigo-900"></select>
                 </div>
               </div>
 
-              <!-- END DATE & TIME -->
               <div class="space-y-1 border-t border-slate-200 pt-2">
-                <label class="block text-[11px] font-bold text-slate-700">📅 วัน-เวลา เสร็จงาน *</label>
+                <label class="block text-[11px] font-bold text-slate-700" data-i18n="lblEndDateTime">📅 วัน-เวลา เสร็จงาน *</label>
                 <div class="grid grid-cols-3 gap-1">
                   <select id="end-day" required class="p-1.5 border border-slate-200 rounded-lg text-xs outline-none bg-white font-medium"></select>
                   <select id="end-month" required class="p-1.5 border border-slate-200 rounded-lg text-xs outline-none bg-white font-medium"></select>
                   <select id="end-year" required class="p-1.5 border border-slate-200 rounded-lg text-xs outline-none bg-white font-medium"></select>
                 </div>
                 <div class="pt-1">
-                  <label class="block text-[10px] text-slate-500 mb-0.5">เวลาเสร็จงาน (24 ชม. - ทุก 5 นาที)</label>
+                  <label class="block text-[10px] text-slate-500 mb-0.5" data-i18n="lblEndTimeSub">เวลาเสร็จงาน (24 ชม. - ทุก 5 นาที)</label>
                   <select id="event-end-time" required class="w-full p-2 border border-indigo-200 rounded-xl text-xs outline-none bg-white font-bold text-indigo-900"></select>
                 </div>
               </div>
             </div>
 
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
-              <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
+              <label class="block text-xs font-bold text-amber-900" data-i18n="lblTagTeam">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
               
               <div class="flex flex-wrap gap-1 text-[11px]">
-                <button type="button" onclick="selectAllTags('ALL')" class="bg-slate-800 text-white px-2 py-0.5 rounded-lg hover:bg-slate-900">+ แท็กทุกแผนก</button>
-                <button type="button" onclick="selectAllTags('IT')" class="bg-blue-600 text-white px-2 py-0.5 rounded-lg hover:bg-blue-700">+ แท็กฝ่าย IT</button>
-                <button type="button" onclick="selectAllTags('AV')" class="bg-rose-600 text-white px-2 py-0.5 rounded-lg hover:bg-rose-700">+ แท็กฝ่าย AV</button>
-                <button type="button" onclick="selectAllTags('MEDIA')" class="bg-emerald-600 text-white px-2 py-0.5 rounded-lg hover:bg-emerald-700">+ แท็กฝ่าย Media</button>
-                <button type="button" onclick="clearAllTags()" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg hover:bg-slate-300">ล้างเลือก</button>
+                <button type="button" onclick="selectAllTags('ALL')" class="bg-slate-800 text-white px-2 py-0.5 rounded-lg hover:bg-slate-900" data-i18n="btnTagAll">+ แท็กทุกแผนก</button>
+                <button type="button" onclick="selectAllTags('IT')" class="bg-blue-600 text-white px-2 py-0.5 rounded-lg hover:bg-blue-700" data-i18n="btnTagIT">+ แท็กฝ่าย IT</button>
+                <button type="button" onclick="selectAllTags('AV')" class="bg-rose-600 text-white px-2 py-0.5 rounded-lg hover:bg-rose-700" data-i18n="btnTagAV">+ แท็กฝ่าย AV</button>
+                <button type="button" onclick="selectAllTags('MEDIA')" class="bg-emerald-600 text-white px-2 py-0.5 rounded-lg hover:bg-emerald-700" data-i18n="btnTagMedia">+ แท็กฝ่าย Media</button>
+                <button type="button" onclick="clearAllTags()" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg hover:bg-slate-300" data-i18n="btnClearTag">ล้างเลือก</button>
               </div>
 
               <div id="tag-admin-list" class="max-h-36 overflow-y-auto border border-amber-300 rounded-lg p-2 bg-white text-xs space-y-1">
@@ -277,46 +285,46 @@
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">🎪 เลือกอุปกรณ์เฉพาะสำหรับจัดงานกิจกรรม (คลิกเพื่อเปิดแผนก):</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="lblEventEquipment">🎪 เลือกอุปกรณ์เฉพาะสำหรับจัดงานกิจกรรม (คลิกเพื่อเปิดแผนก):</label>
               <div id="event-equipment-accordion" class="space-y-2 text-xs">
                 <p class="text-slate-400 text-center py-2">กำลังโหลดรายการอุปกรณ์จัดงาน...</p>
               </div>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุ / รายละเอียดเพิ่มเติม</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="lblEventRemarks">📝 หมายเหตุ / รายละเอียดเพิ่มเติม</label>
               <textarea id="event-remarks" rows="2" placeholder="เช่น ขอปลั๊กสามตาเพิ่ม 2 จุด, ตั้งเวทีฝั่งขวา" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
             </div>
 
-            <button type="submit" id="btn-submit-event" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน</button>
+            <button type="submit" id="btn-submit-event" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">📅 <span data-i18n="btnSubmitEvent">บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน</span></button>
           </form>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-7 space-y-4">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-3 border-slate-100">
-            <h2 class="text-lg font-bold text-slate-800">📅 ปฏิทินคิวงานกิจกรรม</h2>
+            <h2 class="text-lg font-bold text-slate-800">📅 <span data-i18n="calendarTitle">ปฏิทินคิวงานกิจกรรม</span></h2>
             <div class="flex flex-wrap gap-2 text-xs">
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-rose-500 inline-block"></span> โสตฯ</span>
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-sky-500 inline-block"></span> ไอที</span>
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-emerald-500 inline-block"></span> ช่างภาพ</span>
-              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-purple-500 inline-block"></span> ทุกแผนก</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-rose-500 inline-block"></span> <span data-i18n="badgeAV">โสตฯ</span></span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-sky-500 inline-block"></span> <span data-i18n="badgeIT">ไอที</span></span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-emerald-500 inline-block"></span> <span data-i18n="badgeMedia">ช่างภาพ</span></span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-purple-500 inline-block"></span> <span data-i18n="badgeAll">ทุกแผนก</span></span>
             </div>
           </div>
 
           <div class="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="font-bold text-indigo-900">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
+              <span class="font-bold text-indigo-900" data-i18n="excelEventTitle">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
               <div class="flex items-center gap-1">
-                <span>เริ่ม:</span>
+                <span data-i18n="excelStart">เริ่ม:</span>
                 <input type="date" id="excel-event-start" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
               </div>
               <div class="flex items-center gap-1">
-                <span>ถึง:</span>
+                <span data-i18n="excelEnd">ถึง:</span>
                 <input type="date" id="excel-event-end" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
               </div>
             </div>
             <button onclick="exportEventsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1">
-              📊 ส่งออกคิวงาน Excel
+              📊 <span data-i18n="btnExportEventExcel">ส่งออกคิวงาน Excel</span>
             </button>
           </div>
 
@@ -330,51 +338,51 @@
     <section id="sec-inventory" class="space-y-6 hidden admin-col">
       <div id="admin-equipment-form" class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-          <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</h2>
-          <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg">ล้างฟอร์ม / เพิ่มใหม่</button>
+          <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ <span data-i18n="inventoryAddTitle">[Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</span></h2>
+          <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg" data-i18n="btnResetForm">ล้างฟอร์ม / เพิ่มใหม่</button>
         </div>
         <form id="form-equipment" onsubmit="handleEquipmentSave(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="hidden" id="eq-id">
           <div>
-            <label class="block text-xs text-slate-300 mb-1">ลาเบล/รหัสอุปกรณ์ *</label>
+            <label class="block text-xs text-slate-300 mb-1" data-i18n="lblEqLabel">ลาเบล/รหัสอุปกรณ์ *</label>
             <input type="text" id="eq-label" required placeholder="เช่น DENLA-AV-001" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs text-slate-300 mb-1">ชื่ออุปกรณ์ *</label>
+            <label class="block text-xs text-slate-300 mb-1" data-i18n="lblEqName">ชื่ออุปกรณ์ *</label>
             <input type="text" id="eq-name" required placeholder="เช่น ชุดตู้ลำโพงหอประชุม" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs text-amber-300 font-bold mb-1">จำนวนอุปกรณ์ทั้งหมด (ชิ้น) *</label>
+            <label class="block text-xs text-amber-300 font-bold mb-1" data-i18n="lblEqQuantity">จำนวนอุปกรณ์ทั้งหมด (ชิ้น) *</label>
             <input type="number" id="eq-quantity" min="1" value="1" required class="w-full p-2.5 rounded-xl bg-slate-800 border border-amber-500 font-bold text-amber-300 text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs text-slate-300 mb-1">ฝ่ายที่ดูแล *</label>
+            <label class="block text-xs text-slate-300 mb-1" data-i18n="lblEqDept">ฝ่ายที่ดูแล *</label>
             <select id="eq-dept" required class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
-              <option value="IT">💻 ฝ่ายไอที (IT)</option>
-              <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
-              <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+              <option value="IT" data-i18n="optIT">💻 ฝ่ายไอที (IT)</option>
+              <option value="AV" data-i18n="optAV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+              <option value="MEDIA" data-i18n="optMEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
             </select>
           </div>
           <div class="md:col-span-2">
-            <label class="block text-xs text-amber-400 font-bold mb-1">🏷️ หมวดหมู่การใช้งานอุปกรณ์ *</label>
+            <label class="block text-xs text-amber-400 font-bold mb-1" data-i18n="lblEqUsageType">🏷️ หมวดหมู่การใช้งานอุปกรณ์ *</label>
             <select id="eq-usage-type" required class="w-full p-2.5 rounded-xl bg-amber-950/80 border border-amber-500 text-amber-200 text-sm font-bold outline-none">
-              <option value="BORROW">📱 อุปกรณ์สำหรับยืม-คืน รายวัน เท่านั้น</option>
-              <option value="EVENT">🎪 อุปกรณ์สำหรับจัดงานกิจกรรม (Event Asset) เท่านั้น</option>
-              <option value="BOTH">🔄 ใช้ได้ทั้ง ยืม-คืน และ จัดงานกิจกรรม</option>
+              <option value="BORROW" data-i18n="optUsageBorrow">📱 อุปกรณ์สำหรับยืม-คืน รายวัน เท่านั้น</option>
+              <option value="EVENT" data-i18n="optUsageEvent">🎪 อุปกรณ์สำหรับจัดงานกิจกรรม (Event Asset) เท่านั้น</option>
+              <option value="BOTH" data-i18n="optUsageBoth">🔄 ใช้ได้ทั้ง ยืม-คืน และ จัดงานกิจกรรม</option>
             </select>
           </div>
           <div class="md:col-span-2">
-            <label class="block text-xs text-emerald-400 font-bold mb-1">⚡ สถานะสต็อกอุปกรณ์ (พร้อมใช้งาน/ส่งซ่อม) *</label>
+            <label class="block text-xs text-emerald-400 font-bold mb-1" data-i18n="lblEqStatus">⚡ สถานะสต็อกอุปกรณ์ (พร้อมใช้งาน/ส่งซ่อม) *</label>
             <select id="eq-status" required class="w-full p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 text-sm font-bold outline-none">
-              <option value="AVAILABLE">🟢 พร้อมใช้งานปกติ (Available)</option>
-              <option value="UNAVAILABLE">🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม (Unavailable)</option>
+              <option value="AVAILABLE" data-i18n="optAvailable">🟢 พร้อมใช้งานปกติ (Available)</option>
+              <option value="UNAVAILABLE" data-i18n="optUnavailable">🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม (Unavailable)</option>
             </select>
           </div>
-          <div><label class="block text-xs text-slate-300 mb-1">ยี่ห้อ / รุ่น</label><input type="text" id="eq-brand" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
-          <div><label class="block text-xs text-slate-300 mb-1">Serial Number</label><input type="text" id="eq-serial" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
-          <div><label class="block text-xs text-slate-300 mb-1">สถานที่เก็บ</label><input type="text" id="eq-location" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-slate-300 mb-1" data-i18n="lblEqBrand">ยี่ห้อ / รุ่น</label><input type="text" id="eq-brand" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-slate-300 mb-1" data-i18n="lblEqSerial">Serial Number</label><input type="text" id="eq-serial" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-slate-300 mb-1" data-i18n="lblEqLocation">สถานที่เก็บ</label><input type="text" id="eq-location" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
           <div class="md:col-span-4 flex justify-end gap-2 pt-2">
-            <button type="submit" id="btn-save-equipment" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">💾 บันทึกข้อมูลอุปกรณ์</button>
+            <button type="submit" id="btn-save-equipment" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">💾 <span data-i18n="btnSaveEq">บันทึกข้อมูลอุปกรณ์</span></button>
           </div>
         </form>
       </div>
@@ -382,18 +390,18 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
-            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์รวม (Admin Zone)</h2>
-            <p class="text-xs text-slate-500">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม พร้อมระบบสต็อกคงเหลือ</p>
+            <h2 class="text-lg font-bold text-slate-800" data-i18n="inventoryTableTitle">📋 คลังอุปกรณ์รวม (Admin Zone)</h2>
+            <p class="text-xs text-slate-500" data-i18n="inventoryTableSub">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม พร้อมระบบสต็อกคงเหลือ</p>
           </div>
           <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <select id="inventory-type-filter" onchange="filterInventory()" class="p-2.5 border border-indigo-200 rounded-xl text-sm outline-none bg-indigo-50/50 font-bold text-indigo-900">
-              <option value="ALL">แสดงทุกประเภท</option>
-              <option value="BORROW">📱 เฉพาะอุปกรณ์ยืม-คืน</option>
-              <option value="EVENT">🎪 เฉพาะอุปกรณ์จัดงานกิจกรรม</option>
+              <option value="ALL" data-i18n="optAllTypes">แสดงทุกประเภท</option>
+              <option value="BORROW" data-i18n="optTypeBorrow">📱 เฉพาะอุปกรณ์ยืม-คืน</option>
+              <option value="EVENT" data-i18n="optTypeEvent">🎪 เฉพาะอุปกรณ์จัดงานกิจกรรม</option>
             </select>
             <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาชื่อ, ลาเบล..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm outline-none">
             <button onclick="exportInventoryToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center justify-center gap-1">
-              📊 ส่งออก Excel
+              📊 <span data-i18n="btnExportInventoryExcel">ส่งออก Excel</span>
             </button>
           </div>
         </div>
@@ -402,16 +410,16 @@
           <table class="w-full text-left text-sm text-slate-600">
             <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
-                <th class="p-3">ลาเบล</th>
-                <th class="p-3">ชื่ออุปกรณ์</th>
-                <th class="p-3 text-center">จำนวนทั้งหมด</th>
-                <th class="p-3 text-center">จำนวนคงเหลือ</th>
-                <th class="p-3">หมวดใช้งาน</th>
-                <th class="p-3">ฝ่ายที่ดูแล</th>
-                <th class="p-3">ยี่ห้อ/รุ่น</th>
-                <th class="p-3">สถานที่เก็บ</th>
-                <th class="p-3">สถานะสต็อก</th>
-                <th class="p-3 text-center admin-col hidden">จัดการ (Admin)</th>
+                <th class="p-3" data-i18n="thLabel">ลาเบล</th>
+                <th class="p-3" data-i18n="thName">ชื่ออุปกรณ์</th>
+                <th class="p-3 text-center" data-i18n="thTotalQty">จำนวนทั้งหมด</th>
+                <th class="p-3 text-center" data-i18n="thAvailQty">จำนวนคงเหลือ</th>
+                <th class="p-3" data-i18n="thUsageCategory">หมวดใช้งาน</th>
+                <th class="p-3" data-i18n="thDept">ฝ่ายที่ดูแล</th>
+                <th class="p-3" data-i18n="thBrand">ยี่ห้อ/รุ่น</th>
+                <th class="p-3" data-i18n="thLocation">สถานที่เก็บ</th>
+                <th class="p-3" data-i18n="thStockStatus">สถานะสต็อก</th>
+                <th class="p-3 text-center admin-col hidden" data-i18n="thManage">จัดการ (Admin)</th>
               </tr>
             </thead>
             <tbody id="table-inventory" class="divide-y divide-slate-100">
@@ -427,30 +435,30 @@
   <!-- MODAL: RETURN INSPECTION MODAL -->
   <div id="modal-return-inspect" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
-      <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</h3>
+      <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 <span data-i18n="inspectTitle">ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</span></h3>
       
       <div>
-        <p class="text-xs text-slate-500 mb-1">อุปกรณ์ที่จะรับคืน:</p>
+        <p class="text-xs text-slate-500 mb-1" data-i18n="inspectEqLbl">อุปกรณ์ที่จะรับคืน:</p>
         <p id="inspect-equipment-name" class="font-bold text-indigo-900 text-base bg-indigo-50 p-2.5 rounded-xl border border-indigo-100">-</p>
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">🟢 สภาพอุปกรณ์เมื่อส่งคืน *</label>
+        <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="inspectCondLbl">🟢 สภาพอุปกรณ์เมื่อส่งคืน *</label>
         <select id="inspect-condition" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm font-bold bg-slate-50 outline-none">
-          <option value="GOOD">🟢 สมบูรณ์พร้อมใช้งานปกติ (Good Condition)</option>
-          <option value="MINOR_DAMAGE">🟡 ชำรุดเล็กน้อย / ต้องซ่อมบำรุง (Minor Damage)</option>
-          <option value="DAMAGED_LOST">🔴 ชำรุดหนัก / อุปกรณ์สูญหาย (Damaged / Lost)</option>
+          <option value="GOOD" data-i18n="optGood">🟢 สมบูรณ์พร้อมใช้งานปกติ (Good Condition)</option>
+          <option value="MINOR_DAMAGE" data-i18n="optMinorDamage">🟡 ชำรุดเล็กน้อย / ต้องซ่อมบำรุง (Minor Damage)</option>
+          <option value="DAMAGED_LOST" data-i18n="optDamagedLost">🔴 ชำรุดหนัก / อุปกรณ์สูญหาย (Damaged / Lost)</option>
         </select>
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด</label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="inspectRemarkLbl">📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด</label>
         <textarea id="inspect-remark" rows="2" placeholder="เช่น รอยขีดข่วนที่หน้าจอ, สายสัญญาณขาด" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
       </div>
 
       <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
-        <button onclick="confirmReturnWithInspection()" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow">↩️ ยืนยันการรับคืนอุปกรณ์</button>
+        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl" data-i18n="btnCancelModal">ยกเลิก</button>
+        <button onclick="confirmReturnWithInspection()" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow">↩️ <span data-i18n="btnConfirmReturn">ยืนยันการรับคืนอุปกรณ์</span></button>
       </div>
     </div>
   </div>
@@ -467,31 +475,31 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
-        <p class="col-span-2 text-indigo-900 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"><b>👤 แม่งานผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-base text-indigo-700">-</span></p>
-        <p><b>📍 สถานที่:</b> <span id="detail-location">-</span></p>
-        <p class="col-span-2"><b>🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-slate-50 p-2 rounded-lg border border-slate-200">-</span></p>
-        <p><b>⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800">-</span></p>
-        <p><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800">-</span></p>
-        <p class="col-span-2 bg-amber-50 p-2 rounded-lg border border-amber-100"><b>📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700">-</span></p>
+        <p class="col-span-2 text-indigo-900 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"><b data-i18n="detailHost">👤 แม่งานผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-base text-indigo-700">-</span></p>
+        <p><b data-i18n="detailLocation">📍 สถานที่:</b> <span id="detail-location">-</span></p>
+        <p class="col-span-2"><b data-i18n="detailOrganizer">🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-slate-50 p-2 rounded-lg border border-slate-200">-</span></p>
+        <p><b data-i18n="detailStart">⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800">-</span></p>
+        <p><b data-i18n="detailEnd">⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800">-</span></p>
+        <p class="col-span-2 bg-amber-50 p-2 rounded-lg border border-amber-100"><b data-i18n="detailRemarks">📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700">-</span></p>
       </div>
 
       <div class="border-t border-slate-100 pt-3">
-        <h4 class="font-bold text-slate-800 text-sm mb-2">🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:</h4>
+        <h4 class="font-bold text-slate-800 text-sm mb-2" data-i18n="detailEqChecklist">🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:</h4>
         <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs space-y-1"></div>
       </div>
 
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
         <div class="flex gap-2">
           <button id="btn-edit-event" onclick="editEventFromModal()" class="admin-col hidden px-3.5 py-2 text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl transition">
-            ✏️ แก้ไขคิวงาน (Admin)
+            ✏️ <span data-i18n="btnEditEventAdmin">แก้ไขคิวงาน (Admin)</span>
           </button>
           <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden px-3.5 py-2 text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition">
-            🗑️ ยกเลิกคิวงาน (Admin)
+            🗑️ <span data-i18n="btnCancelEventAdmin">ยกเลิกคิวงาน (Admin)</span>
           </button>
         </div>
         <div class="flex gap-2">
-          <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ปิด</button>
-          <button onclick="printEventReport()" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow flex items-center gap-1">🖨️ พิมพ์ใบงาน & Checklist อุปกรณ์ (PDF)</button>
+          <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl" data-i18n="btnCloseModal">ปิด</button>
+          <button onclick="printEventReport()" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow flex items-center gap-1">🖨️ <span data-i18n="btnPrintPDF">พิมพ์ใบงาน & Checklist อุปกรณ์ (PDF)</span></button>
         </div>
       </div>
     </div>
@@ -552,34 +560,34 @@
   <!-- MODALS LOGIN/REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
-      <h3 class="text-lg font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
-      <div><label class="block text-xs font-medium text-slate-600 mb-1">Username / อีเมล</label><input type="text" id="login-user" class="w-full p-2.5 border rounded-xl text-sm"></div>
-      <div><label class="block text-xs font-medium text-slate-600 mb-1">Password</label><input type="password" id="login-pass" class="w-full p-2.5 border rounded-xl text-sm"></div>
-      <div class="flex justify-end gap-2"><button onclick="closeModals()" class="px-4 py-2 text-xs">ยกเลิก</button><button onclick="handleLogin()" class="px-5 py-2 text-xs font-bold bg-amber-400 text-slate-900 rounded-xl shadow">เข้าสู่ระบบ</button></div>
+      <h3 class="text-lg font-bold text-slate-800">🔐 <span data-i18n="modalLoginTitle">เข้าสู่ระบบ Admin</span></h3>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblUserEmail">Username / อีเมล</label><input type="text" id="login-user" class="w-full p-2.5 border rounded-xl text-sm"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblPass">Password</label><input type="password" id="login-pass" class="w-full p-2.5 border rounded-xl text-sm"></div>
+      <div class="flex justify-end gap-2"><button onclick="closeModals()" class="px-4 py-2 text-xs" data-i18n="btnCancelModal">ยกเลิก</button><button onclick="handleLogin()" class="px-5 py-2 text-xs font-bold bg-amber-400 text-slate-900 rounded-xl shadow" data-i18n="btnLoginConfirm">เข้าสู่ระบบ</button></div>
     </div>
   </div>
 
   <div id="modal-register" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-3">
-      <h3 class="text-lg font-bold text-slate-800">📝 ลงทะเบียนบัญชี Admin ใหม่</h3>
+      <h3 class="text-lg font-bold text-slate-800">📝 <span data-i18n="modalRegTitle">ลงทะเบียนบัญชี Admin ใหม่</span></h3>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="block text-xs font-medium text-slate-600 mb-1">รหัสพนักงาน *</label><input type="text" id="reg-emp-id" placeholder="เช่น EMP-001" class="w-full p-2.5 border rounded-xl text-sm"></div>
-        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" placeholder="เช่น อ.วิชัย ใจดี" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblEmpId">รหัสพนักงาน *</label><input type="text" id="reg-emp-id" placeholder="เช่น EMP-001" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblFullName">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" placeholder="เช่น อ.วิชัย ใจดี" class="w-full p-2.5 border rounded-xl text-sm"></div>
       </div>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อเล่น *</label><input type="text" id="reg-nickname" placeholder="เช่น ช่างชัย" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblNickname">ชื่อเล่น *</label><input type="text" id="reg-nickname" placeholder="เช่น ช่างชัย" class="w-full p-2.5 border rounded-xl text-sm"></div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">ฝ่ายสังกัด *</label>
-          <select id="reg-dept" class="w-full p-2.5 border rounded-xl text-sm bg-slate-50"><option value="IT">💻 ฝ่ายไอที (IT)</option><option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option><option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option></select>
+          <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblRegDept">ฝ่ายสังกัด *</label>
+          <select id="reg-dept" class="w-full p-2.5 border rounded-xl text-sm bg-slate-50"><option value="IT" data-i18n="optIT">💻 ฝ่ายไอที (IT)</option><option value="AV" data-i18n="optAV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option><option value="MEDIA" data-i18n="optMEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option></select>
         </div>
       </div>
-      <div><label class="block text-xs font-medium text-slate-600 mb-1">อีเมลโรงเรียน (สำหรับ Mention) *</label><input type="email" id="reg-email" placeholder="เช่น vichai@denla.ac.th" class="w-full p-2.5 border rounded-xl text-sm"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblSchoolEmail">อีเมลโรงเรียน (สำหรับ Mention) *</label><input type="email" id="reg-email" placeholder="เช่น vichai@denla.ac.th" class="w-full p-2.5 border rounded-xl text-sm"></div>
       <div class="grid grid-cols-2 gap-2">
-        <div><label class="block text-xs font-medium text-slate-600 mb-1">Username *</label><input type="text" id="reg-user" placeholder="admin_vichai" class="w-full p-2.5 border rounded-xl text-sm"></div>
-        <div><label class="block text-xs font-medium text-slate-600 mb-1">Password *</label><input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblUser">Username *</label><input type="text" id="reg-user" placeholder="admin_vichai" class="w-full p-2.5 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblPass">Password *</label><input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-2.5 border rounded-xl text-sm"></div>
       </div>
-      <div><label class="block text-xs font-bold text-indigo-700 mb-1">🔑 Master Key *</label><input type="password" id="reg-master-key" placeholder="DENLA2026" class="w-full p-2.5 border rounded-xl text-sm"></div>
-      <div class="flex justify-end gap-2 pt-2"><button onclick="closeModals()" class="px-4 py-2 text-xs">ยกเลิก</button><button onclick="handleRegister()" class="px-5 py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl shadow">ยืนยันสมัคร Admin</button></div>
+      <div><label class="block text-xs font-bold text-indigo-700 mb-1" data-i18n="lblMasterKey">🔑 Master Key *</label><input type="password" id="reg-master-key" placeholder="DENLA2026" class="w-full p-2.5 border rounded-xl text-sm"></div>
+      <div class="flex justify-end gap-2 pt-2"><button onclick="closeModals()" class="px-4 py-2 text-xs" data-i18n="btnCancelModal">ยกเลิก</button><button onclick="handleRegister()" class="px-5 py-2 text-xs font-bold bg-indigo-600 text-white rounded-xl shadow" data-i18n="btnRegConfirm">ยืนยันสมัคร Admin</button></div>
     </div>
   </div>
 
@@ -600,10 +608,309 @@
     let selectedEventForPrint = null;
     let pendingReturnRecord = null;
     let currentFilteredEquipment = [];
+    let currentLang = localStorage.getItem('denla_app_lang') || 'th';
+
+    const I18N = {
+      th: {
+        appTitle: "ระบบจัดการอุปกรณ์ IT & คิวงาน",
+        appSubtitle: "Denla IT, AV, Media & Facility Management",
+        navBorrow: "ยืม-คืน & เบิกส่งมอบ",
+        navCalendar: "คิวงาน/ปฏิทิน",
+        navInventory: "คลังอุปกรณ์รวม (Admin)",
+        btnLogin: "เข้าสู่ระบบ Admin",
+        btnRegister: "ลงทะเบียน Admin",
+        btnLogout: "ออกจากระบบ Admin",
+        selectBorrowTitle: "1. เลือกอุปกรณ์ที่ต้องการยืม / เบิก",
+        btnQRScanner: "เปิด/ปิด สแกน QR Code จากกล้อง",
+        lblDeptFilter: "เลือกหมวดหมู่แผนก",
+        optAllDepts: "-- ทุกแผนก --",
+        optIT: "💻 ฝ่ายไอที (IT)",
+        optAV: "🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)",
+        optMEDIA: "📷 ฝ่ายช่างภาพ/สื่อ (Media)",
+        optALL: "🌐 รวมงานทุกแผนก (All Services)",
+        lblSelectEquipment: "เลือกรายการอุปกรณ์",
+        prevName: "ชื่ออุปกรณ์:",
+        prevLabel: "ลาเบล/รหัส:",
+        prevDept: "แผนก:",
+        prevLocation: "สถานที่เก็บ:",
+        prevStock: "จำนวนคงเหลือพร้อมยืม:",
+        borrowFormTitle: "2. กรอกข้อมูลการยืม / เบิกส่งมอบ",
+        lblBorrowType: "📋 ประเภทการเบิกใช้งาน *",
+        optShortTerm: "📱 ยืมใช้งานรายวัน (ยืม-คืนปกติ)",
+        optLongTerm: "🏢 เบิกใช้งานระยะยาว / ประจำตำแหน่ง (ส่งมอบอุปกรณ์)",
+        lblBorrowerName: "ชื่อ-นามสกุล ผู้ยืม/ผู้รับมอบ *",
+        lblBorrowerDept: "แผนก/ฝ่ายผู้ยืม/ประจำตำแหน่ง",
+        lblReturnDate: "กำหนดส่งคืน *",
+        lblNote: "วัตถุประสงค์ / หมายเหตุการส่งมอบ",
+        btnSubmitBorrow: "ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat",
+        tableBorrowTitle: "รายการอุปกรณ์ยืม-คืน & ส่งมอบครอบครอง",
+        filterStatusLbl: "สถานะการยืม",
+        stShortTerm: "🟡 1. กำลังยืม (ยืมใช้งานรายวัน)",
+        stLongTerm: "🟣 2. เบิกครอบครองอยู่ (ระยะยาว)",
+        stReturned: "🟢 3. คืนเรียบร้อยแล้ว",
+        stAll: "🌐 4. ทั้งหมด (แสดงทั้งกำลังยืมและคืนแล้ว)",
+        filterStartLbl: "ตั้งแต่วันที่",
+        filterEndLbl: "ถึงวันที่",
+        btnClear: "ล้างเลือก",
+        btnRefresh: "รีเฟรช",
+        btnExportExcel: "ส่งออก Excel",
+        thLabel: "ลาเบล",
+        thName: "อุปกรณ์",
+        thType: "ประเภท",
+        thBorrower: "ผู้ยืม / ผู้ครอบครอง",
+        thBorrowDate: "วันที่ยืม/ส่งมอบ",
+        thDueDate: "กำหนดคืน",
+        thReturnStatus: "สถานะการคืน",
+        thAction: "การจัดการคืน (เฉพาะ Admin)",
+        eventFormTitle: "ลงคิวงาน / กิจกรรมใหม่",
+        btnCancelEdit: "ยกเลิกการแก้ไข",
+        lblEventDept: "ส่วนงานที่รับผิดชอบหลัก *",
+        lblEventTitle: "ชื่อกิจกรรม / งาน *",
+        lblEventHost: "👤 แม่งาน / ผู้รับผิดชอบหลักงานนี้ *",
+        lblEventLocation: "สถานที่ *",
+        lblDateTimeTitle: "⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):",
+        lblStartDateTime: "📅 วัน-เวลา เริ่มงาน *",
+        lblStartTimeSub: "เวลาเริ่ม (24 ชม. - ทุก 5 นาที)",
+        lblEndDateTime: "📅 วัน-เวลา เสร็จงาน *",
+        lblEndTimeSub: "เวลาเสร็จงาน (24 ชม. - ทุก 5 นาที)",
+        lblTagTeam: "🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):",
+        btnTagAll: "+ แท็กทุกแผนก",
+        btnTagIT: "+ แท็กฝ่าย IT",
+        btnTagAV: "+ แท็กฝ่าย AV",
+        btnTagMedia: "+ แท็กฝ่าย Media",
+        btnClearTag: "ล้างเลือก",
+        lblEventEquipment: "🎪 เลือกอุปกรณ์เฉพาะสำหรับจัดงานกิจกรรม (คลิกเพื่อเปิดแผนก):",
+        lblEventRemarks: "📝 หมายเหตุ / รายละเอียดเพิ่มเติม",
+        btnSubmitEvent: "บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน",
+        calendarTitle: "ปฏิทินคิวงานกิจกรรม",
+        badgeAV: "โสตฯ",
+        badgeIT: "ไอที",
+        badgeMedia: "ช่างภาพ",
+        badgeAll: "ทุกแผนก",
+        excelEventTitle: "📊 เลือกช่วงวันที่ต้องการส่งออก Excel:",
+        excelStart: "เริ่ม:",
+        excelEnd: "ถึง:",
+        btnExportEventExcel: "ส่งออกคิวงาน Excel",
+        inventoryAddTitle: "[Admin Zone] เพิ่มรายการอุปกรณ์ใหม่",
+        btnResetForm: "ล้างฟอร์ม / เพิ่มใหม่",
+        lblEqLabel: "ลาเบล/รหัสอุปกรณ์ *",
+        lblEqName: "ชื่ออุปกรณ์ *",
+        lblEqQuantity: "จำนวนอุปกรณ์ทั้งหมด (ชิ้น) *",
+        lblEqDept: "ฝ่ายที่ดูแล *",
+        lblEqUsageType: "🏷️ หมวดหมู่การใช้งานอุปกรณ์ *",
+        optUsageBorrow: "📱 อุปกรณ์สำหรับยืม-คืน รายวัน เท่านั้น",
+        optUsageEvent: "🎪 อุปกรณ์สำหรับจัดงานกิจกรรม (Event Asset) เท่านั้น",
+        optUsageBoth: "🔄 ใช้ได้ทั้ง ยืม-คืน และ จัดงานกิจกรรม",
+        lblEqStatus: "⚡ สถานะสต็อกอุปกรณ์ (พร้อมใช้งาน/ส่งซ่อม) *",
+        optAvailable: "🟢 พร้อมใช้งานปกติ (Available)",
+        optUnavailable: "🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม (Unavailable)",
+        lblEqBrand: "ยี่ห้อ / รุ่น",
+        lblEqSerial: "Serial Number",
+        lblEqLocation: "สถานที่เก็บ",
+        btnSaveEq: "บันทึกข้อมูลอุปกรณ์",
+        inventoryTableTitle: "📋 คลังอุปกรณ์รวม (Admin Zone)",
+        inventoryTableSub: "จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม พร้อมระบบสต็อกคงเหลือ",
+        optAllTypes: "แสดงทุกประเภท",
+        optTypeBorrow: "📱 เฉพาะอุปกรณ์ยืม-คืน",
+        optTypeEvent: "🎪 เฉพาะอุปกรณ์จัดงานกิจกรรม",
+        btnExportInventoryExcel: "ส่งออก Excel",
+        thTotalQty: "จำนวนทั้งหมด",
+        thAvailQty: "จำนวนคงเหลือ",
+        thUsageCategory: "หมวดใช้งาน",
+        thDept: "ฝ่ายที่ดูแล",
+        thBrand: "ยี่ห้อ/รุ่น",
+        thLocation: "สถานที่เก็บ",
+        thStockStatus: "สถานะสต็อก",
+        thManage: "จัดการ (Admin)",
+        inspectTitle: "ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน",
+        inspectEqLbl: "อุปกรณ์ที่จะรับคืน:",
+        inspectCondLbl: "🟢 สภาพอุปกรณ์เมื่อส่งคืน *",
+        optGood: "🟢 สมบูรณ์พร้อมใช้งานปกติ (Good Condition)",
+        optMinorDamage: "🟡 ชำรุดเล็กน้อย / ต้องซ่อมบำรุง (Minor Damage)",
+        optDamagedLost: "🔴 ชำรุดหนัก / อุปกรณ์สูญหาย (Damaged / Lost)",
+        inspectRemarkLbl: "📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด",
+        btnCancelModal: "ยกเลิก",
+        btnConfirmReturn: "ยืนยันการรับคืนอุปกรณ์",
+        detailHost: "👤 แม่งานผู้รับผิดชอบหลัก:",
+        detailLocation: "📍 สถานที่:",
+        detailOrganizer: "🏷️ ทีมงานปฏิบัติงาน (Tagged):",
+        detailStart: "⏰ เวลาเริ่ม:",
+        detailEnd: "⏰ เวลาสิ้นสุด:",
+        detailRemarks: "📝 หมายเหตุ:",
+        detailEqChecklist: "🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:",
+        btnEditEventAdmin: "แก้ไขคิวงาน (Admin)",
+        btnCancelEventAdmin: "ยกเลิกคิวงาน (Admin)",
+        btnCloseModal: "ปิด",
+        btnPrintPDF: "พิมพ์ใบงาน & Checklist อุปกรณ์ (PDF)",
+        modalLoginTitle: "เข้าสู่ระบบ Admin",
+        lblUserEmail: "Username / อีเมล",
+        lblPass: "Password",
+        btnLoginConfirm: "เข้าสู่ระบบ",
+        modalRegTitle: "ลงทะเบียนบัญชี Admin ใหม่",
+        lblEmpId: "รหัสพนักงาน *",
+        lblFullName: "ชื่อ-นามสกุล *",
+        lblNickname: "ชื่อเล่น *",
+        lblRegDept: "ฝ่ายสังกัด *",
+        lblSchoolEmail: "อีเมลโรงเรียน (สำหรับ Mention) *",
+        lblUser: "Username *",
+        lblMasterKey: "🔑 Master Key *",
+        btnRegConfirm: "ยืนยันสมัคร Admin"
+      },
+      en: {
+        appTitle: "IT Equipment & Event Management",
+        appSubtitle: "Denla IT, AV, Media & Facility Management",
+        navBorrow: "Borrow-Return & Issuance",
+        navCalendar: "Event Queue / Calendar",
+        navInventory: "Inventory (Admin)",
+        btnLogin: "Admin Login",
+        btnRegister: "Admin Register",
+        btnLogout: "Admin Logout",
+        selectBorrowTitle: "1. Select Equipment to Borrow / Issue",
+        btnQRScanner: "Toggle Camera QR Code Scanner",
+        lblDeptFilter: "Filter Department",
+        optAllDepts: "-- All Departments --",
+        optIT: "💻 IT Department",
+        optAV: "🔊 AV Department",
+        optMEDIA: "📷 Media Department",
+        optALL: "🌐 All Departments Service",
+        lblSelectEquipment: "Select Item",
+        prevName: "Equipment Name:",
+        prevLabel: "Asset Label:",
+        prevDept: "Department:",
+        prevLocation: "Storage Location:",
+        prevStock: "Available Stock:",
+        borrowFormTitle: "2. Fill Borrowing / Issuance Form",
+        lblBorrowType: "📋 Issuance Type *",
+        optShortTerm: "📱 Daily Borrow (Standard Return)",
+        optLongTerm: "🏢 Long-term / Permanent Position Issuance",
+        lblBorrowerName: "Borrower / Assignee Name *",
+        lblBorrowerDept: "Borrower Department / Section",
+        lblReturnDate: "Expected Return Date *",
+        lblNote: "Purpose / Note",
+        btnSubmitBorrow: "Confirm Borrowing & Notify Google Chat",
+        tableBorrowTitle: "Borrowing & Issuance Records",
+        filterStatusLbl: "Borrowing Status",
+        stShortTerm: "🟡 1. Daily Borrowing",
+        stLongTerm: "🟣 2. Long-term Occupied",
+        stReturned: "🟢 3. Fully Returned",
+        stAll: "🌐 4. All Statuses",
+        filterStartLbl: "Start Date",
+        filterEndLbl: "End Date",
+        btnClear: "Clear Filter",
+        btnRefresh: "Refresh",
+        btnExportExcel: "Export Excel",
+        thLabel: "Asset Label",
+        thName: "Equipment Name",
+        thType: "Type",
+        thBorrower: "Borrower / Assignee",
+        thBorrowDate: "Date Issued",
+        thDueDate: "Due Date",
+        thReturnStatus: "Return Status",
+        thAction: "Action (Admin)",
+        eventFormTitle: "New Event / Work Queue Entry",
+        btnCancelEdit: "Cancel Editing",
+        lblEventDept: "Main Responsible Dept *",
+        lblEventTitle: "Event Name / Task *",
+        lblEventHost: "👤 Event Host / Person in Charge *",
+        lblEventLocation: "Location *",
+        lblDateTimeTitle: "⏰ Start & End Date Time (24h - 5m step):",
+        lblStartDateTime: "📅 Start Date & Time *",
+        lblStartTimeSub: "Start Time (24h - 5m Step)",
+        lblEndDateTime: "📅 End Date & Time *",
+        lblEndTimeSub: "End Time (24h - 5m Step)",
+        lblTagTeam: "🏷️ Tag Team Members:",
+        btnTagAll: "+ Tag All Depts",
+        btnTagIT: "+ Tag IT Dept",
+        btnTagAV: "+ Tag AV Dept",
+        btnTagMedia: "+ Tag Media Dept",
+        btnClearTag: "Clear Selection",
+        lblEventEquipment: "🎪 Select Event Equipments:",
+        lblEventRemarks: "📝 Remarks / Additional Details",
+        btnSubmitEvent: "Save Event Queue & Notify Team",
+        calendarTitle: "Event Calendar Queue",
+        badgeAV: "AV",
+        badgeIT: "IT",
+        badgeMedia: "Media",
+        badgeAll: "All Depts",
+        excelEventTitle: "📊 Date Range for Excel Export:",
+        excelStart: "From:",
+        excelEnd: "To:",
+        btnExportEventExcel: "Export Event Queue Excel",
+        inventoryAddTitle: "[Admin Zone] Add New Equipment",
+        btnResetForm: "Clear Form / Add New",
+        lblEqLabel: "Asset Label / Code *",
+        lblEqName: "Equipment Name *",
+        lblEqQuantity: "Total Quantity (Units) *",
+        lblEqDept: "Responsible Dept *",
+        lblEqUsageType: "🏷️ Usage Category *",
+        optUsageBorrow: "📱 Daily Borrow-Return Only",
+        optUsageEvent: "🎪 Event Queue Asset Only",
+        optUsageBoth: "🔄 Both Daily & Event Usage",
+        lblEqStatus: "⚡ Stock Status *",
+        optAvailable: "🟢 Available",
+        optUnavailable: "🔴 Unavailable / Under Repair",
+        lblEqBrand: "Brand / Model",
+        lblEqSerial: "Serial Number",
+        lblEqLocation: "Storage Location",
+        btnSaveEq: "Save Equipment Data",
+        inventoryTableTitle: "📋 All Equipment Inventory (Admin Zone)",
+        inventoryTableSub: "Manage equipment, event assets and stock availability",
+        optAllTypes: "Show All Categories",
+        optTypeBorrow: "📱 Borrow-Return Only",
+        optTypeEvent: "🎪 Event Assets Only",
+        btnExportInventoryExcel: "Export Excel",
+        thTotalQty: "Total Qty",
+        thAvailQty: "Available Qty",
+        thUsageCategory: "Usage Category",
+        thDept: "Department",
+        thBrand: "Brand/Model",
+        thLocation: "Storage Location",
+        thStockStatus: "Stock Status",
+        thManage: "Management (Admin)",
+        inspectTitle: "Inspect Condition Before Return",
+        inspectEqLbl: "Equipment Item:",
+        inspectCondLbl: "🟢 Equipment Condition On Return *",
+        optGood: "🟢 Good Condition (Normal)",
+        optMinorDamage: "🟡 Minor Damage / Needs Repair",
+        optDamagedLost: "🔴 Major Damage / Lost Asset",
+        inspectRemarkLbl: "📝 Inspection Note / Damage Description",
+        btnCancelModal: "Cancel",
+        btnConfirmReturn: "Confirm Return",
+        detailHost: "👤 Event Host / Person in Charge:",
+        detailLocation: "📍 Location:",
+        detailOrganizer: "🏷️ Tagged Team Members:",
+        detailStart: "⏰ Start Time:",
+        detailEnd: "⏰ End Time:",
+        detailRemarks: "📝 Remarks:",
+        detailEqChecklist: "🛠️ Prepared Equipment Checklist:",
+        btnEditEventAdmin: "Edit Event (Admin)",
+        btnCancelEventAdmin: "Cancel Event (Admin)",
+        btnCloseModal: "Close",
+        btnPrintPDF: "Print Job Sheet & Checklist (PDF)",
+        modalLoginTitle: "Admin Login",
+        lblUserEmail: "Username / Email",
+        lblPass: "Password",
+        btnLoginConfirm: "Login",
+        modalRegTitle: "Register New Admin",
+        lblEmpId: "Employee ID *",
+        lblFullName: "Full Name *",
+        lblNickname: "Nickname *",
+        lblRegDept: "Department *",
+        lblSchoolEmail: "School Email *",
+        lblUser: "Username *",
+        lblMasterKey: "🔑 Master Key *",
+        btnRegConfirm: "Confirm Registration"
+      }
+    };
 
     const THAI_MONTHS = [
       'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
       'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+
+    const ENG_MONTHS = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -619,28 +926,76 @@
       initCalendar();
       checkAdminSession();
       setupActivityListeners();
+      applyLanguage(currentLang);
     });
+
+    // CHANGE LANGUAGE FUNCTION
+    function changeLanguage(langKey) {
+      currentLang = langKey;
+      localStorage.setItem('denla_app_lang', langKey);
+      applyLanguage(langKey);
+    }
+
+    function applyLanguage(langKey) {
+      const lang = I18N[langKey] ? langKey : 'th';
+      const dict = I18N[lang];
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) {
+          if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
+            // Handled separately if needed
+          } else {
+            el.innerHTML = dict[key];
+          }
+        }
+      });
+
+      // Update App Header Titles
+      document.getElementById('app-title').textContent = dict.appTitle;
+      document.getElementById('app-subtitle').textContent = dict.appSubtitle;
+
+      // Update Active Language Button Highlight
+      if (lang === 'th') {
+        document.getElementById('lang-th').className = 'px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow';
+        document.getElementById('lang-en').className = 'px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white';
+      } else {
+        document.getElementById('lang-en').className = 'px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow';
+        document.getElementById('lang-th').className = 'px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white';
+      }
+
+      // Re-populate Date Month Dropdowns with Selected Language
+      populateDateAndPickerDropdowns();
+
+      // Refresh Calendar Locale if Loaded
+      if (calendar) {
+        calendar.setOption('locale', lang === 'en' ? 'en' : 'th');
+      }
+    }
 
     // POPULATE DAY/MONTH/YEAR & 5-MIN TIME SELECTORS
     function populateDateAndPickerDropdowns() {
-      // 1. Populate Time Dropdowns (Every 5 mins)
       const startSelect = document.getElementById('event-start-time');
       const endSelect = document.getElementById('event-end-time');
+      const selectedStartVal = startSelect.value || '08:30';
+      const selectedEndVal = endSelect.value || '16:30';
+
       let timeOptions = '';
 
       for (let hour = 0; hour < 24; hour++) {
         for (let min = 0; min < 60; min += 5) {
           const hh = String(hour).padStart(2, '0');
           const mm = String(min).padStart(2, '0');
-          timeOptions += `<option value="${hh}:${mm}">${hh}:${mm} น.</option>`;
+          const labelSuffix = currentLang === 'en' ? '' : ' น.';
+          timeOptions += `<option value="${hh}:${mm}">${hh}:${mm}${labelSuffix}</option>`;
         }
       }
       startSelect.innerHTML = timeOptions;
       endSelect.innerHTML = timeOptions;
-      startSelect.value = '08:30';
-      endSelect.value = '16:30';
+      startSelect.value = selectedStartVal;
+      endSelect.value = selectedEndVal;
 
-      // 2. Populate Day/Month/Year Dropdowns
+      // Populate Day/Month/Year Dropdowns
       const now = new Date();
       const curDay = now.getDate();
       const curMonth = now.getMonth();
@@ -651,29 +1006,35 @@
         const monthSel = document.getElementById(`${prefix}-month`);
         const yearSel = document.getElementById(`${prefix}-year`);
 
+        const prevDay = daySel.value || String(curDay).padStart(2, '0');
+        const prevMonth = monthSel.value || String(curMonth + 1).padStart(2, '0');
+        const prevYear = yearSel.value || String(curYear);
+
         // Days 1-31
         let dayHtml = '';
         for (let d = 1; d <= 31; d++) {
           dayHtml += `<option value="${String(d).padStart(2, '0')}">${d}</option>`;
         }
         daySel.innerHTML = dayHtml;
-        daySel.value = String(curDay).padStart(2, '0');
+        daySel.value = prevDay;
 
         // Months
         let monthHtml = '';
-        THAI_MONTHS.forEach((mName, idx) => {
+        const monthList = currentLang === 'en' ? ENG_MONTHS : THAI_MONTHS;
+        monthList.forEach((mName, idx) => {
           monthHtml += `<option value="${String(idx + 1).padStart(2, '0')}">${mName}</option>`;
         });
         monthSel.innerHTML = monthHtml;
-        monthSel.value = String(curMonth + 1).padStart(2, '0');
+        monthSel.value = prevMonth;
 
-        // Years (BE/AD Display)
+        // Years
         let yearHtml = '';
         for (let y = curYear - 1; y <= curYear + 5; y++) {
-          yearHtml += `<option value="${y}">${y + 543} (${y})</option>`;
+          const displayYear = currentLang === 'en' ? `${y}` : `${y + 543} (${y})`;
+          yearHtml += `<option value="${y}">${displayYear}</option>`;
         }
         yearSel.innerHTML = yearHtml;
-        yearSel.value = String(curYear);
+        yearSel.value = prevYear;
       });
     }
 
@@ -735,18 +1096,19 @@
           const parts = str.split(/[T ]/);
           const dateParts = parts[0].split('-');
           const timeParts = parts[1].substring(0, 5).split(':');
-          return `${parseInt(dateParts[2],10)}/${parseInt(dateParts[1],10)}/${parseInt(dateParts[0],10)+543} ${timeParts[0]}.${timeParts[1]} น.`;
+          const yearDisplay = currentLang === 'en' ? dateParts[0] : parseInt(dateParts[0],10)+543;
+          return `${parseInt(dateParts[2],10)}/${parseInt(dateParts[1],10)}/${yearDisplay} ${timeParts[0]}.${timeParts[1]}${currentLang==='en'?'':' น.'}`;
         }
         return dateInput;
       }
 
-      const thaiDate = new Intl.DateTimeFormat('th-TH', {
+      const thaiDate = new Intl.DateTimeFormat(currentLang === 'en' ? 'en-GB' : 'th-TH', {
         timeZone: 'Asia/Bangkok',
         day: 'numeric', month: 'numeric', year: 'numeric',
         hour: '2-digit', minute: '2-digit', hour12: false
       }).format(d);
 
-      return `${thaiDate.replace(':', '.')} น.`;
+      return `${thaiDate.replace(':', '.')}${currentLang==='en'?'':' น.'}`;
     }
 
     function formatLocalToISO(dateStr, timeStr) {
@@ -758,16 +1120,17 @@
       const type = document.getElementById('borrow-type-select').value;
       const boxReturnDate = document.getElementById('box-return-date');
       const btnSubmit = document.getElementById('btn-submit-borrow');
+      const dict = I18N[currentLang] || I18N.th;
 
       if (type === 'LONG_TERM') {
         boxReturnDate.classList.add('hidden');
         document.getElementById('return-date').required = false;
-        btnSubmit.innerHTML = '🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat';
+        btnSubmit.innerHTML = `🏢 ${currentLang === 'en' ? 'Confirm Long-term Issuance & Notify Chat' : 'ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat'}`;
         btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
       } else {
         boxReturnDate.classList.remove('hidden');
         document.getElementById('return-date').required = true;
-        btnSubmit.innerHTML = '🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat';
+        btnSubmit.innerHTML = `🚀 ${dict.btnSubmitBorrow}`;
         btnSubmit.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition';
       }
     }
@@ -781,18 +1144,18 @@
     function renderTagAdminList() {
       const container = document.getElementById('tag-admin-list');
       if (!allAdmins || allAdmins.length === 0) {
-        container.innerHTML = '<p class="text-slate-400 text-center py-1">ยังไม่มีรายชื่อ Admin ในระบบ</p>';
+        container.innerHTML = `<p class="text-slate-400 text-center py-1">${currentLang==='en'?'No Admins Registered':'ยังไม่มีรายชื่อ Admin ในระบบ'}</p>`;
         return;
       }
 
-      const deptNames = { 'IT': '💻 ไอที', 'AV': '🔊 โสตฯ', 'MEDIA': '📷 สื่อ/ช่างภาพ' };
+      const deptNames = { 'IT': '💻 IT', 'AV': '🔊 AV', 'MEDIA': '📷 Media' };
 
       container.innerHTML = allAdmins.map(admin => `
         <label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition">
           <div class="flex items-center gap-1.5">
             <input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${admin.department || 'IT'}" class="rounded text-amber-600 focus:ring-0">
             <span class="font-medium text-slate-800">${admin.full_name}</span>
-            <span class="text-slate-500">(${admin.nickname || 'ไม่มีชื่อเล่น'})</span>
+            <span class="text-slate-500">(${admin.nickname || '-'})</span>
           </div>
           <span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${deptNames[admin.department] || admin.department || 'IT'}</span>
         </label>
@@ -819,8 +1182,8 @@
       const pass = document.getElementById('reg-pass').value;
       const key = document.getElementById('reg-master-key').value;
 
-      if (!empId || !name || !email || !user || !pass) { alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
-      if (key !== MASTER_KEY) { alert('❌ Master Key ไม่ถูกต้อง!'); return; }
+      if (!empId || !name || !email || !user || !pass) { alert(currentLang==='en'?'Please fill all fields':'กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
+      if (key !== MASTER_KEY) { alert(currentLang==='en'?'❌ Incorrect Master Key!':'❌ Master Key ไม่ถูกต้อง!'); return; }
 
       const { error } = await _supabase.from('admin_users').insert([{
         emp_id: empId,
@@ -832,8 +1195,8 @@
         password: pass
       }]);
 
-      if (error) { alert('เกิดข้อผิดพลาด: ' + error.message); return; }
-      alert(`🎉 ลงทะเบียน Admin [${name} (${nickname})] เรียบร้อยแล้ว!`);
+      if (error) { alert('Error: ' + error.message); return; }
+      alert(`🎉 ${currentLang==='en'?'Admin Registered Successfully!':'ลงทะเบียน Admin เรียบร้อยแล้ว!'}`);
       closeModals();
       await fetchAllAdmins();
     }
@@ -843,13 +1206,13 @@
       const pass = document.getElementById('login-pass').value;
 
       if (user === 'admin' && pass === '1234') {
-        currentAdmin = { full_name: 'Super Admin', nickname: 'แอดมินหลัก', department: 'ALL' };
+        currentAdmin = { full_name: 'Super Admin', nickname: 'Main Admin', department: 'ALL' };
         setAdminState(true);
         return;
       }
 
       const { data, error } = await _supabase.from('admin_users').select('*').or(`username.eq.${user},email.eq.${user}`).eq('password', pass).single();
-      if (error || !data) { alert('❌ Username/Email หรือ Password ไม่ถูกต้อง!'); return; }
+      if (error || !data) { alert(currentLang==='en'?'❌ Invalid Username/Email or Password!':'❌ Username/Email หรือ Password ไม่ถูกต้อง!'); return; }
 
       currentAdmin = data;
       setAdminState(true);
@@ -859,11 +1222,11 @@
       if (isLoggedIn) {
         refreshAdminSession();
         document.getElementById('admin-banner').classList.remove('hidden');
-        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name} (${currentAdmin.nickname || '-'})</b> [สังกัด: <b>${currentAdmin.department || 'IT'}</b>]`;
+        document.getElementById('admin-welcome-text').innerHTML = `🛠️ ${currentLang==='en'?'Welcome':'สวัสดีคุณ'} <b>${currentAdmin.full_name} (${currentAdmin.nickname || '-'})</b> [${currentLang==='en'?'Dept':'สังกัด'}: <b>${currentAdmin.department || 'IT'}</b>]`;
         document.getElementById('btn-admin-login').classList.add('hidden');
         document.getElementById('btn-admin-register').classList.add('hidden');
         document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
-        if (showNotify) alert(`🎉 เข้าสู่ระบบเรียบร้อยแล้ว (เซสชันมีอายุ ${SESSION_DURATION_MINUTES} นาที)`);
+        if (showNotify) alert(`🎉 ${currentLang==='en'?'Login Successful!':'เข้าสู่ระบบเรียบร้อยแล้ว'}`);
       } else {
         localStorage.removeItem('denla_admin_session');
         currentAdmin = null;
@@ -881,15 +1244,15 @@
     function logoutAdmin(isAuto = false) {
       setAdminState(false, false);
       if (isAuto) {
-        alert('⌛ หมดเวลาเซสชันหรือไม่มีการใช้งานเกิน 60 นาที ระบบได้ทำการออกจากระบบ Admin อัตโนมัติเพื่อความปลอดภัย');
+        alert(currentLang==='en'?'⌛ Session Expired. Automatically logged out.':'⌛ หมดเวลาเซสชัน 60 นาที ระบบได้ทำการออกจากระบบ Admin อัตโนมัติ');
       } else {
-        alert('🔒 ออกจากระบบ Admin เรียบร้อย');
+        alert(currentLang==='en'?'🔒 Admin Logged Out':'🔒 ออกจากระบบ Admin เรียบร้อย');
       }
     }
 
     function switchTab(tabName) {
       if (tabName === 'inventory' && !currentAdmin) {
-        alert('🔒 หน้าคลังอุปกรณ์รวมเปิดให้เข้าถึงเฉพาะ Admin เท่านั้น');
+        alert(currentLang==='en'?'🔒 Admin Access Only':'🔒 หน้าคลังอุปกรณ์รวมเปิดให้เข้าถึงเฉพาะ Admin เท่านั้น');
         return;
       }
 
@@ -908,7 +1271,7 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT SUBMIT (Combining Selected Day/Month/Year and Time)
+    // EVENT SUBMIT
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -936,7 +1299,7 @@
       const selectedAdmins = Array.from(checkedTags).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
 
       const tagDisplayList = selectedAdmins.map(a => `${a.full_name} (${a.nickname || '-'}) [${a.department}]`);
-      const tagDisplayStr = tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก';
+      const tagDisplayStr = tagDisplayList.join(', ') || (currentLang==='en'?'No Tagged Team':'ไม่มีทีมงานแท็ก');
 
       const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
       const chatMentionStr = chatMentionList.join(', ') || '-';
@@ -976,7 +1339,7 @@
         error = res.error;
       }
 
-      if (error) { alert('เกิดข้อผิดพลาดในการบันทึกคิวงาน: ' + error.message); return; }
+      if (error) { alert('Error: ' + error.message); return; }
 
       sendGoogleChatNotification({
         title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [ฝ่าย: ${dept}]` : `📅 มอบหมายคิวงาน [เรียนฝ่าย: ${dept}]`,
@@ -992,7 +1355,7 @@
         ]
       });
 
-      alert(rawEventId ? '✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!' : '✅ บันทึกคิวงานเรียบร้อย!');
+      alert(rawEventId ? (currentLang==='en'?'✅ Event Queue Updated!':'✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!') : (currentLang==='en'?'✅ Event Saved!':'✅ บันทึกคิวงานเรียบร้อย!'));
       resetEventForm();
       if (calendar) calendar.refetchEvents();
     }
@@ -1038,8 +1401,8 @@
         });
       }
 
-      document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] แก้ไขคิวงาน (ID: ${selectedEventForPrint.eventId})`;
-      document.getElementById('btn-submit-event').innerHTML = '💾 ยืนยันการอัปเดตคิวงาน';
+      document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] ${currentLang==='en'?'Edit Event Queue':'แก้ไขคิวงาน'} (ID: ${selectedEventForPrint.eventId})`;
+      document.getElementById('btn-submit-event').innerHTML = `💾 ${currentLang==='en'?'Update Event Queue':'ยืนยันการอัปเดตคิวงาน'}`;
       document.getElementById('btn-submit-event').className = 'w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition';
       document.getElementById('btn-cancel-edit-event').classList.remove('hidden');
 
@@ -1067,20 +1430,21 @@
 
       clearAllTags();
       document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
-      document.getElementById('form-event-title').innerHTML = '➕ ลงคิวงาน / กิจกรรมใหม่';
-      document.getElementById('btn-submit-event').innerHTML = '📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน';
+      const dict = I18N[currentLang] || I18N.th;
+      document.getElementById('form-event-title').innerHTML = `➕ ${dict.eventFormTitle}`;
+      document.getElementById('btn-submit-event').innerHTML = `📅 ${dict.btnSubmitEvent}`;
       document.getElementById('btn-submit-event').className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition';
       document.getElementById('btn-cancel-edit-event').classList.add('hidden');
     }
 
     async function cancelEvent() {
-      if (!currentAdmin) { alert('🔒 สิทธิ์ไม่ถูกต้อง! เฉพาะ Admin เท่านั้นที่ยกเลิกคิวงานได้'); return; }
+      if (!currentAdmin) { alert(currentLang==='en'?'🔒 Admin Only':'🔒 สิทธิ์ไม่ถูกต้อง!'); return; }
       if (!selectedEventForPrint || !selectedEventForPrint.eventId) return;
 
-      if (!confirm(`⚠️ ยืนยันยกเลิกคิวงานกิจกรรม: "${selectedEventForPrint.title}" ?\n\nดำเนินการโดย Admin: ${currentAdmin.full_name}`)) return;
+      if (!confirm(`${currentLang==='en'?'⚠️ Cancel Event':'⚠️ ยืนยันยกเลิกคิวงานกิจกรรม'}: "${selectedEventForPrint.title}" ?`)) return;
 
       const { error } = await _supabase.from('event_queue').delete().eq('id', selectedEventForPrint.eventId);
-      if (error) { alert('เกิดข้อผิดพลาดในการยกเลิก: ' + error.message); return; }
+      if (error) { alert('Error: ' + error.message); return; }
 
       sendGoogleChatNotification({
         title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`,
@@ -1092,7 +1456,7 @@
         ]
       });
 
-      alert('✅ ยกเลิกคิวงานกิจกรรมเรียบร้อยแล้ว');
+      alert(currentLang==='en'?'✅ Event Cancelled!':'✅ ยกเลิกคิวงานกิจกรรมเรียบร้อยแล้ว');
       closeModals();
       if (calendar) calendar.refetchEvents();
     }
@@ -1118,7 +1482,7 @@
           html += `
             <details class="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
               <summary class="font-bold text-slate-700 p-2.5 bg-slate-100 cursor-pointer hover:bg-indigo-50 flex justify-between items-center">
-                <span>${depts[deptKey]} (${items.length} รายการ)</span>
+                <span>${depts[deptKey]} (${items.length} ${currentLang==='en'?'Items':'รายการ'})</span>
                 <span class="text-slate-400 text-xs">▼</span>
               </summary>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">
@@ -1126,7 +1490,7 @@
           items.forEach(item => {
             const isUnavailable = (item.status === 'UNAVAILABLE');
             const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
-            const statusLabel = isUnavailable ? ' <span class="text-rose-500 font-bold">[🔴 ไม่พร้อมใช้งาน/ส่งซ่อม]</span>' : '';
+            const statusLabel = isUnavailable ? ` <span class="text-rose-500 font-bold">[🔴 ${currentLang==='en'?'Unavailable':'ไม่พร้อมใช้งาน/ส่งซ่อม'}]</span>` : '';
             
             html += `
               <label class="flex items-center gap-1.5 ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}">
@@ -1138,13 +1502,13 @@
           html += `</div></details>`;
         }
       });
-      container.innerHTML = html || '<p class="text-slate-400 text-center">ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ</p>';
+      container.innerHTML = html || `<p class="text-slate-400 text-center">${currentLang==='en'?'No Event Equipments':'ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ'}</p>`;
     }
 
     function renderEquipmentDropdown() {
       const deptFilter = document.getElementById('borrow-dept-filter').value;
       const select = document.getElementById('borrow-asset-select');
-      select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
+      select.innerHTML = `<option value="">-- ${currentLang==='en'?'Select Equipment':'เลือกอุปกรณ์'} --</option>`;
       
       let filtered = allEquipment.filter(item => {
         if (item.status === 'UNAVAILABLE') return false;
@@ -1165,7 +1529,7 @@
 
         const opt = document.createElement('option');
         opt.value = item.id;
-        opt.textContent = `[${item.asset_label}] ${item.name} (ว่าง ${availableQty}/${totalQty} ชิ้น) (${item.department || 'IT'})`;
+        opt.textContent = `[${item.asset_label}] ${item.name} (${currentLang==='en'?'Available':'ว่าง'} ${availableQty}/${totalQty}) (${item.department || 'IT'})`;
         select.appendChild(opt);
       });
       select.onchange = (e) => showEquipmentPreview(e.target.value);
@@ -1184,7 +1548,7 @@
       document.getElementById('prev-label').textContent = item.asset_label;
       document.getElementById('prev-dept').textContent = item.department || 'IT';
       document.getElementById('prev-location').textContent = item.location || '-';
-      document.getElementById('prev-stock').textContent = `${availableQty} / ${totalQty} ชิ้น`;
+      document.getElementById('prev-stock').textContent = `${availableQty} / ${totalQty} ${currentLang==='en'?'Units':'ชิ้น'}`;
       preview.classList.remove('hidden');
     }
 
@@ -1216,11 +1580,11 @@
       }
 
       if (error) {
-        alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+        alert('Error: ' + error.message);
         return;
       }
 
-      alert('✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!');
+      alert(currentLang==='en'?'✅ Equipment Data Saved!':'✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!');
       resetEquipmentForm();
       await fetchAllEquipment();
     }
@@ -1229,8 +1593,8 @@
       const item = allEquipment.find(i => i.id == id);
       if (!item) return;
 
-      document.getElementById('form-equipment-title').innerHTML = `✏️ [Admin Zone] แก้ไขรายการอุปกรณ์ (ID: ${item.id})`;
-      document.getElementById('btn-save-equipment').innerHTML = '💾 ยืนยันการอัปเดตข้อมูล';
+      document.getElementById('form-equipment-title').innerHTML = `✏️ [Admin Zone] ${currentLang==='en'?'Edit Equipment':'แก้ไขรายการอุปกรณ์'} (ID: ${item.id})`;
+      document.getElementById('btn-save-equipment').innerHTML = `💾 ${currentLang==='en'?'Update Equipment':'ยืนยันการอัปเดตข้อมูล'}`;
       document.getElementById('btn-save-equipment').className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
 
       document.getElementById('eq-id').value = item.id;
@@ -1248,9 +1612,9 @@
     }
 
     async function deleteEquipment(id, name) {
-      if (!confirm(`⚠️ ยืนยันลบ: ${name} ?`)) return;
+      if (!confirm(`${currentLang==='en'?'⚠️ Confirm Delete':'⚠️ ยืนยันลบ'}: ${name} ?`)) return;
       await _supabase.from('equipment').delete().eq('id', id);
-      alert('✅ ลบอุปกรณ์เรียบร้อย!');
+      alert(currentLang==='en'?'✅ Deleted!':'✅ ลบอุปกรณ์เรียบร้อย!');
       await fetchAllEquipment();
     }
 
@@ -1259,8 +1623,9 @@
       document.getElementById('eq-id').value = '';
       document.getElementById('eq-quantity').value = 1;
       document.getElementById('eq-status').value = 'AVAILABLE';
-      document.getElementById('form-equipment-title').innerHTML = '🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่';
-      document.getElementById('btn-save-equipment').innerHTML = '💾 บันทึกข้อมูลอุปกรณ์';
+      const dict = I18N[currentLang] || I18N.th;
+      document.getElementById('form-equipment-title').innerHTML = `🛠️ ${dict.inventoryAddTitle}`;
+      document.getElementById('btn-save-equipment').innerHTML = `💾 <span data-i18n="btnSaveEq">${dict.btnSaveEq}</span>`;
       document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
     }
 
@@ -1268,7 +1633,7 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        locale: 'th',
+        locale: currentLang === 'en' ? 'en' : 'th',
         eventTimeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -1276,14 +1641,15 @@
           hour12: false
         },
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-        buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
+        buttonText: currentLang === 'en' 
+          ? { today: 'Today', month: 'Month', week: 'Week', day: 'Day' } 
+          : { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
         events: fetchCalendarEvents,
         eventClick: function(info) { openEventDetailModal(info.event); }
       });
       calendar.render();
     }
 
-    // CALENDAR EVENTS FETCH (TRIM TIMEZONE SHIFTS EXACT MATCH)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
@@ -1303,7 +1669,7 @@
             eventId: ev.id,
             rawTitle: ev.event_title, 
             dept: ev.department || 'ALL', 
-            mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
+            mainHost: ev.main_host || '-', 
             location: ev.location, 
             organizer: ev.organizer, 
             details: ev.details,
@@ -1332,7 +1698,7 @@
         details: props.details,
         remarks: props.remarks
       };
-      document.getElementById('detail-dept-badge').textContent = `ฝ่าย: ${props.dept}`;
+      document.getElementById('detail-dept-badge').textContent = `${currentLang==='en'?'Dept':'ฝ่าย'}: ${props.dept}`;
       document.getElementById('detail-title').textContent = props.rawTitle;
       document.getElementById('detail-main-host').textContent = props.mainHost;
       document.getElementById('detail-location').textContent = props.location;
@@ -1348,10 +1714,10 @@
           const item = allEquipment.find(i => i.id == id.trim());
           if (item) {
             const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
-            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span><b>[${item.asset_label}]</b> ${item.name} ${brandStr} [${item.department}]</span><span class="text-slate-400">เก็บ: ${item.location || '-'}</span></div>`;
+            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span><b>[${item.asset_label}]</b> ${item.name} ${brandStr} [${item.department}]</span><span class="text-slate-400">${currentLang==='en'?'Loc':'เก็บ'}: ${item.location || '-'}</span></div>`;
           }
         });
-      } else eqHtml = `<p class="text-slate-600">${props.details || 'ไม่ได้ระบุอุปกรณ์'}</p>`;
+      } else eqHtml = `<p class="text-slate-600">${props.details || '-'}</p>`;
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
 
       const editBtn = document.getElementById('btn-edit-event');
@@ -1394,7 +1760,7 @@
             tableHtml += `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td class="border border-slate-400 p-2"><b>[${item.asset_label}]</b> ${item.name} ${brandStr}</td><td class="border border-slate-400 p-2">${item.department || 'IT'}</td><td class="border border-slate-400 p-2">${item.location || '-'}</td><td class="border border-slate-400 p-2">⚪ พร้อมใช้งาน</td></tr>`;
           }
         });
-      } else tableHtml = `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td colspan="4" class="border border-slate-400 p-2">${selectedEventForPrint.details || 'ไม่มีอุปกรณ์ระบุ'}</td></tr>`;
+      } else tableHtml = `<tr><td class="border border-slate-400 p-2 text-center">[   ]</td><td colspan="4" class="border border-slate-400 p-2">${selectedEventForPrint.details || '-'}</td></tr>`;
 
       document.getElementById('print-equipment-table').innerHTML = tableHtml;
 
@@ -1413,7 +1779,7 @@
       const returnDate = document.getElementById('return-date').value;
       const note = document.getElementById('borrow-note').value;
 
-      if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
+      if (!equipmentId) { alert(currentLang==='en'?'Please select equipment':'กรุณาเลือกอุปกรณ์'); return; }
       const item = allEquipment.find(i => i.id == equipmentId);
 
       const totalQty = item.quantity || 1;
@@ -1421,16 +1787,16 @@
       const availableQty = totalQty - borrowedCount;
 
       if (availableQty <= 0) {
-        alert('❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว');
+        alert(currentLang==='en'?'❌ Equipment is fully borrowed':'❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว');
         return;
       }
 
-      const displayReturnDate = (borrowType === 'LONG_TERM') ? 'เบิกใช้งานระยะยาว (ไม่มีกำหนดคืน)' : returnDate;
+      const displayReturnDate = (borrowType === 'LONG_TERM') ? 'Long-term (No Due Date)' : returnDate;
 
       await _supabase.from('borrow_records').insert([{ 
         equipment_id: equipmentId, 
         borrow_type: borrowType,
-        borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`, 
+        borrower_name: `${borrowerName} (${dept || 'N/A'})`, 
         expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, 
         note: note 
       }]);
@@ -1449,7 +1815,7 @@
         ]
       });
 
-      alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
+      alert(borrowType === 'LONG_TERM' ? (currentLang==='en'?'✅ Long-term Issuance Saved!':'✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!') : (currentLang==='en'?'✅ Borrowing Saved!':'✅ บันทึกการยืมเรียบร้อย!'));
       document.getElementById('form-borrow').reset();
       toggleBorrowTypeMode();
       await fetchAllEquipment();
@@ -1471,20 +1837,15 @@
         query = query.eq('status', 'RETURNED');
       }
 
-      if (startDate) {
-        query = query.gte('borrow_date', `${startDate}T00:00:00`);
-      }
-
-      if (endDate) {
-        query = query.lte('borrow_date', `${endDate}T23:59:59`);
-      }
+      if (startDate) query = query.gte('borrow_date', `${startDate}T00:00:00`);
+      if (endDate) query = query.lte('borrow_date', `${endDate}T23:59:59`);
 
       const { data } = await query;
       activeBorrowRecords = data || [];
 
       const tbody = document.getElementById('table-active-borrows');
       if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-400">ไม่พบรายการยืม-คืนตามเงื่อนไขที่ค้นหา</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">${currentLang==='en'?'No Records Found':'ไม่พบรายการยืม-คืนตามเงื่อนไขที่ค้นหา'}</td></tr>`;
         return;
       }
 
@@ -1492,13 +1853,16 @@
         const isLongTerm = (record.borrow_type === 'LONG_TERM');
         const isReturned = (record.status === 'RETURNED');
 
-        const typeBadge = isLongTerm ? '<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ส่งมอบระยะยาว</span>' : '<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ยืมรายวัน</span>';
-        const returnDisplay = isLongTerm ? '<span class="text-slate-400 italic">ไม่มีกำหนดคืน</span>' : new Date(record.expected_return_date).toLocaleDateString('th-TH');
+        const typeBadge = isLongTerm 
+          ? `<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ${currentLang==='en'?'Long-term':'ส่งมอบระยะยาว'}</span>` 
+          : `<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ${currentLang==='en'?'Daily':'ยืมรายวัน'}</span>`;
+        
+        const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">${currentLang==='en'?'No Due Date':'ไม่มีกำหนดคืน'}</span>` : new Date(record.expected_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH');
 
-        let returnStatusCell = '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ครอบครองอยู่</span>';
+        let returnStatusCell = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ${currentLang==='en'?'Occupied':'ครอบครองอยู่'}</span>`;
         if (isReturned) {
-          const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ' (🟡 ชำรุดเล็กน้อย)' : (record.return_condition === 'DAMAGED_LOST') ? ' (🔴 ชำรุดหนัก/สูญหาย)' : ' (🟢 ปกติ)';
-          returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 คืนแล้ว ${new Date(record.actual_return_date).toLocaleDateString('th-TH')}${conditionText}</span>`;
+          const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ${currentLang==='en'?'Minor Damage':'ชำรุดเล็กน้อย'})` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ${currentLang==='en'?'Damaged/Lost':'ชำรุดหนัก/สูญหาย'})` : ` (🟢 ${currentLang==='en'?'Good':'ปกติ'})`;
+          returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 ${currentLang==='en'?'Returned':'คืนแล้ว'} ${new Date(record.actual_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}${conditionText}</span>`;
         }
 
         return `
@@ -1507,16 +1871,16 @@
             <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
             <td class="p-3">${typeBadge}</td>
             <td class="p-3">${record.borrower_name}</td>
-            <td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td>
+            <td class="p-3">${new Date(record.borrow_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}</td>
             <td class="p-3 text-amber-600 font-medium">${returnDisplay}</td>
             <td class="p-3">${returnStatusCell}</td>
             <td class="p-3 text-center">
               ${!isReturned
                 ? (currentAdmin 
-                    ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ตรวจรับคืนโดย Admin</button>`
-                    : `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`
+                    ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ${currentLang==='en'?'Return Inspection':'ตรวจรับคืนโดย Admin'}</button>`
+                    : `<span class="text-xs text-slate-400 italic">🔒 ${currentLang==='en'?'Admin Only':'เฉพาะ Admin'}</span>`
                   )
-                : '<span class="text-xs text-slate-400">ทำรายการแล้ว</span>'
+                : `<span class="text-xs text-slate-400">${currentLang==='en'?'Completed':'ทำรายการแล้ว'}</span>`
               }
             </td>
           </tr>
@@ -1533,22 +1897,22 @@
 
     function exportBorrowToExcel() {
       if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        alert('❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel');
+        alert(currentLang==='en'?'❌ No records to export':'❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel');
         return;
       }
 
       const exportData = activeBorrowRecords.map(item => ({
-        'ลาเบลอุปกรณ์': item.equipment?.asset_label || '-',
-        'ชื่ออุปกรณ์': item.equipment?.name || '-',
-        'ฝ่ายที่ดูแล': item.equipment?.department || 'IT',
-        'ประเภทการเบิก': item.borrow_type === 'LONG_TERM' ? 'เบิกระยะยาว/ประจำตำแหน่ง' : 'ยืมรายวัน',
-        'ผู้ยืม/ผู้ครอบครอง': item.borrower_name,
-        'วันที่ยืม/ส่งมอบ': new Date(item.borrow_date).toLocaleDateString('th-TH'),
-        'กำหนดส่งคืน': item.borrow_type === 'LONG_TERM' ? 'ไม่มีกำหนดคืน' : new Date(item.expected_return_date).toLocaleDateString('th-TH'),
-        'สถานะ': item.status === 'RETURNED' ? 'คืนเรียบร้อยแล้ว' : 'กำลังยืม/ครอบครองอยู่',
-        'วันที่คืนจริง': item.actual_return_date ? new Date(item.actual_return_date).toLocaleDateString('th-TH') : '-',
-        'สภาพอุปกรณ์เมื่อคืน': item.return_condition === 'GOOD' ? 'สมบูรณ์ปกติ' : item.return_condition === 'MINOR_DAMAGE' ? 'ชำรุดเล็กน้อย' : item.return_condition === 'DAMAGED_LOST' ? 'ชำรุดหนัก/สูญหาย' : '-',
-        'หมายเหตุ': item.note || '-'
+        'Asset Label': item.equipment?.asset_label || '-',
+        'Equipment Name': item.equipment?.name || '-',
+        'Department': item.equipment?.department || 'IT',
+        'Issuance Type': item.borrow_type === 'LONG_TERM' ? 'Long-term' : 'Daily',
+        'Borrower/Assignee': item.borrower_name,
+        'Date Issued': new Date(item.borrow_date).toLocaleDateString('th-TH'),
+        'Due Date': item.borrow_type === 'LONG_TERM' ? 'No Due Date' : new Date(item.expected_return_date).toLocaleDateString('th-TH'),
+        'Status': item.status === 'RETURNED' ? 'Returned' : 'Occupied',
+        'Actual Return Date': item.actual_return_date ? new Date(item.actual_return_date).toLocaleDateString('th-TH') : '-',
+        'Return Condition': item.return_condition === 'GOOD' ? 'Good' : item.return_condition === 'MINOR_DAMAGE' ? 'Minor Damage' : item.return_condition === 'DAMAGED_LOST' ? 'Damaged/Lost' : '-',
+        'Remarks': item.note || '-'
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -1565,16 +1929,12 @@
 
       let query = _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
 
-      if (startDate) {
-        query = query.gte('start_time', `${startDate}T00:00:00`);
-      }
-      if (endDate) {
-        query = query.lte('start_time', `${endDate}T23:59:59`);
-      }
+      if (startDate) query = query.gte('start_time', `${startDate}T00:00:00`);
+      if (endDate) query = query.lte('start_time', `${endDate}T23:59:59`);
 
       const { data, error } = await query;
       if (error || !data || data.length === 0) {
-        alert('❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel');
+        alert(currentLang==='en'?'❌ No events found for export':'❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel');
         return;
       }
 
@@ -1589,16 +1949,16 @@
         }
 
         return {
-          'รหัสคิวงาน': ev.id,
-          'ฝ่ายรับผิดชอบหลัก': ev.department || 'ALL',
-          'ชื่อกิจกรรม / งาน': ev.event_title,
-          'แม่งานผู้รับผิดชอบ': ev.main_host || '-',
-          'สถานที่': ev.location,
-          'เวลาเริ่มงาน': formatThaiDateTime(ev.start_time),
-          'เวลาเสร็จงาน': formatThaiDateTime(ev.end_time),
-          'ทีมงานร่วมปฏิบัติงาน (Tag)': ev.organizer || '-',
-          'อุปกรณ์ที่จัดเตรียม': eqListNames.join(', ') || '-',
-          'หมายเหตุ': ev.remarks || '-'
+          'Queue ID': ev.id,
+          'Department': ev.department || 'ALL',
+          'Event Title': ev.event_title,
+          'Event Host': ev.main_host || '-',
+          'Location': ev.location,
+          'Start Time': formatThaiDateTime(ev.start_time),
+          'End Time': formatThaiDateTime(ev.end_time),
+          'Tagged Members': ev.organizer || '-',
+          'Prepared Equipment': eqListNames.join(', ') || '-',
+          'Remarks': ev.remarks || '-'
         };
       });
 
@@ -1612,7 +1972,7 @@
 
     function exportInventoryToExcel() {
       if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) {
-        alert('❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel');
+        alert(currentLang==='en'?'❌ No inventory data to export':'❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel');
         return;
       }
 
@@ -1621,20 +1981,20 @@
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
         const availableQty = (item.status === 'UNAVAILABLE') ? 0 : (totalQty - borrowedCount);
 
-        const usageText = (item.usage_type === 'EVENT') ? 'เฉพาะคิวงานกิจกรรม' : (item.usage_type === 'BORROW') ? 'เฉพาะยืม-คืนรายวัน' : 'ใช้ได้ทั้งคู่';
-        const statusText = (item.status === 'UNAVAILABLE') ? 'ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม' : (availableQty <= 0) ? 'ถูกยืมหมดแล้ว' : 'พร้อมใช้งานปกติ';
+        const usageText = (item.usage_type === 'EVENT') ? 'Event Queue Only' : (item.usage_type === 'BORROW') ? 'Daily Borrow Only' : 'Both Event & Borrow';
+        const statusText = (item.status === 'UNAVAILABLE') ? 'Unavailable / Under Repair' : (availableQty <= 0) ? 'Out of Stock' : 'Available';
 
         return {
-          'ลาเบล/รหัสอุปกรณ์': item.asset_label || '-',
-          'ชื่ออุปกรณ์': item.name || '-',
-          'ฝ่ายที่ดูแล': item.department || 'IT',
-          'หมวดหมู่การใช้งาน': usageText,
-          'จำนวนทั้งหมด (ชิ้น)': totalQty,
-          'จำนวนคงเหลือ (ชิ้น)': availableQty,
-          'ยี่ห้อ/รุ่น': (item.brand && item.brand !== 'undefined') ? item.brand : '-',
+          'Asset Label': item.asset_label || '-',
+          'Equipment Name': item.name || '-',
+          'Department': item.department || 'IT',
+          'Usage Category': usageText,
+          'Total Quantity': totalQty,
+          'Available Quantity': availableQty,
+          'Brand/Model': (item.brand && item.brand !== 'undefined') ? item.brand : '-',
           'Serial Number': item.serial_number || '-',
-          'สถานที่เก็บ': item.location || '-',
-          'สถานะสต็อก': statusText
+          'Storage Location': item.location || '-',
+          'Stock Status': statusText
         };
       });
 
@@ -1647,7 +2007,7 @@
     }
 
     function openReturnInspectionModal(recordId) {
-      if (!currentAdmin) { alert('🔒 กรุณาล็อกอินเป็น Admin ก่อนตรวจรับคืน'); return; }
+      if (!currentAdmin) { alert('🔒 Admin Only'); return; }
       
       const record = activeBorrowRecords.find(r => r.id === recordId);
       if (!record) return;
@@ -1675,9 +2035,9 @@
 
       if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') {
         await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', pendingReturnRecord.equipment_id);
-        alert('⚠️ รับคืนเรียบร้อย! อุปกรณ์นี้ถูกปรับสถานะเป็น "🔴 ไม่พร้อมใช้งาน/ส่งซ่อม" อัตโนมัติ');
+        alert(currentLang==='en'?'⚠️ Returned! Equipment status set to UNAVAILABLE':'⚠️ รับคืนเรียบร้อย! อุปกรณ์นี้ถูกปรับสถานะเป็น "🔴 ไม่พร้อมใช้งาน/ส่งซ่อม" อัตโนมัติ');
       } else {
-        alert('✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
+        alert(currentLang==='en'?'✅ Equipment Returned Successfully!':'✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
       }
 
       closeModals();
@@ -1695,17 +2055,17 @@
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
         const availableQty = totalQty - borrowedCount;
 
-        const usageBadge = (item.usage_type === 'EVENT') ? '<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 กิจกรรม</span>' : (item.usage_type === 'BORROW') ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ยืม-คืน</span>' : '<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ทั้งคู่</span>';
+        const usageBadge = (item.usage_type === 'EVENT') ? `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 ${currentLang==='en'?'Event':'กิจกรรม'}</span>` : (item.usage_type === 'BORROW') ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ${currentLang==='en'?'Borrow':'ยืม-คืน'}</span>` : `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ${currentLang==='en'?'Both':'ทั้งคู่'}</span>`;
         const brandDisplay = (item.brand && item.brand !== 'undefined') ? item.brand : '';
         
-        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 พร้อมใช้งาน (${availableQty}/${totalQty})</span>`;
+        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Available':'พร้อมใช้งาน'} (${availableQty}/${totalQty})</span>`;
         
         if (item.status === 'UNAVAILABLE') {
-          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม</span>`;
+          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ${currentLang==='en'?'Unavailable':'ไม่พร้อมใช้งาน/ส่งซ่อม'}</span>`;
         } else if (availableQty <= 0) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ถูกยืมหมดแล้ว (0/${totalQty})</span>`;
+          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ${currentLang==='en'?'Out of Stock':'ถูกยืมหมดแล้ว'} (0/${totalQty})</span>`;
         } else if (availableQty < totalQty) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 คงเหลือ ${availableQty}/${totalQty} ชิ้น</span>`;
+          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Remaining':'คงเหลือ'} ${availableQty}/${totalQty}</span>`;
         }
 
         return `
@@ -1720,8 +2080,8 @@
             <td class="p-3">${item.location || '-'}</td>
             <td class="p-3">${stockBadge}</td>
             <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
-              <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button>
-              <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button>
+              <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ ${currentLang==='en'?'Edit':'แก้ไข'}</button>
+              <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ${currentLang==='en'?'Delete':'ลบ'}</button>
             </td>
           </tr>
         `;
@@ -1761,7 +2121,7 @@
           if (item) {
             document.getElementById('borrow-asset-select').value = item.id;
             showEquipmentPreview(item.id);
-            alert(`✅ เจออุปกรณ์: ${item.name}`);
+            alert(`✅ ${currentLang==='en'?'Found Equipment':'เจออุปกรณ์'}: ${item.name}`);
             toggleScanner();
           }
         });
