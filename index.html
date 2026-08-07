@@ -135,7 +135,7 @@
         </div>
       </div>
 
-      <!-- BORROW RECORDS TABLE WITH EXCEL EXPORT & SEARCH -->
+      <!-- BORROW RECORDS TABLE WITH 4-STATUS FILTER & EXPORT -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -285,7 +285,6 @@
             </div>
           </div>
 
-          <!-- EVENT EXCEL EXPORT DATE RANGE PICKER -->
           <div class="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-bold text-indigo-900">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
@@ -375,6 +374,9 @@
               <option value="EVENT">🎪 เฉพาะอุปกรณ์จัดงานกิจกรรม</option>
             </select>
             <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาชื่อ, ลาเบล..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm outline-none">
+            <button onclick="exportInventoryToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center justify-center gap-1">
+              📊 ส่งออก Excel
+            </button>
           </div>
         </div>
 
@@ -579,6 +581,7 @@
     let currentAdmin = null;
     let selectedEventForPrint = null;
     let pendingReturnRecord = null;
+    let currentFilteredEquipment = []; // รายการอุปกรณ์ที่แสดงอยู่ตามการกรอง
 
     document.addEventListener('DOMContentLoaded', async () => {
       const futureDate = new Date();
@@ -1335,7 +1338,6 @@
       await loadActiveBorrows();
     }
 
-    // SEARCH & FILTER BORROW RECORDS (Support 4 Statuses + Date Range)
     async function loadActiveBorrows() {
       const statusFilter = document.getElementById('filter-borrow-status').value;
       const startDate = document.getElementById('filter-start-date').value;
@@ -1411,7 +1413,6 @@
       loadActiveBorrows();
     }
 
-    // EXPORT BORROW RECORDS TO EXCEL
     function exportBorrowToExcel() {
       if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
         alert('❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel');
@@ -1440,7 +1441,6 @@
       XLSX.writeFile(workbook, `Denla_Borrow_Report_${todayStr}.xlsx`);
     }
 
-    // EXPORT EVENT QUEUE CALENDAR TO EXCEL WITH DATE RANGE
     async function exportEventsToExcel() {
       const startDate = document.getElementById('excel-event-start').value;
       const endDate = document.getElementById('excel-event-end').value;
@@ -1492,6 +1492,43 @@
       XLSX.writeFile(workbook, `Denla_Events_Report_${rangeLabel}.xlsx`);
     }
 
+    // EXPORT INVENTORY TO EXCEL
+    function exportInventoryToExcel() {
+      if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) {
+        alert('❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel');
+        return;
+      }
+
+      const exportData = currentFilteredEquipment.map(item => {
+        const totalQty = item.quantity || 1;
+        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+        const availableQty = (item.status === 'UNAVAILABLE') ? 0 : (totalQty - borrowedCount);
+
+        const usageText = (item.usage_type === 'EVENT') ? 'เฉพาะคิวงานกิจกรรม' : (item.usage_type === 'BORROW') ? 'เฉพาะยืม-คืนรายวัน' : 'ใช้ได้ทั้งคู่';
+        const statusText = (item.status === 'UNAVAILABLE') ? 'ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม' : (availableQty <= 0) ? 'ถูกยืมหมดแล้ว' : 'พร้อมใช้งานปกติ';
+
+        return {
+          'ลาเบล/รหัสอุปกรณ์': item.asset_label || '-',
+          'ชื่ออุปกรณ์': item.name || '-',
+          'ฝ่ายที่ดูแล': item.department || 'IT',
+          'หมวดหมู่การใช้งาน': usageText,
+          'จำนวนทั้งหมด (ชิ้น)': totalQty,
+          'จำนวนคงเหลือ (ชิ้น)': availableQty,
+          'ยี่ห้อ/รุ่น': (item.brand && item.brand !== 'undefined') ? item.brand : '-',
+          'Serial Number': item.serial_number || '-',
+          'สถานที่เก็บ': item.location || '-',
+          'สถานะสต็อก': statusText
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Equipment_Inventory");
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `Denla_Equipment_Inventory_${todayStr}.xlsx`);
+    }
+
     function openReturnInspectionModal(recordId) {
       if (!currentAdmin) { alert('🔒 กรุณาล็อกอินเป็น Admin ก่อนตรวจรับคืน'); return; }
       
@@ -1533,7 +1570,9 @@
     }
 
     function renderInventoryTable(items) {
+      currentFilteredEquipment = items || [];
       const tbody = document.getElementById('table-inventory');
+      
       tbody.innerHTML = items.map(item => {
         const totalQty = item.quantity || 1;
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
