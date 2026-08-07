@@ -45,7 +45,7 @@
       
       <div class="flex flex-wrap items-center gap-2">
         <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
-          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืนอุปกรณ์</button>
+          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืน & เบิกส่งมอบ</button>
           <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 คิวงาน/ปฏิทิน</button>
           <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">🖥️ คลังอุปกรณ์รวม (Admin)</button>
         </nav>
@@ -65,11 +65,11 @@
       <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800">ออกจากระบบ Admin</button>
     </div>
 
-    <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ ==================== -->
+    <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ & เบิกส่งมอบระยะยาว ==================== -->
     <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม</h2>
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม / เบิก</h2>
           <div class="mb-4">
             <button onclick="toggleScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition">📷 เปิด/ปิด สแกน QR Code จากกล้อง</button>
             <div id="reader" class="mt-3 hidden rounded-xl overflow-hidden border border-slate-200"></div>
@@ -101,32 +101,42 @@
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📝 2. กรอกข้อมูลการยืม</h2>
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📝 2. กรอกข้อมูลการยืม / เบิกส่งมอบ</h2>
           <form id="form-borrow" onsubmit="handleBorrowSubmit(event)" class="space-y-4">
+            
+            <!-- Long-term / Short-term Selector -->
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อ-นามสกุล ผู้ยืม *</label>
+              <label class="block text-xs font-bold text-indigo-900 mb-1">📋 ประเภทการเบิกใช้งาน *</label>
+              <select id="borrow-type-select" onchange="toggleBorrowTypeMode()" class="w-full p-2.5 border border-indigo-200 rounded-xl bg-indigo-50 text-sm font-bold text-indigo-900 outline-none">
+                <option value="SHORT_TERM">📱 ยืมใช้งานรายวัน (ยืม-คืนปกติ)</option>
+                <option value="LONG_TERM">🏢 เบิกใช้งานระยะยาว / ประจำตำแหน่ง (ส่งมอบอุปกรณ์)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อ-นามสกุล ผู้ยืม/ผู้รับมอบ *</label>
               <input type="text" id="borrower-name" required placeholder="เช่น อ.สมชาย ใจดี" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">แผนก/ฝ่ายผู้ยืม</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1">แผนก/ฝ่ายผู้ยืม/ประจำตำแหน่ง</label>
               <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <div>
+            <div id="box-return-date">
               <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
               <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-600 mb-1">วัตถุประสงค์การใช้งาน</label>
-              <input type="text" id="borrow-note" placeholder="เช่น ใช้สอนห้อง ป.2/1" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+              <label class="block text-sm font-medium text-slate-600 mb-1">วัตถุประสงค์ / หมายเหตุการส่งมอบ</label>
+              <input type="text" id="borrow-note" placeholder="เช่น เครื่องประจำตำแหน่งครูสอน ป.2" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition">🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat</button>
+            <button type="submit" id="btn-submit-borrow" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition">🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat</button>
           </form>
         </div>
       </div>
 
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
-          <span>🔄 รายการอุปกรณ์ที่กำลังถูกยืมอยู่</span>
+          <span>🔄 รายการอุปกรณ์ที่กำลังถูกยืม / ส่งมอบครอบครองอยู่</span>
           <button onclick="loadActiveBorrows()" class="text-sm font-normal text-indigo-600 hover:underline">🔄 รีเฟรช</button>
         </h2>
         <div class="overflow-x-auto">
@@ -135,14 +145,15 @@
               <tr>
                 <th class="p-3">ลาเบล</th>
                 <th class="p-3">อุปกรณ์</th>
-                <th class="p-3">ผู้ยืม</th>
-                <th class="p-3">วันที่ยืม</th>
+                <th class="p-3">ประเภท</th>
+                <th class="p-3">ผู้ยืม / ผู้ครอบครอง</th>
+                <th class="p-3">วันที่ยืม/ส่งมอบ</th>
                 <th class="p-3">กำหนดคืน</th>
                 <th class="p-3 text-center">การจัดการคืน (เฉพาะ Admin)</th>
               </tr>
             </thead>
             <tbody id="table-active-borrows" class="divide-y divide-slate-100">
-              <tr><td colspan="6" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
+              <tr><td colspan="7" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
             </tbody>
           </table>
         </div>
@@ -341,6 +352,37 @@
 
   </main>
 
+  <!-- MODAL: RETURN INSPECTION MODAL -->
+  <div id="modal-return-inspect" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
+      <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</h3>
+      
+      <div>
+        <p class="text-xs text-slate-500 mb-1">อุปกรณ์ที่จะรับคืน:</p>
+        <p id="inspect-equipment-name" class="font-bold text-indigo-900 text-base bg-indigo-50 p-2.5 rounded-xl border border-indigo-100">-</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">🟢 สภาพอุปกรณ์เมื่อส่งคืน *</label>
+        <select id="inspect-condition" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm font-bold bg-slate-50 outline-none">
+          <option value="GOOD">🟢 สมบูรณ์พร้อมใช้งานปกติ (Good Condition)</option>
+          <option value="MINOR_DAMAGE">🟡 ชำรุดเล็กน้อย / ต้องซ่อมบำรุง (Minor Damage)</option>
+          <option value="DAMAGED_LOST">🔴 ชำรุดหนัก / อุปกรณ์สูญหาย (Damaged / Lost)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด</label>
+        <textarea id="inspect-remark" rows="2" placeholder="เช่น รอยขีดข่วนที่หน้าจอ, สายสัญญาณขาด" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <button onclick="closeModals()" class="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-xl">ยกเลิก</button>
+        <button onclick="confirmReturnWithInspection()" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow">↩️ ยืนยันการรับคืนอุปกรณ์</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: EVENT DETAILS -->
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -484,6 +526,7 @@
     let calendar = null;
     let currentAdmin = null;
     let selectedEventForPrint = null;
+    let pendingReturnRecord = null; // เก็บข้อมูลชั่วคราวก่อนกดยืนยันตรวจรับคืน
 
     document.addEventListener('DOMContentLoaded', async () => {
       const futureDate = new Date();
@@ -504,6 +547,7 @@
       document.getElementById('modal-login').classList.add('hidden');
       document.getElementById('modal-register').classList.add('hidden');
       document.getElementById('modal-event-detail').classList.add('hidden');
+      document.getElementById('modal-return-inspect').classList.add('hidden');
     }
 
     function checkAdminSession() {
@@ -574,7 +618,6 @@
       return `${dateTimeLocalStr}:00+07:00`;
     }
 
-    // Convert ISO/DB Timestamp to Input HTML Format (YYYY-MM-DDTHH:mm)
     function isoToDatetimeLocal(isoStr) {
       if (!isoStr) return '';
       const d = new Date(isoStr);
@@ -587,6 +630,24 @@
       const minutes = String(d.getMinutes()).padStart(2, '0');
 
       return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function toggleBorrowTypeMode() {
+      const type = document.getElementById('borrow-type-select').value;
+      const boxReturnDate = document.getElementById('box-return-date');
+      const btnSubmit = document.getElementById('btn-submit-borrow');
+
+      if (type === 'LONG_TERM') {
+        boxReturnDate.classList.add('hidden');
+        document.getElementById('return-date').required = false;
+        btnSubmit.innerHTML = '🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat';
+        btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
+      } else {
+        boxReturnDate.classList.remove('hidden');
+        document.getElementById('return-date').required = true;
+        btnSubmit.innerHTML = '🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat';
+        btnSubmit.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition';
+      }
     }
 
     async function fetchAllAdmins() {
@@ -725,7 +786,6 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT CREATE & UPDATE LOGIC (Support Admin Editing)
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -773,12 +833,10 @@
 
       let error = null;
       if (rawEventId && rawEventId !== '') {
-        // UPDATE EVENT
         const evId = parseInt(rawEventId, 10);
         const res = await _supabase.from('event_queue').update(payload).eq('id', evId);
         error = res.error;
       } else {
-        // INSERT EVENT
         const res = await _supabase.from('event_queue').insert([payload]);
         error = res.error;
       }
@@ -816,7 +874,6 @@
       document.getElementById('event-end').value = isoToDatetimeLocal(selectedEventForPrint.rawEnd);
       document.getElementById('event-remarks').value = selectedEventForPrint.remarks || '';
 
-      // Check Equipments
       clearAllTags();
       document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
 
@@ -881,7 +938,6 @@
       renderEventEquipmentAccordion();
     }
 
-    // ACCORDION EVENT EQUIPMENT: Hide / Disable Unavailable Items
     function renderEventEquipmentAccordion() {
       const container = document.getElementById('event-equipment-accordion');
       const depts = { 'AV': '🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)', 'IT': '💻 ฝ่ายไอที (IT)', 'MEDIA': '📷 ฝ่ายช่างภาพ/สื่อ (Media)' };
@@ -917,14 +973,13 @@
       container.innerHTML = html || '<p class="text-slate-400 text-center">ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ</p>';
     }
 
-    // BORROW DROPDOWN: Filter Out Unavailable Stock
     function renderEquipmentDropdown() {
       const deptFilter = document.getElementById('borrow-dept-filter').value;
       const select = document.getElementById('borrow-asset-select');
       select.innerHTML = '<option value="">-- เลือกอุปกรณ์ --</option>';
       
       let filtered = allEquipment.filter(item => {
-        if (item.status === 'UNAVAILABLE') return false; // ไม่ให้เลือกถ้าไม่พร้อมใช้งาน
+        if (item.status === 'UNAVAILABLE') return false;
         
         const totalQty = item.quantity || 1;
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id).length;
@@ -976,7 +1031,7 @@
         quantity: parseInt(document.getElementById('eq-quantity').value || 1, 10),
         department: document.getElementById('eq-dept').value,
         usage_type: document.getElementById('eq-usage-type').value,
-        status: document.getElementById('eq-status').value, // AVAILABLE or UNAVAILABLE
+        status: document.getElementById('eq-status').value,
         brand: document.getElementById('eq-brand').value || '',
         serial_number: document.getElementById('eq-serial').value || '',
         location: document.getElementById('eq-location').value || ''
@@ -1176,9 +1231,11 @@
       printArea.classList.add('hidden');
     }
 
+    // BORROW & LONG-TERM ISSUANCE SUBMIT
     async function handleBorrowSubmit(e) {
       e.preventDefault();
       const equipmentId = document.getElementById('borrow-asset-select').value;
+      const borrowType = document.getElementById('borrow-type-select').value; // SHORT_TERM or LONG_TERM
       const borrowerName = document.getElementById('borrower-name').value;
       const dept = document.getElementById('borrower-dept').value;
       const returnDate = document.getElementById('return-date').value;
@@ -1192,25 +1249,37 @@
       const availableQty = totalQty - borrowedCount;
 
       if (availableQty <= 0) {
-        alert('❌ อุปกรณ์ชิ้นนี้ถูกยืมครบตามจำนวนทั้งหมดแล้ว');
+        alert('❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว');
         return;
       }
 
-      await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`, expected_return_date: returnDate, note: note }]);
+      const displayReturnDate = (borrowType === 'LONG_TERM') ? 'เบิกใช้งานระยะยาว (ไม่มีกำหนดคืน)' : returnDate;
+
+      await _supabase.from('borrow_records').insert([{ 
+        equipment_id: equipmentId, 
+        borrow_type: borrowType,
+        borrower_name: `${borrowerName} (${dept || 'ไม่ระบุแผนก'})`, 
+        expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, 
+        note: note 
+      }]);
+
+      const notifHeader = (borrowType === 'LONG_TERM') ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`;
 
       sendGoogleChatNotification({
-        title: `📦 มีรายการยืมอุปกรณ์ใหม่ [ถึงฝ่าย ${item.department || 'IT'}]`,
+        title: `${notifHeader} [ฝ่าย ${item.department || 'IT'}]`,
         details: [
+          `<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`,
           `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`,
           `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`,
-          `<b>ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`,
-          `<b>กำหนดคืน:</b> ${returnDate}`,
-          `<b>หมายเหตุ:</b> ${note || '-'}`
+          `<b>ผู้รับมอบ/ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`,
+          `<b>กำหนดคืน:</b> ${displayReturnDate}`,
+          `<b>วัตถุประสงค์/หมายเหตุ:</b> ${note || '-'}`
         ]
       });
 
-      alert('✅ บันทึกการยืมเรียบร้อย!');
+      alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
       document.getElementById('form-borrow').reset();
+      toggleBorrowTypeMode();
       await fetchAllEquipment();
       await loadActiveBorrows();
     }
@@ -1221,32 +1290,73 @@
 
       const tbody = document.getElementById('table-active-borrows');
       if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-400">ไม่มีอุปกรณ์ที่ถูกยืมในขณะนี้</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">ไม่มีอุปกรณ์ที่กำลังถูกยืมหรือเบิกครอบครองอยู่</td></tr>';
         return;
       }
-      tbody.innerHTML = activeBorrowRecords.map(record => `
-        <tr class="hover:bg-slate-50 transition">
-          <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
-          <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
-          <td class="p-3">${record.borrower_name}</td>
-          <td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td>
-          <td class="p-3 text-amber-600 font-medium">${new Date(record.expected_return_date).toLocaleDateString('th-TH')}</td>
-          <td class="p-3 text-center">
-            ${currentAdmin 
-              ? `<button onclick="returnEquipment(${record.id}, ${record.equipment_id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ รับคืนโดย Admin [${currentAdmin.department || 'IT'}]</button>`
-              : `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`
-            }
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = activeBorrowRecords.map(record => {
+        const isLongTerm = (record.borrow_type === 'LONG_TERM');
+        const typeBadge = isLongTerm ? '<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ส่งมอบระยะยาว</span>' : '<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ยืมรายวัน</span>';
+        const returnDisplay = isLongTerm ? '<span class="text-slate-400 italic">ไม่มีกำหนดคืน</span>' : new Date(record.expected_return_date).toLocaleDateString('th-TH');
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
+            <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
+            <td class="p-3">${typeBadge}</td>
+            <td class="p-3">${record.borrower_name}</td>
+            <td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td>
+            <td class="p-3 text-amber-600 font-medium">${returnDisplay}</td>
+            <td class="p-3 text-center">
+              ${currentAdmin 
+                ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ตรวจรับคืนโดย Admin</button>`
+                : `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`
+              }
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    async function returnEquipment(recordId, equipmentId) {
+    // OPEN RETURN INSPECTION MODAL
+    function openReturnInspectionModal(recordId) {
       if (!currentAdmin) { alert('🔒 กรุณาล็อกอินเป็น Admin ก่อนตรวจรับคืน'); return; }
-      if (!confirm(`ยืนยันรับคืนอุปกรณ์โดย Admin: ${currentAdmin.full_name} ?`)) return;
+      
+      const record = activeBorrowRecords.find(r => r.id === recordId);
+      if (!record) return;
 
-      await _supabase.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString() }).eq('id', recordId);
-      alert('✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
+      pendingReturnRecord = record;
+      document.getElementById('inspect-equipment-name').textContent = `[${record.equipment?.asset_label}] ${record.equipment?.name}`;
+      document.getElementById('inspect-condition').value = 'GOOD';
+      document.getElementById('inspect-remark').value = '';
+      
+      document.getElementById('modal-return-inspect').classList.remove('hidden');
+    }
+
+    // CONFIRM RETURN WITH INSPECTION
+    async function confirmReturnWithInspection() {
+      if (!pendingReturnRecord) return;
+
+      const condition = document.getElementById('inspect-condition').value;
+      const remark = document.getElementById('inspect-remark').value;
+
+      // Update Borrow Record
+      await _supabase.from('borrow_records').update({ 
+        status: 'RETURNED', 
+        actual_return_date: new Date().toISOString(),
+        return_condition: condition,
+        return_remark: remark
+      }).eq('id', pendingReturnRecord.id);
+
+      // If damaged, change equipment status to UNAVAILABLE
+      if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') {
+        await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', pendingReturnRecord.equipment_id);
+        alert('⚠️ รับคืนเรียบร้อย! อุปกรณ์นี้ถูกปรับสถานะเป็น "🔴 ไม่พร้อมใช้งาน/ส่งซ่อม" อัตโนมัติ');
+      } else {
+        alert('✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
+      }
+
+      closeModals();
+      pendingReturnRecord = null;
       await fetchAllEquipment();
       await loadActiveBorrows();
     }
