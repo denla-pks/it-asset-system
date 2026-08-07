@@ -9,6 +9,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -133,15 +135,14 @@
         </div>
       </div>
 
-      <!-- BORROW RECORDS TABLE WITH UPDATED 4-STATUS FILTER -->
+      <!-- BORROW RECORDS TABLE WITH EXCEL EXPORT & SEARCH -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 border-b border-slate-100">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
             <span>🔄 รายการอุปกรณ์ยืม-คืน & ส่งมอบครอบครอง</span>
           </h2>
 
-          <!-- Filter Options: Status (4 Choices) & Date Range -->
-          <div class="flex flex-wrap items-center gap-2 w-full md:w-auto text-xs">
+          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto text-xs">
             <div>
               <label class="block font-medium text-slate-500 mb-0.5">สถานะการยืม</label>
               <select id="filter-borrow-status" onchange="loadActiveBorrows()" class="p-2 border border-slate-200 rounded-xl bg-slate-50 outline-none font-bold text-slate-700">
@@ -162,9 +163,10 @@
               <input type="date" id="filter-end-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
-            <div class="self-end pb-0.5">
-              <button onclick="clearBorrowFilters()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-medium transition">ล้างการค้นหา</button>
+            <div class="self-end pb-0.5 flex gap-1">
+              <button onclick="clearBorrowFilters()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-medium transition">ล้างเลือก</button>
               <button onclick="loadActiveBorrows()" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-bold transition">🔄 รีเฟรช</button>
+              <button onclick="exportBorrowToExcel()" class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow transition flex items-center gap-1">📊 ส่งออก Excel</button>
             </div>
           </div>
         </div>
@@ -272,8 +274,8 @@
           </form>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-7">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-7 space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-3 border-slate-100">
             <h2 class="text-lg font-bold text-slate-800">📅 ปฏิทินคิวงานกิจกรรม</h2>
             <div class="flex flex-wrap gap-2 text-xs">
               <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-rose-500 inline-block"></span> โสตฯ</span>
@@ -282,7 +284,26 @@
               <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-purple-500 inline-block"></span> ทุกแผนก</span>
             </div>
           </div>
-          <div id="calendar" class="min-h-[550px]"></div>
+
+          <!-- EVENT EXCEL EXPORT DATE RANGE PICKER -->
+          <div class="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-indigo-900">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
+              <div class="flex items-center gap-1">
+                <span>เริ่ม:</span>
+                <input type="date" id="excel-event-start" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
+              </div>
+              <div class="flex items-center gap-1">
+                <span>ถึง:</span>
+                <input type="date" id="excel-event-end" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
+              </div>
+            </div>
+            <button onclick="exportEventsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1">
+              📊 ส่งออกคิวงาน Excel
+            </button>
+          </div>
+
+          <div id="calendar" class="min-h-[500px]"></div>
         </div>
 
       </div>
@@ -1322,7 +1343,6 @@
 
       let query = _supabase.from('borrow_records').select('*, equipment(*)').order('borrow_date', { ascending: false });
 
-      // Apply 4 Status Filters
       if (statusFilter === 'SHORT_TERM_BORROWED') {
         query = query.eq('status', 'BORROWED').eq('borrow_type', 'SHORT_TERM');
       } else if (statusFilter === 'LONG_TERM_BORROWED') {
@@ -1331,7 +1351,6 @@
         query = query.eq('status', 'RETURNED');
       }
 
-      // Apply Date Filters
       if (startDate) {
         query = query.gte('borrow_date', `${startDate}T00:00:00`);
       }
@@ -1390,6 +1409,87 @@
       document.getElementById('filter-start-date').value = '';
       document.getElementById('filter-end-date').value = '';
       loadActiveBorrows();
+    }
+
+    // EXPORT BORROW RECORDS TO EXCEL
+    function exportBorrowToExcel() {
+      if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
+        alert('❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel');
+        return;
+      }
+
+      const exportData = activeBorrowRecords.map(item => ({
+        'ลาเบลอุปกรณ์': item.equipment?.asset_label || '-',
+        'ชื่ออุปกรณ์': item.equipment?.name || '-',
+        'ฝ่ายที่ดูแล': item.equipment?.department || 'IT',
+        'ประเภทการเบิก': item.borrow_type === 'LONG_TERM' ? 'เบิกระยะยาว/ประจำตำแหน่ง' : 'ยืมรายวัน',
+        'ผู้ยืม/ผู้ครอบครอง': item.borrower_name,
+        'วันที่ยืม/ส่งมอบ': new Date(item.borrow_date).toLocaleDateString('th-TH'),
+        'กำหนดส่งคืน': item.borrow_type === 'LONG_TERM' ? 'ไม่มีกำหนดคืน' : new Date(item.expected_return_date).toLocaleDateString('th-TH'),
+        'สถานะ': item.status === 'RETURNED' ? 'คืนเรียบร้อยแล้ว' : 'กำลังยืม/ครอบครองอยู่',
+        'วันที่คืนจริง': item.actual_return_date ? new Date(item.actual_return_date).toLocaleDateString('th-TH') : '-',
+        'สภาพอุปกรณ์เมื่อคืน': item.return_condition === 'GOOD' ? 'สมบูรณ์ปกติ' : item.return_condition === 'MINOR_DAMAGE' ? 'ชำรุดเล็กน้อย' : item.return_condition === 'DAMAGED_LOST' ? 'ชำรุดหนัก/สูญหาย' : '-',
+        'หมายเหตุ': item.note || '-'
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Borrow_Records");
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `Denla_Borrow_Report_${todayStr}.xlsx`);
+    }
+
+    // EXPORT EVENT QUEUE CALENDAR TO EXCEL WITH DATE RANGE
+    async function exportEventsToExcel() {
+      const startDate = document.getElementById('excel-event-start').value;
+      const endDate = document.getElementById('excel-event-end').value;
+
+      let query = _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
+
+      if (startDate) {
+        query = query.gte('start_time', `${startDate}T00:00:00`);
+      }
+      if (endDate) {
+        query = query.lte('start_time', `${endDate}T23:59:59`);
+      }
+
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) {
+        alert('❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel');
+        return;
+      }
+
+      const exportData = data.map(ev => {
+        let eqListNames = [];
+        if (ev.details && ev.details.includes('EQ_IDS:')) {
+          const ids = ev.details.split('EQ_IDS:')[1].split(',');
+          ids.forEach(id => {
+            const item = allEquipment.find(i => i.id == id.trim());
+            if (item) eqListNames.push(`[${item.asset_label}] ${item.name}`);
+          });
+        }
+
+        return {
+          'รหัสคิวงาน': ev.id,
+          'ฝ่ายรับผิดชอบหลัก': ev.department || 'ALL',
+          'ชื่อกิจกรรม / งาน': ev.event_title,
+          'แม่งานผู้รับผิดชอบ': ev.main_host || '-',
+          'สถานที่': ev.location,
+          'เวลาเริ่มงาน': formatThaiDateTime(ev.start_time),
+          'เวลาเสร็จงาน': formatThaiDateTime(ev.end_time),
+          'ทีมงานร่วมปฏิบัติงาน (Tag)': ev.organizer || '-',
+          'อุปกรณ์ที่จัดเตรียม': eqListNames.join(', ') || '-',
+          'หมายเหตุ': ev.remarks || '-'
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Event_Queue");
+
+      const rangeLabel = (startDate && endDate) ? `${startDate}_to_${endDate}` : 'All_Events';
+      XLSX.writeFile(workbook, `Denla_Events_Report_${rangeLabel}.xlsx`);
     }
 
     function openReturnInspectionModal(recordId) {
