@@ -18,6 +18,10 @@
     .fc-event { cursor: pointer; border-radius: 8px !important; padding: 3px 6px !important; font-size: 0.82rem !important; border: none !important; }
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
+    
+    input[type="datetime-local"]::-webkit-datetime-edit-ampm-field {
+      display: none !important;
+    }
 
     @media print {
       body * { visibility: hidden !important; }
@@ -119,8 +123,8 @@
               <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div id="box-return-date">
-              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
-              <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน (วัน/เดือน/ปี) *</label>
+              <input type="date" id="return-date" required lang="th-TH" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1">วัตถุประสงค์ / หมายเหตุการส่งมอบ</label>
@@ -151,12 +155,12 @@
 
             <div>
               <label class="block font-medium text-slate-500 mb-0.5">ตั้งแต่วันที่</label>
-              <input type="date" id="filter-start-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+              <input type="date" id="filter-start-date" lang="th-TH" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
             <div>
               <label class="block font-medium text-slate-500 mb-0.5">ถึงวันที่</label>
-              <input type="date" id="filter-end-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+              <input type="date" id="filter-end-date" lang="th-TH" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
             </div>
 
             <div class="self-end pb-0.5 flex gap-1">
@@ -227,19 +231,19 @@
               <input type="text" id="event-location" required placeholder="เช่น หอประชุมชั้น 5" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
 
-            <!-- SEPARATE DATE & 24H TIME SELECTORS -->
+            <!-- SEPARATE DATE (dd/mm/yyyy) & 5-MIN INTERVAL TIME SELECTORS -->
             <div class="space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <p class="text-xs font-bold text-slate-700">⏰ กำหนดวันเวลาเริ่มงาน และ เสร็จงาน (ระบบ 24 ชม.):</p>
+              <p class="text-xs font-bold text-slate-700">⏰ กำหนดวันเวลาเริ่มงาน และ เสร็จงาน (ระบบ 24 ชม. - ทีละ 5 นาที):</p>
               
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">📅 วันที่เริ่มงาน *</label>
-                  <input type="date" id="event-start-date" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                  <input type="date" id="event-start-date" required lang="th-TH" class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
                 </div>
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">⏰ เวลาเริ่มงาน (24 ชม.) *</label>
                   <select id="event-start-time" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white font-bold text-indigo-900">
-                    <!-- Populated dynamically 00:00 - 23:30 -->
+                    <!-- Populated dynamically 00:00 - 23:55 (5-min intervals) -->
                   </select>
                 </div>
               </div>
@@ -247,12 +251,12 @@
               <div class="grid grid-cols-2 gap-2 pt-1">
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">📅 วันที่เสร็จงาน *</label>
-                  <input type="date" id="event-end-date" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                  <input type="date" id="event-end-date" required lang="th-TH" class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
                 </div>
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">⏰ เวลาเสร็จงาน (24 ชม.) *</label>
                   <select id="event-end-time" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white font-bold text-indigo-900">
-                    <!-- Populated dynamically 00:00 - 23:30 -->
+                    <!-- Populated dynamically 00:00 - 23:55 (5-min intervals) -->
                   </select>
                 </div>
               </div>
@@ -306,11 +310,11 @@
               <span class="font-bold text-indigo-900">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
               <div class="flex items-center gap-1">
                 <span>เริ่ม:</span>
-                <input type="date" id="excel-event-start" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
+                <input type="date" id="excel-event-start" lang="th-TH" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
               </div>
               <div class="flex items-center gap-1">
                 <span>ถึง:</span>
-                <input type="date" id="excel-event-end" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
+                <input type="date" id="excel-event-end" lang="th-TH" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
               </div>
             </div>
             <button onclick="exportEventsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1">
@@ -600,7 +604,7 @@
     let currentFilteredEquipment = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
-      populateTimeDropdowns(); // สร้างตัวเลือกเวลา 24 ชม. แบบไม่มี AM/PM
+      populateTimeDropdowns(); // สร้างตัวเลือกเวลาทีละ 5 นาที (00:00 - 23:55)
       
       const todayStr = new Date().toISOString().split('T')[0];
       document.getElementById('event-start-date').value = todayStr;
@@ -618,16 +622,17 @@
       setupActivityListeners();
     });
 
-    // POPULATE 24-HOUR TIME SELECT DROPDOWNS (00:00 - 23:30)
+    // POPULATE 24-HOUR TIME SELECT DROPDOWNS (Every 5 Minutes)
     function populateTimeDropdowns() {
       const startSelect = document.getElementById('event-start-time');
       const endSelect = document.getElementById('event-end-time');
       let optionsHtml = '';
 
       for (let hour = 0; hour < 24; hour++) {
-        for (let min of ['00', '30']) {
+        for (let min = 0; min < 60; min += 5) {
           const hh = String(hour).padStart(2, '0');
-          const timeStr = `${hh}:${min}`;
+          const mm = String(min).padStart(2, '0');
+          const timeStr = `${hh}:${mm}`;
           optionsHtml += `<option value="${timeStr}">${timeStr} น.</option>`;
         }
       }
@@ -635,7 +640,6 @@
       startSelect.innerHTML = optionsHtml;
       endSelect.innerHTML = optionsHtml;
 
-      // Default Time: 08:30 & 16:30
       startSelect.value = '08:30';
       endSelect.value = '16:30';
     }
@@ -871,7 +875,6 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT SUBMIT (Combining Separate Date & Time Inputs)
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -940,7 +943,7 @@
           `<b>👤 แม่งานผู้รับผิดชอบหลัก:</b> ${mainHost}`,
           `<b>สถานที่:</b> ${location}`,
           `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`,
-          `<b>เวลาสิ้นสุด:</b> ${formatThaiDateTime(isoEnd)}`,
+          `<b>เวลาเสร็จงาน:</b> ${formatThaiDateTime(isoEnd)}`,
           `<b>🏷️ แท็กทีมงานปฏิบัติงาน:</b> <font color="#ef4444"><b>${chatMentionStr}</b></font>`,
           `<b>📝 หมายเหตุ:</b> ${remarks || '-'}`,
           `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
@@ -964,12 +967,16 @@
       if (selectedEventForPrint.rawStart) {
         const dStart = new Date(selectedEventForPrint.rawStart);
         document.getElementById('event-start-date').value = dStart.toISOString().slice(0,10);
-        document.getElementById('event-start-time').value = `${String(dStart.getHours()).padStart(2,'0')}:${String(dStart.getMinutes()).padStart(2,'0')}`;
+        
+        let mStart = Math.floor(dStart.getMinutes() / 5) * 5;
+        document.getElementById('event-start-time').value = `${String(dStart.getHours()).padStart(2,'0')}:${String(mStart).padStart(2,'0')}`;
       }
       if (selectedEventForPrint.rawEnd) {
         const dEnd = new Date(selectedEventForPrint.rawEnd);
         document.getElementById('event-end-date').value = dEnd.toISOString().slice(0,10);
-        document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(dEnd.getMinutes()).padStart(2,'0')}`;
+        
+        let mEnd = Math.floor(dEnd.getMinutes() / 5) * 5;
+        document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(mEnd).padStart(2,'0')}`;
       }
 
       document.getElementById('event-remarks').value = selectedEventForPrint.remarks || '';
@@ -1222,7 +1229,7 @@
       calendar.render();
     }
 
-    // CALENDAR EVENTS FETCH (Trim Timezone Offset string to prevent 7h shifts)
+    // CALENDAR EVENTS FETCH (TRIM TIMEZONE SHIFTS)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
