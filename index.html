@@ -18,10 +18,6 @@
     .fc-event { cursor: pointer; border-radius: 8px !important; padding: 3px 6px !important; font-size: 0.82rem !important; border: none !important; }
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
-    
-    input[type="datetime-local"]::-webkit-datetime-edit-ampm-field {
-      display: none !important;
-    }
 
     @media print {
       body * { visibility: hidden !important; }
@@ -231,14 +227,34 @@
               <input type="text" id="event-location" required placeholder="เช่น หอประชุมชั้น 5" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เริ่มงาน * (ระบบ 24 ชม.)</label>
-                <input type="datetime-local" id="event-start" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+            <!-- SEPARATE DATE & 24H TIME SELECTORS -->
+            <div class="space-y-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <p class="text-xs font-bold text-slate-700">⏰ กำหนดวันเวลาเริ่มงาน และ เสร็จงาน (ระบบ 24 ชม.):</p>
+              
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">📅 วันที่เริ่มงาน *</label>
+                  <input type="date" id="event-start-date" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">⏰ เวลาเริ่มงาน (24 ชม.) *</label>
+                  <select id="event-start-time" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white font-bold text-indigo-900">
+                    <!-- Populated dynamically 00:00 - 23:30 -->
+                  </select>
+                </div>
               </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">เสร็จงาน * (ระบบ 24 ชม.)</label>
-                <input type="datetime-local" id="event-end" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none">
+
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">📅 วันที่เสร็จงาน *</label>
+                  <input type="date" id="event-end-date" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 mb-0.5">⏰ เวลาเสร็จงาน (24 ชม.) *</label>
+                  <select id="event-end-time" required class="w-full p-2 border border-slate-200 rounded-xl text-xs outline-none bg-white font-bold text-indigo-900">
+                    <!-- Populated dynamically 00:00 - 23:30 -->
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -581,9 +597,15 @@
     let currentAdmin = null;
     let selectedEventForPrint = null;
     let pendingReturnRecord = null;
-    let currentFilteredEquipment = []; // รายการอุปกรณ์ที่แสดงอยู่ตามการกรอง
+    let currentFilteredEquipment = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
+      populateTimeDropdowns(); // สร้างตัวเลือกเวลา 24 ชม. แบบไม่มี AM/PM
+      
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('event-start-date').value = todayStr;
+      document.getElementById('event-end-date').value = todayStr;
+
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 3);
       document.getElementById('return-date').value = futureDate.toISOString().split('T')[0];
@@ -595,6 +617,28 @@
       checkAdminSession();
       setupActivityListeners();
     });
+
+    // POPULATE 24-HOUR TIME SELECT DROPDOWNS (00:00 - 23:30)
+    function populateTimeDropdowns() {
+      const startSelect = document.getElementById('event-start-time');
+      const endSelect = document.getElementById('event-end-time');
+      let optionsHtml = '';
+
+      for (let hour = 0; hour < 24; hour++) {
+        for (let min of ['00', '30']) {
+          const hh = String(hour).padStart(2, '0');
+          const timeStr = `${hh}:${min}`;
+          optionsHtml += `<option value="${timeStr}">${timeStr} น.</option>`;
+        }
+      }
+
+      startSelect.innerHTML = optionsHtml;
+      endSelect.innerHTML = optionsHtml;
+
+      // Default Time: 08:30 & 16:30
+      startSelect.value = '08:30';
+      endSelect.value = '16:30';
+    }
 
     function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
     function openRegisterModal() { document.getElementById('modal-register').classList.remove('hidden'); }
@@ -668,23 +712,9 @@
       return `${thaiDate.replace(':', '.')} น.`;
     }
 
-    function formatLocalToISO(dateTimeLocalStr) {
-      if (!dateTimeLocalStr) return null;
-      return `${dateTimeLocalStr}:00+07:00`;
-    }
-
-    function isoToDatetimeLocal(isoStr) {
-      if (!isoStr) return '';
-      const d = new Date(isoStr);
-      if (isNaN(d.getTime())) return isoStr.substring(0, 16).replace(' ', 'T');
-      
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    function formatLocalToISO(dateStr, timeStr) {
+      if (!dateStr || !timeStr) return null;
+      return `${dateStr}T${timeStr}:00+07:00`;
     }
 
     function toggleBorrowTypeMode() {
@@ -841,6 +871,7 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
+    // EVENT SUBMIT (Combining Separate Date & Time Inputs)
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -848,8 +879,12 @@
       const title = document.getElementById('event-title').value;
       const mainHost = document.getElementById('event-main-host').value;
       const location = document.getElementById('event-location').value;
-      const startVal = document.getElementById('event-start').value;
-      const endVal = document.getElementById('event-end').value;
+      
+      const startDate = document.getElementById('event-start-date').value;
+      const startTime = document.getElementById('event-start-time').value;
+      const endDate = document.getElementById('event-end-date').value;
+      const endTime = document.getElementById('event-end-time').value;
+      
       const remarks = document.getElementById('event-remarks').value;
 
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
@@ -870,8 +905,8 @@
 
       const detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
 
-      const isoStart = formatLocalToISO(startVal);
-      const isoEnd = formatLocalToISO(endVal);
+      const isoStart = formatLocalToISO(startDate, startTime);
+      const isoEnd = formatLocalToISO(endDate, endTime);
 
       const payload = {
         department: dept, 
@@ -880,7 +915,7 @@
         location: location, 
         start_time: isoStart, 
         end_time: isoEnd, 
-        event_date: startVal.split('T')[0], 
+        event_date: startDate, 
         organizer: tagDisplayStr, 
         details: detailsPayload,
         remarks: remarks
@@ -925,8 +960,18 @@
       document.getElementById('event-title').value = selectedEventForPrint.title || '';
       document.getElementById('event-main-host').value = selectedEventForPrint.mainHost || '';
       document.getElementById('event-location').value = selectedEventForPrint.location || '';
-      document.getElementById('event-start').value = isoToDatetimeLocal(selectedEventForPrint.rawStart);
-      document.getElementById('event-end').value = isoToDatetimeLocal(selectedEventForPrint.rawEnd);
+      
+      if (selectedEventForPrint.rawStart) {
+        const dStart = new Date(selectedEventForPrint.rawStart);
+        document.getElementById('event-start-date').value = dStart.toISOString().slice(0,10);
+        document.getElementById('event-start-time').value = `${String(dStart.getHours()).padStart(2,'0')}:${String(dStart.getMinutes()).padStart(2,'0')}`;
+      }
+      if (selectedEventForPrint.rawEnd) {
+        const dEnd = new Date(selectedEventForPrint.rawEnd);
+        document.getElementById('event-end-date').value = dEnd.toISOString().slice(0,10);
+        document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(dEnd.getMinutes()).padStart(2,'0')}`;
+      }
+
       document.getElementById('event-remarks').value = selectedEventForPrint.remarks || '';
 
       clearAllTags();
@@ -952,6 +997,13 @@
     function resetEventForm() {
       document.getElementById('form-event').reset();
       document.getElementById('event-id').value = '';
+      
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('event-start-date').value = todayStr;
+      document.getElementById('event-end-date').value = todayStr;
+      document.getElementById('event-start-time').value = '08:30';
+      document.getElementById('event-end-time').value = '16:30';
+
       clearAllTags();
       document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
       document.getElementById('form-event-title').innerHTML = '➕ ลงคิวงาน / กิจกรรมใหม่';
@@ -1155,7 +1207,6 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        timeZone: 'Asia/Bangkok',
         locale: 'th',
         eventTimeFormat: {
           hour: '2-digit',
@@ -1171,30 +1222,36 @@
       calendar.render();
     }
 
+    // CALENDAR EVENTS FETCH (Trim Timezone Offset string to prevent 7h shifts)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'ALL': '#8b5cf6' };
-      const events = (data || []).map(ev => ({
-        id: ev.id,
-        title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
-        start: ev.start_time || ev.event_date,
-        end: ev.end_time || null,
-        backgroundColor: deptColors[ev.department] || '#6366f1',
-        borderColor: deptColors[ev.department] || '#6366f1',
-        extendedProps: { 
-          eventId: ev.id,
-          rawTitle: ev.event_title, 
-          dept: ev.department || 'ALL', 
-          mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
-          location: ev.location, 
-          organizer: ev.organizer, 
-          details: ev.details,
-          remarks: ev.remarks,
-          rawStart: ev.start_time,
-          rawEnd: ev.end_time
-        }
-      }));
+      const events = (data || []).map(ev => {
+        let cleanStart = ev.start_time ? String(ev.start_time).substring(0, 16) : ev.event_date;
+        let cleanEnd = ev.end_time ? String(ev.end_time).substring(0, 16) : null;
+
+        return {
+          id: ev.id,
+          title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
+          start: cleanStart,
+          end: cleanEnd,
+          backgroundColor: deptColors[ev.department] || '#6366f1',
+          borderColor: deptColors[ev.department] || '#6366f1',
+          extendedProps: { 
+            eventId: ev.id,
+            rawTitle: ev.event_title, 
+            dept: ev.department || 'ALL', 
+            mainHost: ev.main_host || 'ไม่ระบุแม่งาน', 
+            location: ev.location, 
+            organizer: ev.organizer, 
+            details: ev.details,
+            remarks: ev.remarks,
+            rawStart: ev.start_time,
+            rawEnd: ev.end_time
+          }
+        };
+      });
       successCallback(events);
     }
 
@@ -1492,7 +1549,6 @@
       XLSX.writeFile(workbook, `Denla_Events_Report_${rangeLabel}.xlsx`);
     }
 
-    // EXPORT INVENTORY TO EXCEL
     function exportInventoryToExcel() {
       if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) {
         alert('❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel');
