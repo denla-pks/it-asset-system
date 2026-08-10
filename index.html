@@ -23,10 +23,15 @@
       display: none !important;
     }
 
+    /* Print styling to force exactly 1 page and remove default headers/footers */
     @media print {
       @page {
         size: A4 portrait;
-        margin: 1cm;
+        margin: 0.5cm;
+      }
+      html, body {
+        height: 100%;
+        overflow: hidden;
       }
       body * { visibility: hidden !important; }
       #printable-area, #printable-area * { visibility: visible !important; }
@@ -40,6 +45,8 @@
         color: black !important; 
         padding: 0 !important;
         margin: 0 !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
       }
     }
   </style>
@@ -2333,7 +2340,7 @@
       calendar.render();
     }
 
-    // CALENDAR EVENTS FETCH
+    // CALENDAR EVENTS FETCH (PURE LOCAL DATE RENDERING - PREVENT TIMEZONE SHIFTS)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
