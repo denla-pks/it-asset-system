@@ -406,7 +406,7 @@
         </div>
 
         <div id="display-board-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <p class="text-slate-400 text-center py-12 col-span-2">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
+          <p class="text-indigo-200/60 text-center py-12 col-span-2">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
         </div>
       </div>
     </section>
@@ -1252,34 +1252,40 @@
       }, 60000);
     }
 
-    // STRICT TIME FORMATTER
+    // PURE TIME STRING PARSER FOR DISPLAY
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
-      const d = new Date(dateInput);
-      if (isNaN(d.getTime())) {
-        let str = String(dateInput);
-        if (str.includes('T') || str.includes(' ')) {
-          const parts = str.split(/[T ]/);
-          const dateParts = parts[0].split('-');
-          const timeParts = parts[1].substring(0, 5).split(':');
-          const yearDisplay = currentLang === 'en' ? dateParts[0] : parseInt(dateParts[0],10)+543;
-          return `${parseInt(dateParts[2],10)}/${parseInt(dateParts[1],10)}/${yearDisplay} ${timeParts[0]}.${timeParts[1]}${currentLang==='en'?'':' น.'}`;
-        }
-        return dateInput;
+      let str = String(dateInput);
+      let datePart = '', timePart = '';
+
+      if (str.includes('T')) {
+        let parts = str.split('T');
+        datePart = parts[0];
+        timePart = parts[1].substring(0, 5);
+      } else if (str.includes(' ')) {
+        let parts = str.split(' ');
+        datePart = parts[0];
+        timePart = parts[1].substring(0, 5);
+      } else {
+        datePart = str;
       }
 
-      const yearBE = currentLang === 'en' ? d.getFullYear() : d.getFullYear() + 543;
-      const day = d.getDate();
-      const month = d.getMonth() + 1;
-      const hour = String(d.getHours()).padStart(2, '0');
-      const minute = String(d.getMinutes()).padStart(2, '0');
+      if (datePart.includes('-')) {
+        let dp = datePart.split('-');
+        let y = parseInt(dp[0], 10);
+        let m = parseInt(dp[1], 10);
+        let d = parseInt(dp[2], 10);
+        let yearDisplay = currentLang === 'en' ? y : (y + 543);
+        let timeDisplay = timePart ? ` ${timePart.replace(':', '.')}${currentLang==='en'?'':' น.'}` : '';
+        return `${d}/${m}/${yearDisplay}${timeDisplay}`;
+      }
 
-      return `${day}/${month}/${yearBE} ${hour}.${minute}${currentLang==='en'?'':' น.'}`;
+      return str;
     }
 
     function formatLocalToISO(dateStr, timeStr) {
       if (!dateStr || !timeStr) return null;
-      return `${dateStr}T${timeStr}:00`;
+      return `${dateStr}T${timeStr}:00+07:00`;
     }
 
     function toggleBorrowTypeMode() {
@@ -1442,13 +1448,18 @@
       if (tabName === 'display') renderDisplayBoardCards();
     }
 
-    // RENDER DISPLAY BOARD (Hotel Royal Deep Blue Theme)
+    // RENDER DISPLAY BOARD (Filtering Today Only + Smart Priority Sorting)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
       
-      const todayIso = new Date().toISOString().substring(0, 10);
-      dateDisplay.textContent = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+      const now = new Date();
+      const todayYear = now.getFullYear();
+      const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+      const todayDay = String(now.getDate()).padStart(2, '0');
+      const todayIsoStr = `${todayYear}-${todayMonth}-${todayDay}`;
+
+      dateDisplay.textContent = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
       const { data, error } = await _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
       
@@ -1457,14 +1468,46 @@
         return;
       }
 
-      const displayEvents = data.filter(ev => ev.details && !ev.details.includes('HIDE_DISPLAY:true'));
+      // Filter: 1) Shown on Display Board 2) Event date is TODAY ONLY
+      const displayEvents = data.filter(ev => {
+        const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
+        const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
+        return isShown && (evDateStr === todayIsoStr);
+      });
 
       if (displayEvents.length === 0) {
-        container.innerHTML = `<p class="text-indigo-200/60 text-center py-12 col-span-2">วันนี้ไม่มีรายการกิจกรรมสาธารณะที่ตั้งค่าให้แสดงผล</p>`;
+        container.innerHTML = `<p class="text-indigo-200/60 text-center py-12 col-span-2">วันนี้ไม่มีรายการกิจกรรมสาธารณะสำหรับแสดงผลบนหน้าจอ</p>`;
         return;
       }
 
-      const nowMs = new Date().getTime();
+      const nowMs = now.getTime();
+
+      // Priority Sorting: Ongoing (1) -> Upcoming (2) -> Completed (3)
+      displayEvents.sort((a, b) => {
+        const aStart = new Date(a.start_time).getTime();
+        const aEnd = new Date(a.end_time).getTime();
+        const bStart = new Date(b.start_time).getTime();
+        const bEnd = new Date(b.end_time).getTime();
+
+        const getPriority = (s, e) => {
+          if (nowMs >= s && nowMs <= e) return 1; // LIVE
+          if (nowMs < s) return 2;               // Upcoming
+          return 3;                              // Completed
+        };
+
+        const pA = getPriority(aStart, aEnd);
+        const pB = getPriority(bStart, bEnd);
+
+        if (pA !== pB) return pA - pB;
+        return aStart - bStart;
+      });
+
+      const deptColors = { 
+        'AV': 'text-rose-300 border-rose-500/40 bg-rose-950/50', 
+        'IT': 'text-sky-300 border-sky-500/40 bg-sky-950/50', 
+        'MEDIA': 'text-emerald-300 border-emerald-500/40 bg-emerald-950/50', 
+        'FACILITY': 'text-amber-300 border-amber-500/40 bg-amber-950/50' 
+      };
 
       container.innerHTML = displayEvents.map(ev => {
         const startMs = new Date(ev.start_time).getTime();
@@ -1474,18 +1517,13 @@
         if (nowMs >= startMs && nowMs <= endMs) {
           statusBadge = `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-bold animate-pulse">🔴 กำลังดำเนินการ (LIVE)</span>`;
         } else if (nowMs > endMs) {
-          statusBadge = `<span class="bg-indigo-950/80 text-indigo-300 border border-indigo-700/50 px-3 py-1 rounded-full text-xs font-bold">✅ เสร็จสิ้นแล้ว</span>`;
+          statusBadge = `<span class="bg-indigo-950/80 text-indigo-300/60 border border-indigo-800/40 px-3 py-1 rounded-full text-xs font-bold">✅ เสร็จสิ้นแล้ว</span>`;
         }
 
-        const deptColors = { 
-          'AV': 'text-rose-300 border-rose-500/40 bg-rose-950/50', 
-          'IT': 'text-sky-300 border-sky-500/40 bg-sky-950/50', 
-          'MEDIA': 'text-emerald-300 border-emerald-500/40 bg-emerald-950/50', 
-          'FACILITY': 'text-amber-300 border-amber-500/40 bg-amber-950/50' 
-        };
+        const isFinished = nowMs > endMs;
 
         return `
-          <div class="bg-gradient-to-r from-indigo-950/90 to-slate-900/90 p-5 rounded-2xl border border-indigo-700/40 shadow-xl space-y-3 hover:border-indigo-400/60 transition backdrop-blur">
+          <div class="bg-gradient-to-r from-indigo-950/90 to-slate-900/90 p-5 rounded-2xl border border-indigo-700/40 shadow-xl space-y-3 hover:border-indigo-400/60 transition backdrop-blur ${isFinished ? 'opacity-60' : ''}">
             <div class="flex justify-between items-start">
               <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${deptColors[ev.department] || 'text-indigo-300 border-indigo-500/30 bg-indigo-950/40'}">
                 ${ev.department || 'ALL'}
@@ -1505,7 +1543,7 @@
       }).join('');
     }
 
-    // EVENT SUBMIT WITH DISPLAY BOARD TOGGLE & LOCATION CONFLICT CHECKING
+    // EVENT SUBMIT
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -1985,7 +2023,7 @@
       calendar.render();
     }
 
-    // STRICT TIME PARSER: Extracts pure HH:mm from raw database string
+    // PURE TIME STRING PARSER HELPER
     function parseExactTimeString(isoStr) {
       if (!isoStr) return '00:00';
       let s = String(isoStr);
@@ -1997,7 +2035,7 @@
       return s.substring(0, 5);
     }
 
-    // CALENDAR EVENTS FETCH (PURE LOCAL TIME RENDERING)
+    // CALENDAR EVENTS FETCH (PURE LOCAL TIME RENDERING - PREVENT UTC-7 SHIFTS)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
