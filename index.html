@@ -274,7 +274,7 @@
               </div>
             </div>
 
-            <!-- FACILITY STAFF REQUEST BOX (Housekeeper, Technician, Security, Parking) -->
+            <!-- FACILITY STAFF & PARKING REQUEST BOX -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่ (ระบุจำนวน):</label>
               
@@ -677,7 +677,6 @@
     let currentFilteredEquipment = [];
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
 
-    // Empty Default Locations list as requested
     const DEFAULT_LOCATIONS = [];
     let customLocations = JSON.parse(localStorage.getItem('denla_custom_locations') || '[]');
 
@@ -1064,7 +1063,6 @@
       }
 
       tagContainer.innerHTML = allLocs.map(loc => {
-        const isCustom = customLocations.includes(loc);
         return `
           <span class="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700">
             📍 ${loc}
@@ -1247,9 +1245,10 @@
       return `${day}/${month}/${yearBE} ${hour}.${minute}${currentLang==='en'?'':' น.'}`;
     }
 
+    // Always include Thailand +07:00 Offset to prevent Supabase UTC misinterpretation
     function formatLocalToISO(dateStr, timeStr) {
       if (!dateStr || !timeStr) return null;
-      return `${dateStr}T${timeStr}:00`;
+      return `${dateStr}T${timeStr}:00+07:00`;
     }
 
     function toggleBorrowTypeMode() {
@@ -1411,7 +1410,7 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT SUBMIT WITH LOCATION & TAGGED STAFF CONFLICT CHECKING
+    // EVENT SUBMIT WITH STRICT LOCATION & TAGGED STAFF CONFLICT CHECKING
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -1556,6 +1555,7 @@
 
       if (error) { alert('Error: ' + error.message); return; }
 
+      // Send Chat Notification
       sendGoogleChatNotification({
         title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`,
         details: [
@@ -1881,27 +1881,27 @@
       calendar.render();
     }
 
-    // STRICT TIME PARSER HELPER: Extract Raw Hours & Minutes (HH:mm) directly from DB string
-    function parseRawTimeOnly(isoStr) {
+    // EXTRACT TIME STRING DIRECTLY TO PREVENT UTC/LOCAL TIME SHIFTS
+    function parseExactTimeString(isoStr) {
       if (!isoStr) return '00:00';
-      let str = String(isoStr);
-      if (str.includes('T')) {
-        return str.split('T')[1].substring(0, 5);
-      } else if (str.includes(' ')) {
-        return str.split(' ')[1].substring(0, 5);
+      let s = String(isoStr);
+      if (s.includes('T')) {
+        return s.split('T')[1].substring(0, 5);
+      } else if (s.includes(' ')) {
+        return s.split(' ')[1].substring(0, 5);
       }
-      return str.substring(0, 5);
+      return s.substring(0, 5);
     }
 
-    // CALENDAR EVENTS FETCH (RAW STRICT LOCAL TIME RENDERING)
+    // CALENDAR EVENTS FETCH
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
       const events = (data || []).map(ev => {
         let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
-        let startTimePart = parseRawTimeOnly(ev.start_time);
-        let endTimePart = parseRawTimeOnly(ev.end_time);
+        let startTimePart = parseExactTimeString(ev.start_time);
+        let endTimePart = parseExactTimeString(ev.end_time);
 
         let cleanStart = `${datePart}T${startTimePart}:00`;
         let cleanEnd = `${datePart}T${endTimePart}:00`;
