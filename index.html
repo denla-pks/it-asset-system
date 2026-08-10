@@ -274,9 +274,9 @@
               </div>
             </div>
 
-            <!-- FACILITY & HOUSEKEEPING REQUEST BOX -->
+            <!-- FACILITY STAFF REQUEST BOX (Housekeeper, Technician, Security, Parking) -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
-              <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคนฝ่ายอาคารสถานที่ (ระบุจำนวนคน):</label>
+              <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่ (ระบุจำนวน):</label>
               
               <div class="grid grid-cols-2 gap-2 text-xs">
                 <div class="flex items-center justify-between bg-white p-1.5 rounded-lg border border-amber-200">
@@ -304,10 +304,10 @@
                 </div>
 
                 <div class="flex items-center justify-between bg-white p-1.5 rounded-lg border border-amber-200">
-                  <span class="text-slate-700 font-medium">🌿 คนสวน/จัดสถานที่:</span>
+                  <span class="text-slate-700 font-medium">🚗 ที่จอดรถ:</span>
                   <div class="flex items-center gap-1">
-                    <input type="number" id="num-gardener" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900 outline-none">
-                    <span class="text-slate-500">คน</span>
+                    <input type="number" id="num-parking" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900 outline-none">
+                    <span class="text-slate-500">คัน</span>
                   </div>
                 </div>
               </div>
@@ -677,7 +677,6 @@
     let currentFilteredEquipment = [];
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
 
-    // Default Locations list stored in localStorage
     const DEFAULT_LOCATIONS = [
       "หอประชุมชั้น 5",
       "ห้องประชุมอาคาร 20 ปี",
@@ -1044,7 +1043,6 @@
       }
     }
 
-    // LOCATION MANAGEMENT FUNCTIONS
     function renderLocationDropdown() {
       const select = document.getElementById('event-location-select');
       const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
@@ -1222,7 +1220,7 @@
       }, 60000);
     }
 
-    // STRICT TIME FORMATTER (Pulls exact local hours/minutes without UTC shifts)
+    // STRICT TIME PARSER
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       const d = new Date(dateInput);
@@ -1306,7 +1304,7 @@
 
     function clearAllTags() {
       document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => cb.checked = false);
-      ['num-housekeeper', 'num-technician', 'num-security', 'num-gardener'].forEach(id => {
+      ['num-housekeeper', 'num-technician', 'num-security', 'num-parking'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = 0;
       });
@@ -1411,7 +1409,7 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT SUBMIT WITH LOCATION & TAGGED STAFF CONFLICT CHECKING
+    // EVENT SUBMIT WITH STRICT LOCATION & TAGGED STAFF CONFLICT CHECKING
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -1438,11 +1436,11 @@
       
       const remarks = document.getElementById('event-remarks').value;
 
-      // Staff Count Requests for Facility
+      // Facility Requests (Housekeeper, Technician, Security, Parking)
       const nHousekeeper = parseInt(document.getElementById('num-housekeeper').value || 0, 10);
       const nTechnician = parseInt(document.getElementById('num-technician').value || 0, 10);
       const nSecurity = parseInt(document.getElementById('num-security').value || 0, 10);
-      const nGardener = parseInt(document.getElementById('num-gardener').value || 0, 10);
+      const nParking = parseInt(document.getElementById('num-parking').value || 0, 10);
 
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
       const selectedAdmins = Array.from(checkedTags).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
@@ -1453,10 +1451,10 @@
       if (nHousekeeper > 0) reqStaffList.push(`🧹 แม่บ้าน ${nHousekeeper} คน`);
       if (nTechnician > 0) reqStaffList.push(`🛠️ ช่างอาคาร ${nTechnician} คน`);
       if (nSecurity > 0) reqStaffList.push(`🛡️ รปภ. ${nSecurity} คน`);
-      if (nGardener > 0) reqStaffList.push(`🌿 คนสวน ${nGardener} คน`);
+      if (nParking > 0) reqStaffList.push(`🚗 ช่องจอดรถ ${nParking} คัน`);
 
       if (reqStaffList.length > 0) {
-        tagDisplayList.push(`🏢 [ขอกำลังคนอาคารฯ: ${reqStaffList.join(', ')}]`);
+        tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`);
       }
 
       const tagDisplayStr = tagDisplayList.join(', ') || (currentLang==='en'?'No Tagged Team':'ไม่มีทีมงานแท็ก');
@@ -1482,7 +1480,6 @@
           const exStartMs = new Date(ev.start_time).getTime();
           const exEndMs = new Date(ev.end_time).getTime();
 
-          // Overlap condition
           const isTimeOverlapped = (newStartMs < exEndMs) && (newEndMs > exStartMs);
 
           if (isTimeOverlapped) {
@@ -1519,7 +1516,7 @@
       const facilityAdmins = allAdmins.filter(a => a.department === 'FACILITY');
       if ((reqStaffList.length > 0 || dept === 'FACILITY') && facilityAdmins.length > 0) {
         const facilityMentions = facilityAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
-        const staffReqMsg = reqStaffList.length > 0 ? ` (ขอกำลังคน: ${reqStaffList.join(', ')})` : '';
+        const staffReqMsg = reqStaffList.length > 0 ? ` (ขอสนับสนุน: ${reqStaffList.join(', ')})` : '';
         chatMentionStr += `<br>🏢 <font color="#d97706"><b>[เรียนฝ่ายอาคารสถานที่]:</b> ${facilityMentions.join(', ')}${staffReqMsg}</font>`;
       }
 
@@ -1866,7 +1863,6 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        timeZone: 'local',
         locale: currentLang === 'en' ? 'en' : 'th',
         eventTimeFormat: {
           hour: '2-digit',
@@ -1884,8 +1880,8 @@
       calendar.render();
     }
 
-    // PARSE TIME HELPER: Extract Raw Local Time String (HH:mm) to Prevent UTC-7 Shifts
-    function parseLocalTime(isoStr) {
+    // STRICT TIME PARSER HELPER: Extract Raw Local Time String (HH:mm) to Prevent Timezone Shifts
+    function parseRawTimeStr(isoStr) {
       if (!isoStr) return '';
       let str = String(isoStr);
       if (str.includes('T')) {
@@ -1896,16 +1892,15 @@
       return str.substring(0, 5);
     }
 
-    // CALENDAR EVENTS FETCH (EXACT LOCAL TIME RENDERING)
+    // CALENDAR EVENTS FETCH (RAW EXACT LOCAL TIME RENDERING)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
       const events = (data || []).map(ev => {
-        // Extract Pure Date & Local Time string to feed FullCalendar
         let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
-        let startTimePart = parseLocalTime(ev.start_time);
-        let endTimePart = parseLocalTime(ev.end_time);
+        let startTimePart = parseRawTimeStr(ev.start_time);
+        let endTimePart = parseRawTimeStr(ev.end_time);
 
         let cleanStart = startTimePart ? `${datePart}T${startTimePart}:00` : datePart;
         let cleanEnd = endTimePart ? `${datePart}T${endTimePart}:00` : null;
