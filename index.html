@@ -24,9 +24,23 @@
     }
 
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 1cm;
+      }
       body * { visibility: hidden !important; }
       #printable-area, #printable-area * { visibility: visible !important; }
-      #printable-area { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; background: white !important; color: black !important; }
+      #printable-area { 
+        position: absolute !important; 
+        left: 0 !important; 
+        top: 0 !important; 
+        width: 100% !important; 
+        display: block !important; 
+        background: white !important; 
+        color: black !important; 
+        padding: 0 !important;
+        margin: 0 !important;
+      }
     }
   </style>
 </head>
@@ -50,6 +64,7 @@
           <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 <span data-i18n="navBorrow">ยืม-คืน & เบิกส่งมอบ</span></button>
           <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 <span data-i18n="navCalendar">คิวงาน/ปฏิทิน</span></button>
           <button onclick="switchTab('display')" id="tab-display" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white bg-indigo-900/40">📺 <span data-i18n="navDisplay">จอแสดงกิจกรรม (Display Board)</span></button>
+          <button onclick="switchTab('staff-summary')" id="tab-staff-summary" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">📊 <span>สรุปภาระงานทีมงาน (Admin)</span></button>
           <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">🖥️ <span data-i18n="navInventory">คลังอุปกรณ์รวม (Admin)</span></button>
         </nav>
 
@@ -283,37 +298,29 @@
               </div>
             </div>
 
-            <!-- FACILITY STAFF & PARKING REQUEST BOX -->
+            <!-- FACILITY STAFF & PARKING REQUEST BOX (EXCLUDED SECURITY AS REQUESTED) -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่ (ระบุจำนวน):</label>
               
-              <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="flex items-center justify-between bg-white p-1.5 rounded-lg border border-amber-200">
-                  <span class="text-slate-700 font-medium">🧹 แม่บ้าน:</span>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1">
+                  <span class="text-slate-700 font-medium">🧹 แม่บ้าน</span>
                   <div class="flex items-center gap-1">
                     <input type="number" id="num-housekeeper" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900 outline-none">
                     <span class="text-slate-500">คน</span>
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between bg-white p-1.5 rounded-lg border border-amber-200">
-                  <span class="text-slate-700 font-medium">🛠️ ช่างอาคารฯ:</span>
+                <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1">
+                  <span class="text-slate-700 font-medium">🛠️ ช่างอาคารฯ</span>
                   <div class="flex items-center gap-1">
                     <input type="number" id="num-technician" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900 outline-none">
                     <span class="text-slate-500">คน</span>
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between bg-white p-1.5 rounded-lg border border-amber-200">
-                  <span class="text-slate-700 font-medium">🛡️ รปภ./จราจร:</span>
-                  <div class="flex items-center gap-1">
-                    <input type="number" id="num-security" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900 outline-none">
-                    <span class="text-slate-500">คน</span>
-                  </div>
-                </div>
-
-                <div class="flex items-center justify-between bg-white p-1.5 rounded-lg border border-amber-200">
-                  <span class="text-slate-700 font-medium">🚗 ที่จอดรถ:</span>
+                <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1">
+                  <span class="text-slate-700 font-medium">🚗 ที่จอดรถ</span>
                   <div class="flex items-center gap-1">
                     <input type="number" id="num-parking" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900 outline-none">
                     <span class="text-slate-500">คัน</span>
@@ -409,7 +416,7 @@
 
     <!-- ==================== TAB: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) ==================== -->
     <section id="sec-display" class="space-y-6 hidden">
-      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6">
         
         <!-- Header Bar -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 text-white p-6 rounded-2xl shadow-lg gap-4">
@@ -463,11 +470,9 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์, จัดการสถานที่ & สรุปภาระงานทีมงาน (Admin Zone) ==================== -->
-    <section id="sec-inventory" class="space-y-6 hidden admin-col">
-      
-      <!-- ADMIN STAFF WORKLOAD SUMMARY ZONE -->
-      <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
+    <!-- ==================== TAB: สรุปภาระงานทีมงาน (STAFF WORKLOAD SUMMARY) ==================== -->
+    <section id="sec-staff-summary" class="space-y-6 hidden admin-col">
+      <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-800 space-y-4">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
           <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">📊 [Admin Zone] สรุปคิวงานภาระหน้าที่ของทีมงาน (Staff Workload Summary)</h2>
           <span class="text-xs text-slate-400">ค้นหางานที่ได้รับมอบหมายตามรายบุคคลหรือรายแผนก</span>
@@ -476,12 +481,12 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs">
           <div>
             <label class="block text-slate-300 mb-1">🔍 ค้นหาชื่อทีมงาน / ชื่อเล่น</label>
-            <input type="text" id="staff-search-name" onkeyup="renderStaffWorkloadSummary()" placeholder="เช่น ครูมีน, ช่างชัย, รัชพล..." class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
+            <input type="text" id="staff-search-name" onkeyup="renderStaffWorkloadSummary()" placeholder="เช่น ครูมีน, ช่างชัย, รัชพล..." class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
           </div>
 
           <div>
             <label class="block text-slate-300 mb-1">🏢 ฝ่ายสังกัดทีมงาน</label>
-            <select id="staff-search-dept" onchange="renderStaffWorkloadSummary()" class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
+            <select id="staff-search-dept" onchange="renderStaffWorkloadSummary()" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
               <option value="ALL">-- ทุกแผนก --</option>
               <option value="IT">💻 ฝ่ายไอที (IT)</option>
               <option value="AV">🔊 ฝ่ายโสตฯ (AV)</option>
@@ -519,7 +524,11 @@
           </table>
         </div>
       </div>
+    </section>
 
+    <!-- ==================== TAB 3: คลังอุปกรณ์ & จัดการสถานที่ (Admin Zone) ==================== -->
+    <section id="sec-inventory" class="space-y-6 hidden admin-col">
+      
       <!-- ADMIN LOCATION MANAGEMENT ZONE -->
       <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏢 [Admin Zone] จัดการสถานที่จัดงาน (Location Management)</h2>
@@ -840,11 +849,6 @@
           <p>วันที่ ..... / ..... / .........</p>
         </div>
       </div>
-    </div>
-
-    <div class="flex justify-between items-center text-[10px] text-slate-400 border-t border-slate-200 pt-2">
-      <span>เอกสารนี้เป็นความลับของโรงเรียน ห้ามเผยแพร่ภายนอก</span>
-      <span>ระบบจัดการอุปกรณ์ IT & สื่องาน - เด่นหล้า (FM-AVS-001)</span>
     </div>
 
   </div>
@@ -1462,7 +1466,7 @@
       }, 60000);
     }
 
-    // PURE TIME STRING PARSER (Adjusts Legacy UTC Timestamps to Thai Display Correctly)
+    // PURE TIME STRING PARSER
     function adjustUtcToThaiDisplay(isoStr) {
       if (!isoStr) return '00:00';
       let str = String(isoStr);
@@ -1647,29 +1651,29 @@
     }
 
     function switchTab(tabName) {
-      if (tabName === 'inventory' && !currentAdmin) {
-        alert(currentLang==='en'?'🔒 Admin Access Only':'🔒 หน้าคลังอุปกรณ์รวมเปิดให้เข้าถึงเฉพาะ Admin เท่านั้น');
+      if ((tabName === 'inventory' || tabName === 'staff-summary') && !currentAdmin) {
+        alert(currentLang==='en'?'🔒 Admin Access Only':'🔒 หน้าเฉพาะสำหรับ Admin เท่านั้น');
         return;
       }
 
-      ['borrow', 'event', 'display', 'inventory'].forEach(t => {
+      ['borrow', 'event', 'display', 'staff-summary', 'inventory'].forEach(t => {
         const sec = document.getElementById(`sec-${t}`);
         if (sec) sec.classList.add('hidden');
         const btn = document.getElementById(`tab-${t}`);
-        if (btn && t !== 'inventory') btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white';
+        if (btn && t !== 'inventory' && t !== 'staff-summary') btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white';
       });
 
       const activeSec = document.getElementById(`sec-${tabName}`);
       if (activeSec) activeSec.classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-${tabName}`);
-      if (activeBtn && tabName !== 'inventory') activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow';
+      if (activeBtn && tabName !== 'inventory' && tabName !== 'staff-summary') activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow';
 
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
       if (tabName === 'display') renderDisplayBoardCards();
-      if (tabName === 'inventory') renderStaffWorkloadSummary();
+      if (tabName === 'staff-summary') renderStaffWorkloadSummary();
     }
 
-    // RENDER STAFF WORKLOAD SUMMARY TABLE IN ADMIN ZONE
+    // RENDER STAFF WORKLOAD SUMMARY TABLE IN SEPARATE ADMIN TAB
     function renderStaffWorkloadSummary() {
       const tbody = document.getElementById('table-staff-workload');
       const searchName = document.getElementById('staff-search-name')?.value.trim().toLowerCase() || '';
@@ -1717,7 +1721,7 @@
       }).join('');
     }
 
-    // RENDER DISPLAY BOARD (Clean Light Theme + Today Only + Smart Sorting)
+    // RENDER DISPLAY BOARD (Modern Light Theme + Today Only + Smart Sorting)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
