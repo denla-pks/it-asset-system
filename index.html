@@ -367,21 +367,38 @@
             </div>
           </div>
 
-          <div class="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="font-bold text-indigo-900" data-i18n="excelEventTitle">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
-              <div class="flex items-center gap-1">
-                <span data-i18n="excelStart">เริ่ม:</span>
-                <input type="date" id="excel-event-start" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
+          <!-- CALENDAR FILTER BAR: STAFF SEARCH & DEPT SELECTOR (RED BOX IN IMAGE) -->
+          <div class="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-2 text-xs">
+            <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
+              <div class="flex flex-1 gap-2 w-full">
+                <input type="text" id="calendar-filter-staff" onkeyup="filterCalendarEvents()" placeholder="🔎 ค้นชื่อทีมงานปฏิบัติงาน..." class="p-2 border border-slate-200 rounded-xl outline-none bg-white text-xs flex-1">
+                <select id="calendar-filter-dept" onchange="filterCalendarEvents()" class="p-2 border border-slate-200 rounded-xl outline-none bg-white text-xs font-bold text-indigo-900">
+                  <option value="ALL">🌐 ทุกแผนก</option>
+                  <option value="IT">💻 ฝ่าย IT</option>
+                  <option value="AV">🔊 ฝ่าย AV</option>
+                  <option value="MEDIA">📷 ฝ่าย Media</option>
+                  <option value="FACILITY">🏢 ฝ่ายอาคารฯ</option>
+                </select>
               </div>
-              <div class="flex items-center gap-1">
-                <span data-i18n="excelEnd">ถึง:</span>
-                <input type="date" id="excel-event-end" class="p-1.5 border border-indigo-200 rounded-lg outline-none bg-white">
-              </div>
+              <button onclick="clearCalendarFilters()" class="p-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium transition text-xs whitespace-nowrap">ล้างตัวกรอง</button>
             </div>
-            <button onclick="exportEventsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1">
-              📊 <span data-i18n="btnExportEventExcel">ส่งออกคิวงาน Excel</span>
-            </button>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-indigo-100">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-indigo-900">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
+                <div class="flex items-center gap-1">
+                  <span>เริ่ม:</span>
+                  <input type="date" id="excel-event-start" class="p-1 border border-indigo-200 rounded-lg outline-none bg-white">
+                </div>
+                <div class="flex items-center gap-1">
+                  <span>ถึง:</span>
+                  <input type="date" id="excel-event-end" class="p-1 border border-indigo-200 rounded-lg outline-none bg-white">
+                </div>
+              </div>
+              <button onclick="exportEventsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1">
+                📊 <span data-i18n="btnExportEventExcel">ส่งออกคิวงาน Excel</span>
+              </button>
+            </div>
           </div>
 
           <div id="calendar" class="min-h-[500px]"></div>
@@ -392,22 +409,57 @@
 
     <!-- ==================== TAB: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) ==================== -->
     <section id="sec-display" class="space-y-6 hidden">
-      <div class="bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-2xl border border-indigo-900/50 space-y-6">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-indigo-800/40 pb-4 gap-4">
-          <div>
-            <span class="bg-indigo-500/20 text-indigo-300 text-xs px-3 py-1 rounded-full font-bold border border-indigo-400/30">ROYAL DISPLAY BOARD</span>
-            <h2 class="text-2xl md:text-3xl font-extrabold text-white mt-1 flex items-center gap-2">📺 <span>ตารางคิวงานกิจกรรมประจำวัน</span></h2>
-            <p class="text-xs text-indigo-200/80">Denla Kindergarten Event Schedule & Public Announcement</p>
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6">
+        
+        <!-- Header Bar -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-indigo-900 text-white p-6 rounded-2xl shadow-md gap-4">
+          <div class="flex items-center gap-4">
+            <div class="bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur">
+              <span class="text-3xl">📺</span>
+            </div>
+            <div>
+              <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">ตารางคิวงานกิจกรรมประจำวัน</h2>
+              <p class="text-xs text-indigo-200">Denla Kindergarten Event Schedule</p>
+            </div>
           </div>
-          <div class="text-right bg-indigo-900/40 backdrop-blur border border-indigo-500/30 p-3 px-5 rounded-2xl shadow-inner">
-            <p class="text-xs text-indigo-300 font-medium">ประจำวันที่ / Today:</p>
-            <p id="display-board-today-date" class="text-base font-bold text-amber-400 font-mono">-</p>
+
+          <div class="flex items-center gap-4 bg-indigo-950/80 px-5 py-3 rounded-2xl border border-indigo-700/50">
+            <div class="text-right">
+              <p class="text-[10px] text-indigo-300 uppercase tracking-widest">ประจำวันที่ / Today</p>
+              <p id="display-board-today-date" class="text-base font-bold text-amber-400 font-mono">-</p>
+            </div>
+            <div class="border-l border-indigo-800 pl-4">
+              <p id="display-board-live-clock" class="text-2xl font-extrabold text-white font-mono tracking-wider">13:45</p>
+            </div>
           </div>
         </div>
 
-        <div id="display-board-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <p class="text-indigo-200/60 text-center py-12 col-span-2">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
+        <!-- Status Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">
+          <div class="flex items-center gap-2 font-bold text-slate-700">
+            <span>👥 กิจกรรมวันนี้</span>
+            <span id="display-board-total-count" class="bg-indigo-600 text-white px-2.5 py-0.5 rounded-full font-mono text-sm">0</span>
+            <span>รายการ</span>
+          </div>
+
+          <div class="flex items-center gap-4 font-semibold">
+            <span class="flex items-center gap-1.5 text-emerald-600"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> เสร็จสิ้นแล้ว</span>
+            <span class="flex items-center gap-1.5 text-amber-600"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block animate-pulse"></span> กำลังดำเนินการ</span>
+            <span class="flex items-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> รอเริ่ม</span>
+          </div>
         </div>
+
+        <!-- Cards List -->
+        <div id="display-board-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p class="text-slate-400 text-center py-12 col-span-2">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
+        </div>
+
+        <!-- Footer Notice Bar -->
+        <div class="bg-indigo-950 text-indigo-200 text-xs p-3 px-5 rounded-xl flex items-center justify-between">
+          <span>📢 กิจกรรมถัดไปจะแสดงอัตโนมัติ</span>
+          <span id="display-board-last-update" class="text-indigo-400 font-mono">อัปเดตล่าสุด --:-- น.</span>
+        </div>
+
       </div>
     </section>
 
@@ -455,7 +507,7 @@
               <tr>
                 <th class="p-2.5">ชื่อกิจกรรม/งาน</th>
                 <th class="p-2.5">ฝ่ายหลัก</th>
-                <th class="p-2.5">ผู้รับผิดชอบหลัก</th>
+                <th class="p-2.5">ผู้จัดงานหลัก</th>
                 <th class="p-2.5">ทีมงานร่วมปฏิบัติงาน (Tagged)</th>
                 <th class="p-2.5">วัน-เวลา</th>
                 <th class="p-2.5">สถานที่</th>
@@ -759,7 +811,7 @@
     let selectedEventForPrint = null;
     let pendingReturnRecord = null;
     let currentFilteredEquipment = [];
-    let allEventsList = []; // Cache all event queues for staff workload search
+    let allEventsList = [];
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
 
     const DEFAULT_LOCATIONS = [];
@@ -1088,6 +1140,15 @@
       checkAdminSession();
       setupActivityListeners();
       applyLanguage(currentLang);
+
+      // Start Live Clock for Display Board
+      setInterval(() => {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const clockEl = document.getElementById('display-board-live-clock');
+        if (clockEl) clockEl.textContent = `${hh}:${mm}`;
+      }, 1000);
     });
 
     function changeLanguage(langKey) {
@@ -1325,7 +1386,6 @@
         return str.substring(0, 5);
       }
 
-      // If legacy UTC timestamp detected (+00:00 or Z), adjust +7 hours
       if (str.includes('+00') || str.endsWith('Z')) {
         let hp = timePart.split(':');
         let h = (parseInt(hp[0], 10) + 7) % 24;
@@ -1539,14 +1599,10 @@
       let filtered = allEventsList.filter(ev => {
         const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
         
-        // Date Filter
         if (startDate && evDateStr < startDate) return false;
         if (endDate && evDateStr > endDate) return false;
-
-        // Department Filter
         if (searchDept !== 'ALL' && ev.department !== searchDept) return false;
 
-        // Staff Name Search Filter (Match Main Host OR Tagged Staff in Organizer string)
         if (searchName !== '') {
           const matchHost = (ev.main_host || '').toLowerCase().includes(searchName);
           const matchOrganizer = (ev.organizer || '').toLowerCase().includes(searchName);
@@ -1575,10 +1631,12 @@
       }).join('');
     }
 
-    // RENDER DISPLAY BOARD (Today Only + Ongoing First + Finished Bottom)
+    // RENDER DISPLAY BOARD (Modern Light Theme + Today Only + Smart Sorting)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
+      const countDisplay = document.getElementById('display-board-total-count');
+      const lastUpdateDisplay = document.getElementById('display-board-last-update');
       
       const now = new Date();
       const todayYear = now.getFullYear();
@@ -1587,29 +1645,35 @@
       const todayIsoStr = `${todayYear}-${todayMonth}-${todayDay}`;
 
       dateDisplay.textContent = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+      if (lastUpdateDisplay) {
+        lastUpdateDisplay.textContent = `อัปเดตล่าสุด ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} น.`;
+      }
 
       const { data, error } = await _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
       
       if (error || !data || data.length === 0) {
-        container.innerHTML = `<p class="text-indigo-200/60 text-center py-12 col-span-2">วันนี้ไม่มีคิวงานกิจกรรมสาธารณะ</p>`;
+        if (countDisplay) countDisplay.textContent = '0';
+        container.innerHTML = `<p class="text-slate-400 text-center py-12 col-span-2">วันนี้ไม่มีคิวงานกิจกรรมสาธารณะ</p>`;
         return;
       }
 
-      // Filter: 1) Shown on Display Board 2) TODAY ONLY
+      // Filter TODAY ONLY + Shown on Display Board
       const displayEvents = data.filter(ev => {
         const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
         const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
         return isShown && (evDateStr === todayIsoStr);
       });
 
+      if (countDisplay) countDisplay.textContent = displayEvents.length;
+
       if (displayEvents.length === 0) {
-        container.innerHTML = `<p class="text-indigo-200/60 text-center py-12 col-span-2">วันนี้ไม่มีรายการกิจกรรมสาธารณะสำหรับแสดงผลบนหน้าจอ</p>`;
+        container.innerHTML = `<p class="text-slate-400 text-center py-12 col-span-2">วันนี้ไม่มีรายการกิจกรรมสาธารณะสำหรับแสดงผลบนหน้าจอ</p>`;
         return;
       }
 
       const nowMs = now.getTime();
 
-      // Priority Sorting: Ongoing/LIVE (1) -> Upcoming (2) -> Completed (3 - Push to bottom)
+      // Priority Sorting: LIVE (1) -> Upcoming (2) -> Finished (3)
       displayEvents.sort((a, b) => {
         const aStart = new Date(a.start_time).getTime();
         const aEnd = new Date(a.end_time).getTime();
@@ -1617,9 +1681,9 @@
         const bEnd = new Date(b.end_time).getTime();
 
         const getPriority = (s, e) => {
-          if (nowMs >= s && nowMs <= e) return 1; // LIVE
-          if (nowMs < s) return 2;               // Upcoming
-          return 3;                              // Finished
+          if (nowMs >= s && nowMs <= e) return 1;
+          if (nowMs < s) return 2;
+          return 3;
         };
 
         const pA = getPriority(aStart, aEnd);
@@ -1629,45 +1693,76 @@
         return aStart - bStart;
       });
 
-      const deptColors = { 
-        'AV': 'text-rose-300 border-rose-500/40 bg-rose-950/50', 
-        'IT': 'text-sky-300 border-sky-500/40 bg-sky-950/50', 
-        'MEDIA': 'text-emerald-300 border-emerald-500/40 bg-emerald-950/50', 
-        'FACILITY': 'text-amber-300 border-amber-500/40 bg-amber-950/50' 
+      const deptBadgeColors = { 
+        'AV': 'bg-rose-500 text-white', 
+        'IT': 'bg-sky-500 text-white', 
+        'MEDIA': 'bg-emerald-500 text-white', 
+        'FACILITY': 'bg-amber-500 text-slate-900',
+        'ALL': 'bg-purple-600 text-white'
+      };
+
+      const deptBorderColors = {
+        'AV': 'border-l-rose-500',
+        'IT': 'border-l-sky-500',
+        'MEDIA': 'border-l-emerald-500',
+        'FACILITY': 'border-l-amber-500',
+        'ALL': 'border-l-purple-500'
       };
 
       container.innerHTML = displayEvents.map(ev => {
         const startMs = new Date(ev.start_time).getTime();
         const endMs = new Date(ev.end_time).getTime();
         
-        let statusBadge = `<span class="bg-sky-500/20 text-sky-300 border border-sky-400/30 px-3 py-1 rounded-full text-xs font-bold">⏳ กำลังจะเริ่ม</span>`;
+        let statusBadge = `<span class="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">🔘 รอเริ่ม</span>`;
         if (nowMs >= startMs && nowMs <= endMs) {
-          statusBadge = `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 px-3 py-1 rounded-full text-xs font-bold animate-pulse">🔴 กำลังดำเนินการ (LIVE)</span>`;
+          statusBadge = `<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">🟡 กำลังดำเนินการ</span>`;
         } else if (nowMs > endMs) {
-          statusBadge = `<span class="bg-indigo-950/80 text-indigo-300/60 border border-indigo-800/40 px-3 py-1 rounded-full text-xs font-bold">✅ เสร็จสิ้นแล้ว</span>`;
+          statusBadge = `<span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">✔ เสร็จสิ้นแล้ว</span>`;
         }
 
         const isFinished = nowMs > endMs;
 
         return `
-          <div class="bg-gradient-to-r from-indigo-950/90 to-slate-900/90 p-5 rounded-2xl border border-indigo-700/40 shadow-xl space-y-3 hover:border-indigo-400/60 transition backdrop-blur ${isFinished ? 'opacity-60 grayscale-[30%]' : ''}">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${deptColors[ev.department] || 'text-indigo-300 border-indigo-500/30 bg-indigo-950/40'}">
+          <div class="bg-white p-6 rounded-2xl shadow-md border-t border-r border-b border-slate-200/80 border-l-8 ${deptBorderColors[ev.department] || 'border-l-indigo-600'} space-y-4 hover:shadow-lg transition ${isFinished ? 'opacity-65 grayscale-[20%]' : ''}">
+            <div class="flex justify-between items-center">
+              <span class="px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider ${deptBadgeColors[ev.department] || 'bg-indigo-600 text-white'}">
                 ${ev.department || 'ALL'}
               </span>
               ${statusBadge}
             </div>
 
-            <h3 class="text-xl font-bold text-white leading-snug drop-shadow">${ev.event_title}</h3>
+            <h3 class="text-2xl font-extrabold text-slate-900 leading-snug">${ev.event_title}</h3>
 
-            <div class="space-y-1.5 text-xs text-indigo-100/80 pt-2 border-t border-indigo-800/40">
-              <p class="flex items-center gap-2"><span>📍</span> <span class="font-bold text-amber-300 text-sm">${ev.location || '-'}</span></p>
-              <p class="flex items-center gap-2"><span>⏰</span> <span>เวลา: <b class="text-white">${adjustUtcToThaiDisplay(ev.start_time)} - ${adjustUtcToThaiDisplay(ev.end_time)} น.</b></span></p>
-              <p class="flex items-center gap-2"><span>👤</span> <span>ผู้จัดงาน: ${ev.main_host || '-'}</span></p>
+            <div class="space-y-2 text-xs text-slate-600 pt-3 border-t border-slate-100 font-medium">
+              <p class="flex items-center gap-2 text-slate-700">
+                <span class="p-1 bg-emerald-100 text-emerald-700 rounded-lg">📍</span> 
+                <span class="font-bold text-sm text-slate-800">${ev.location || '-'}</span>
+              </p>
+              <p class="flex items-center gap-2 text-slate-700">
+                <span class="p-1 bg-sky-100 text-sky-700 rounded-lg">⏰</span> 
+                <span>เวลา: <b class="text-slate-900 font-bold text-sm">${adjustUtcToThaiDisplay(ev.start_time)}–${adjustUtcToThaiDisplay(ev.end_time)} น.</b></span>
+              </p>
+              <p class="flex items-center gap-2 text-slate-700">
+                <span class="p-1 bg-rose-100 text-rose-700 rounded-lg">👤</span> 
+                <span>ผู้จัดงาน: <b class="text-slate-800 font-bold">${ev.main_host || '-'}</b></span>
+              </p>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    // FILTER CALENDAR EVENTS BY STAFF NAME OR DEPT
+    function filterCalendarEvents() {
+      if (calendar) {
+        calendar.refetchEvents();
+      }
+    }
+
+    function clearCalendarFilters() {
+      document.getElementById('calendar-filter-staff').value = '';
+      document.getElementById('calendar-filter-dept').value = 'ALL';
+      if (calendar) calendar.refetchEvents();
     }
 
     // EVENT SUBMIT
@@ -2149,7 +2244,7 @@
       calendar.render();
     }
 
-    // CALENDAR EVENTS FETCH (PURE LOCAL DATE STRING RENDERING - 100% PREVENT UTC SHIFTS)
+    // CALENDAR EVENTS FETCH (PERFECT TIME RENDERING + FILTER SUPPORT)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
@@ -2157,12 +2252,23 @@
       allEventsList = data || []; // Cache events for staff summary searching
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
       
-      const events = (data || []).map(ev => {
+      const filterStaff = document.getElementById('calendar-filter-staff')?.value.trim().toLowerCase() || '';
+      const filterDept = document.getElementById('calendar-filter-dept')?.value || 'ALL';
+
+      let filteredData = (data || []).filter(ev => {
+        if (filterDept !== 'ALL' && ev.department !== filterDept) return false;
+        if (filterStaff !== '') {
+          const matchHost = (ev.main_host || '').toLowerCase().includes(filterStaff);
+          const matchOrganizer = (ev.organizer || '').toLowerCase().includes(filterStaff);
+          if (!matchHost && !matchOrganizer) return false;
+        }
+        return true;
+      });
+
+      const events = filteredData.map(ev => {
         let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
         let startTimePart = adjustUtcToThaiDisplay(ev.start_time);
-        let endTimePart = adjustUtcToThaiDisplay(ev.end_time);
 
-        // Feed pure YYYY-MM-DD string as date only, and keep raw time in title/properties
         return {
           id: ev.id,
           title: `${startTimePart} [${ev.department || 'ALL'}] ${ev.event_title}`,
