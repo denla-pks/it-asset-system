@@ -202,7 +202,7 @@
     </section>
 
     <!-- ==================== TAB 2: คิวงาน/กิจกรรม ==================== -->
-    <section id="sec-event" class="space-y-6 hidden">
+    <section id="sec-event" class="space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-5 space-y-4">
@@ -367,7 +367,7 @@
             </div>
           </div>
 
-          <!-- CALENDAR FILTER BAR: STAFF SEARCH & DEPT SELECTOR (RED BOX IN IMAGE) -->
+          <!-- CALENDAR FILTER BAR: STAFF SEARCH & DEPT SELECTOR -->
           <div class="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-2 text-xs">
             <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
               <div class="flex flex-1 gap-2 w-full">
@@ -409,10 +409,10 @@
 
     <!-- ==================== TAB: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) ==================== -->
     <section id="sec-display" class="space-y-6 hidden">
-      <div class="bg-slate-100 text-slate-800 p-6 md:p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
         
-        <!-- Header Bar Matching Image Layout -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 text-white p-6 rounded-2xl shadow-lg gap-4">
+        <!-- Header Bar -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-indigo-900 text-white p-6 rounded-2xl shadow-lg gap-4">
           <div class="flex items-center gap-4">
             <div class="bg-white/15 p-3 rounded-2xl border border-white/20 backdrop-blur shadow-inner">
               <span class="text-3xl">📺</span>
@@ -434,8 +434,8 @@
           </div>
         </div>
 
-        <!-- Status Bar Matching Image -->
-        <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-xs">
+        <!-- Status Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">
           <div class="flex items-center gap-2 font-bold text-slate-700">
             <span>👥 กิจกรรมวันนี้</span>
             <span id="display-board-total-count" class="bg-indigo-600 text-white px-2.5 py-0.5 rounded-full font-mono text-sm">0</span>
@@ -1717,7 +1717,7 @@
       }).join('');
     }
 
-    // RENDER DISPLAY BOARD (Modern Light Theme + Today Only + Smart Sorting)
+    // RENDER DISPLAY BOARD (Clean Light Theme + Today Only + Smart Sorting)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
@@ -2327,101 +2327,6 @@
         eventClick: function(info) { openEventDetailModal(info.event); }
       });
       calendar.render();
-    }
-
-    // PRINT REPORT WITH DETAILED STAFF WORKLOAD ACCORDING TO IMAGE SPECIFICATION
-    function printEventReport() {
-      if (!selectedEventForPrint) return;
-
-      const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
-      const docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
-
-      document.getElementById('print-doc-id').textContent = docId;
-      document.getElementById('print-now-date').textContent = new Date().toLocaleDateString('th-TH');
-      document.getElementById('print-title').textContent = selectedEventForPrint.title;
-      document.getElementById('print-dept').textContent = selectedEventForPrint.dept;
-      document.getElementById('print-main-host').textContent = selectedEventForPrint.mainHost;
-      document.getElementById('print-location').textContent = selectedEventForPrint.location;
-      document.getElementById('print-datetime').textContent = `${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}`;
-      document.getElementById('print-remarks').textContent = selectedEventForPrint.remarks || '-';
-
-      // Parse Tagged Members per Department
-      const orgStr = selectedEventForPrint.organizer || '';
-      
-      const getDeptStaffNames = (deptKey) => {
-        if (!orgStr) return [];
-        let members = orgStr.split(', ');
-        return members.filter(m => m.includes(`[${deptKey}]`)).map(m => m.split(' [')[0]);
-      };
-
-      const itStaffs = getDeptStaffNames('IT');
-      const avStaffs = getDeptStaffNames('AV');
-      const mediaStaffs = getDeptStaffNames('MEDIA');
-
-      document.getElementById('print-staff-it-count').textContent = `${itStaffs.length} คน`;
-      document.getElementById('print-staff-it-names').textContent = itStaffs.join(', ') || '-';
-
-      document.getElementById('print-staff-av-count').textContent = `${avStaffs.length} คน`;
-      document.getElementById('print-staff-av-names').textContent = avStaffs.join(', ') || '-';
-
-      document.getElementById('print-staff-media-count').textContent = `${mediaStaffs.length} คน`;
-      document.getElementById('print-staff-media-names').textContent = mediaStaffs.join(', ') || '-';
-
-      // Parse Facility & Parking Requests from Organizer String
-      let nHousekeeper = 0, nTech = 0, nSec = 0, nPark = 0;
-      if (orgStr.includes('แม่บ้าน')) {
-        let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/);
-        if (m) nHousekeeper = m[1];
-      }
-      if (orgStr.includes('ช่างอาคาร')) {
-        let m = orgStr.match(/ช่างอาคาร\s*(\d+)\s*คน/);
-        if (m) nTech = m[1];
-      }
-      if (orgStr.includes('รปภ.')) {
-        let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/);
-        if (m) nSec = m[1];
-      }
-      if (orgStr.includes('ช่องจอดรถ')) {
-        let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/);
-        if (m) nPark = m[1];
-      }
-
-      const facStaffs = getDeptStaffNames('FACILITY');
-      document.getElementById('print-staff-facility-count').textContent = `${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}`;
-      document.getElementById('print-staff-tech-count').textContent = `${nTech} คน`;
-      document.getElementById('print-staff-housekeeper-count').textContent = `${nHousekeeper} คน`;
-      document.getElementById('print-staff-security-count').textContent = `${nSec} คน`;
-      document.getElementById('print-parking-count').textContent = `${nPark} คัน`;
-
-      let tableHtml = '';
-      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
-        const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
-        ids.forEach(id => {
-          const item = allEquipment.find(i => i.id == id.trim());
-          if (item) {
-            const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
-            tableHtml += `
-              <tr class="hover:bg-slate-50">
-                <td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td>
-                <td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${brandStr}</td>
-                <td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td>
-                <td class="border border-slate-300 p-2">${item.location || '-'}</td>
-                <td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td>
-                <td class="border border-slate-300 p-2 text-slate-400"></td>
-              </tr>
-            `;
-          }
-        });
-      } else {
-        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`;
-      }
-
-      document.getElementById('print-equipment-table').innerHTML = tableHtml;
-
-      const printArea = document.getElementById('printable-area');
-      printArea.classList.remove('hidden');
-      window.print();
-      printArea.classList.add('hidden');
     }
 
     function openReturnInspectionModal(recordId) {
