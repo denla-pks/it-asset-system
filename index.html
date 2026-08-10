@@ -231,7 +231,7 @@
             </div>
 
             <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
-              <label class="block text-xs font-bold text-indigo-900 mb-1" data-i18n="lblEventHost">👤 แม่งาน / ผู้รับผิดชอบหลักงานนี้ *</label>
+              <label class="block text-xs font-bold text-indigo-900 mb-1" data-i18n="lblEventHost">👤 ผู้จัดงาน / ผู้รับผิดชอบหลักงานนี้ *</label>
               <input type="text" id="event-main-host" required placeholder="เช่น อ.วิชัย (ฝ่ายโสตฯ) / ครูสมชาย" class="w-full p-2 border border-indigo-200 rounded-lg text-sm outline-none bg-white">
             </div>
 
@@ -411,9 +411,63 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์ & จัดการสถานที่ (Admin Zone) ==================== -->
+    <!-- ==================== TAB 3: คลังอุปกรณ์, จัดการสถานที่ & สรุปภาระงานทีมงาน (Admin Zone) ==================== -->
     <section id="sec-inventory" class="space-y-6 hidden admin-col">
       
+      <!-- ADMIN STAFF WORKLOAD SUMMARY ZONE -->
+      <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">📊 [Admin Zone] สรุปคิวงานภาระหน้าที่ของทีมงาน (Staff Workload Summary)</h2>
+          <span class="text-xs text-slate-400">ค้นหางานที่ได้รับมอบหมายตามรายบุคคลหรือรายแผนก</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs">
+          <div>
+            <label class="block text-slate-300 mb-1">🔍 ค้นหาชื่อทีมงาน / ชื่อเล่น</label>
+            <input type="text" id="staff-search-name" onkeyup="renderStaffWorkloadSummary()" placeholder="เช่น ครูมีน, ช่างชัย, รัชพล..." class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">🏢 ฝ่ายสังกัดทีมงาน</label>
+            <select id="staff-search-dept" onchange="renderStaffWorkloadSummary()" class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
+              <option value="ALL">-- ทุกแผนก --</option>
+              <option value="IT">💻 ฝ่ายไอที (IT)</option>
+              <option value="AV">🔊 ฝ่ายโสตฯ (AV)</option>
+              <option value="MEDIA">📷 ฝ่ายสื่อ/ช่างภาพ (Media)</option>
+              <option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ (Facility)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">📅 ตั้งแต่วันที่</label>
+            <input type="date" id="staff-search-start" onchange="renderStaffWorkloadSummary()" class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 mb-1">📅 ถึงวันที่</label>
+            <input type="date" id="staff-search-end" onchange="renderStaffWorkloadSummary()" class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto pt-2">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-800 text-amber-300 font-bold border-b border-slate-700">
+              <tr>
+                <th class="p-2.5">ชื่อกิจกรรม/งาน</th>
+                <th class="p-2.5">ฝ่ายหลัก</th>
+                <th class="p-2.5">ผู้รับผิดชอบหลัก</th>
+                <th class="p-2.5">ทีมงานร่วมปฏิบัติงาน (Tagged)</th>
+                <th class="p-2.5">วัน-เวลา</th>
+                <th class="p-2.5">สถานที่</th>
+              </tr>
+            </thead>
+            <tbody id="table-staff-workload" class="divide-y divide-slate-800">
+              <tr><td colspan="6" class="p-4 text-center text-slate-500">กรุณาพิมพ์ค้นหาชื่อ หรือเลือกแผนกทีมงาน...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- ADMIN LOCATION MANAGEMENT ZONE -->
       <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏢 [Admin Zone] จัดการสถานที่จัดงาน (Location Management)</h2>
@@ -567,7 +621,7 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
-        <p class="col-span-2 text-indigo-900 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"><b data-i18n="detailHost">👤 แม่งานผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-base text-indigo-700">-</span></p>
+        <p class="col-span-2 text-indigo-900 bg-indigo-50 p-2.5 rounded-xl border border-indigo-100"><b data-i18n="detailHost">👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-base text-indigo-700">-</span></p>
         <p><b data-i18n="detailLocation">📍 สถานที่:</b> <span id="detail-location">-</span></p>
         <p class="col-span-2"><b data-i18n="detailOrganizer">🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-slate-50 p-2 rounded-lg border border-slate-200">-</span></p>
         <p><b data-i18n="detailStart">⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800">-</span></p>
@@ -618,7 +672,7 @@
       <p class="text-xl font-bold text-indigo-900">งานกิจกรรม: <span id="print-title"></span></p>
       <div class="grid grid-cols-2 gap-4 border p-4 rounded-lg bg-slate-50">
         <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept"></span></p>
-        <p><b>👤 แม่งานผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900"></span></p>
+        <p><b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900"></span></p>
         <p><b>สถานที่จัดงาน:</b> <span id="print-location"></span></p>
         <p><b>เวลากิจกรรม:</b> <span id="print-start"></span> ถึง <span id="print-end"></span></p>
         <p class="col-span-2"><b>ทีมงานผู้รับผิดชอบ (Tagged):</b> <span id="print-organizer"></span></p>
@@ -644,7 +698,7 @@
 
     <div class="grid grid-cols-3 gap-4 text-center text-xs mt-12 pt-8 border-t border-slate-400">
       <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p></div>
-      <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( แม่งาน / ผู้รับผิดชอบหลัก )</p></div>
+      <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p></div>
       <div><p class="mb-10">ลงชื่อ ...........................................................</p><p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p></div>
     </div>
   </div>
@@ -705,6 +759,7 @@
     let selectedEventForPrint = null;
     let pendingReturnRecord = null;
     let currentFilteredEquipment = [];
+    let allEventsList = []; // Cache all event queues for staff workload search
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
 
     const DEFAULT_LOCATIONS = [];
@@ -768,7 +823,7 @@
         btnCancelEdit: "ยกเลิกการแก้ไข",
         lblEventDept: "ส่วนงานที่รับผิดชอบหลัก *",
         lblEventTitle: "ชื่อกิจกรรม / งาน *",
-        lblEventHost: "👤 แม่งาน / ผู้รับผิดชอบหลักงานนี้ *",
+        lblEventHost: "👤 ผู้จัดงาน / ผู้รับผิดชอบหลักงานนี้ *",
         lblEventLocation: "สถานที่จัดงาน *",
         lblDateTimeTitle: "⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):",
         lblStartDateTime: "📅 วัน-เวลา เริ่มงาน *",
@@ -833,7 +888,7 @@
         inspectRemarkLbl: "📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด",
         btnCancelModal: "ยกเลิก",
         btnConfirmReturn: "ยืนยันการรับคืนอุปกรณ์",
-        detailHost: "👤 แม่งานผู้รับผิดชอบหลัก:",
+        detailHost: "👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:",
         detailLocation: "📍 สถานที่:",
         detailOrganizer: "🏷️ ทีมงานปฏิบัติงาน (Tagged):",
         detailStart: "⏰ เวลาเริ่ม:",
@@ -915,7 +970,7 @@
         btnCancelEdit: "Cancel Editing",
         lblEventDept: "Main Responsible Dept *",
         lblEventTitle: "Event Name / Task *",
-        lblEventHost: "👤 Event Host / Person in Charge *",
+        lblEventHost: "👤 Event Organizer / Host *",
         lblEventLocation: "Venue Location *",
         lblDateTimeTitle: "⏰ Start & End Date Time (24h - 5m step):",
         lblStartDateTime: "📅 Start Date & Time *",
@@ -980,7 +1035,7 @@
         inspectRemarkLbl: "📝 Inspection Note / Damage Description",
         btnCancelModal: "Cancel",
         btnConfirmReturn: "Confirm Return",
-        detailHost: "👤 Event Host / Person in Charge:",
+        detailHost: "👤 Event Organizer / Host:",
         detailLocation: "📍 Location:",
         detailOrganizer: "🏷️ Tagged Team Members:",
         detailStart: "⏰ Start Time:",
@@ -1252,10 +1307,10 @@
       }, 60000);
     }
 
-    // PURE TIME STRING PARSER FOR DISPLAY
-    function formatThaiDateTime(dateInput) {
-      if (!dateInput) return '-';
-      let str = String(dateInput);
+    // PURE TIME STRING PARSER (Adjusts Legacy UTC Timestamps to Thai Display Correctly)
+    function adjustUtcToThaiDisplay(isoStr) {
+      if (!isoStr) return '00:00';
+      let str = String(isoStr);
       let datePart = '', timePart = '';
 
       if (str.includes('T')) {
@@ -1267,8 +1322,27 @@
         datePart = parts[0];
         timePart = parts[1].substring(0, 5);
       } else {
-        datePart = str;
+        return str.substring(0, 5);
       }
+
+      // If legacy UTC timestamp detected (+00:00 or Z), adjust +7 hours
+      if (str.includes('+00') || str.endsWith('Z')) {
+        let hp = timePart.split(':');
+        let h = (parseInt(hp[0], 10) + 7) % 24;
+        return `${String(h).padStart(2, '0')}:${hp[1]}`;
+      }
+
+      return timePart;
+    }
+
+    function formatThaiDateTime(dateInput) {
+      if (!dateInput) return '-';
+      let str = String(dateInput);
+      let datePart = '', timePart = adjustUtcToThaiDisplay(dateInput);
+
+      if (str.includes('T')) datePart = str.split('T')[0];
+      else if (str.includes(' ')) datePart = str.split(' ')[0];
+      else datePart = str;
 
       if (datePart.includes('-')) {
         let dp = datePart.split('-');
@@ -1446,9 +1520,62 @@
 
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
       if (tabName === 'display') renderDisplayBoardCards();
+      if (tabName === 'inventory') renderStaffWorkloadSummary();
     }
 
-    // RENDER DISPLAY BOARD (Filtering Today Only + Smart Priority Sorting)
+    // RENDER STAFF WORKLOAD SUMMARY TABLE IN ADMIN ZONE
+    function renderStaffWorkloadSummary() {
+      const tbody = document.getElementById('table-staff-workload');
+      const searchName = document.getElementById('staff-search-name')?.value.trim().toLowerCase() || '';
+      const searchDept = document.getElementById('staff-search-dept')?.value || 'ALL';
+      const startDate = document.getElementById('staff-search-start')?.value || '';
+      const endDate = document.getElementById('staff-search-end')?.value || '';
+
+      if (!allEventsList || allEventsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">ไม่พบข้อมูลคิวงานกิจกรรม</td></tr>`;
+        return;
+      }
+
+      let filtered = allEventsList.filter(ev => {
+        const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
+        
+        // Date Filter
+        if (startDate && evDateStr < startDate) return false;
+        if (endDate && evDateStr > endDate) return false;
+
+        // Department Filter
+        if (searchDept !== 'ALL' && ev.department !== searchDept) return false;
+
+        // Staff Name Search Filter (Match Main Host OR Tagged Staff in Organizer string)
+        if (searchName !== '') {
+          const matchHost = (ev.main_host || '').toLowerCase().includes(searchName);
+          const matchOrganizer = (ev.organizer || '').toLowerCase().includes(searchName);
+          if (!matchHost && !matchOrganizer) return false;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">ไม่พบภาระงานของทีมงานตามเงื่อนไขที่ค้นหา</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(ev => {
+        return `
+          <tr class="hover:bg-slate-800/60 transition">
+            <td class="p-2.5 font-bold text-white">${ev.event_title}</td>
+            <td class="p-2.5"><span class="bg-indigo-950 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded font-bold">${ev.department || 'ALL'}</span></td>
+            <td class="p-2.5 text-amber-300 font-medium">${ev.main_host || '-'}</td>
+            <td class="p-2.5 text-emerald-300 font-medium">${ev.organizer || '-'}</td>
+            <td class="p-2.5">${formatThaiDateTime(ev.start_time)}</td>
+            <td class="p-2.5 text-sky-300">${ev.location || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // RENDER DISPLAY BOARD (Today Only + Ongoing First + Finished Bottom)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
@@ -1468,7 +1595,7 @@
         return;
       }
 
-      // Filter: 1) Shown on Display Board 2) Event date is TODAY ONLY
+      // Filter: 1) Shown on Display Board 2) TODAY ONLY
       const displayEvents = data.filter(ev => {
         const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
         const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
@@ -1482,7 +1609,7 @@
 
       const nowMs = now.getTime();
 
-      // Priority Sorting: Ongoing (1) -> Upcoming (2) -> Completed (3)
+      // Priority Sorting: Ongoing/LIVE (1) -> Upcoming (2) -> Completed (3 - Push to bottom)
       displayEvents.sort((a, b) => {
         const aStart = new Date(a.start_time).getTime();
         const aEnd = new Date(a.end_time).getTime();
@@ -1492,7 +1619,7 @@
         const getPriority = (s, e) => {
           if (nowMs >= s && nowMs <= e) return 1; // LIVE
           if (nowMs < s) return 2;               // Upcoming
-          return 3;                              // Completed
+          return 3;                              // Finished
         };
 
         const pA = getPriority(aStart, aEnd);
@@ -1523,7 +1650,7 @@
         const isFinished = nowMs > endMs;
 
         return `
-          <div class="bg-gradient-to-r from-indigo-950/90 to-slate-900/90 p-5 rounded-2xl border border-indigo-700/40 shadow-xl space-y-3 hover:border-indigo-400/60 transition backdrop-blur ${isFinished ? 'opacity-60' : ''}">
+          <div class="bg-gradient-to-r from-indigo-950/90 to-slate-900/90 p-5 rounded-2xl border border-indigo-700/40 shadow-xl space-y-3 hover:border-indigo-400/60 transition backdrop-blur ${isFinished ? 'opacity-60 grayscale-[30%]' : ''}">
             <div class="flex justify-between items-start">
               <span class="px-2.5 py-1 rounded-lg text-xs font-bold border ${deptColors[ev.department] || 'text-indigo-300 border-indigo-500/30 bg-indigo-950/40'}">
                 ${ev.department || 'ALL'}
@@ -1535,8 +1662,8 @@
 
             <div class="space-y-1.5 text-xs text-indigo-100/80 pt-2 border-t border-indigo-800/40">
               <p class="flex items-center gap-2"><span>📍</span> <span class="font-bold text-amber-300 text-sm">${ev.location || '-'}</span></p>
-              <p class="flex items-center gap-2"><span>⏰</span> <span>เวลา: <b class="text-white">${parseExactTimeString(ev.start_time)} - ${parseExactTimeString(ev.end_time)} น.</b></span></p>
-              <p class="flex items-center gap-2"><span>👤</span> <span>แม่งาน: ${ev.main_host || '-'}</span></p>
+              <p class="flex items-center gap-2"><span>⏰</span> <span>เวลา: <b class="text-white">${adjustUtcToThaiDisplay(ev.start_time)} - ${adjustUtcToThaiDisplay(ev.end_time)} น.</b></span></p>
+              <p class="flex items-center gap-2"><span>👤</span> <span>ผู้จัดงาน: ${ev.main_host || '-'}</span></p>
             </div>
           </div>
         `;
@@ -1696,7 +1823,7 @@
         title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`,
         details: [
           `<b>ชื่อกิจกรรม:</b> ${title}`,
-          `<b>👤 แม่งานผู้รับผิดชอบหลัก:</b> ${mainHost}`,
+          `<b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> ${mainHost}`,
           `<b>📍 สถานที่จัดงาน:</b> <font color="#0284c7"><b>${location}</b></font>`,
           `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`,
           `<b>เวลาเสร็จงาน:</b> ${formatThaiDateTime(isoEnd)}`,
@@ -1822,7 +1949,7 @@
         title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`,
         details: [
           `<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`,
-          `<b>แม่งานเดิม:</b> ${selectedEventForPrint.mainHost}`,
+          `<b>ผู้จัดงานเดิม:</b> ${selectedEventForPrint.mainHost}`,
           `<b>สถานที่:</b> ${selectedEventForPrint.location}`,
           `<b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.nickname || '-'}) [ฝ่าย ${currentAdmin.department || 'IT'}]`
         ]
@@ -2005,7 +2132,6 @@
       const calendarEl = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        timeZone: 'UTC', // Enforce UTC mode to read pure YYYY-MM-DDTHH:mm:ss strings without browser timezone shifts
         locale: currentLang === 'en' ? 'en' : 'th',
         eventTimeFormat: {
           hour: '2-digit',
@@ -2023,36 +2149,25 @@
       calendar.render();
     }
 
-    // PURE TIME STRING PARSER HELPER
-    function parseExactTimeString(isoStr) {
-      if (!isoStr) return '00:00';
-      let s = String(isoStr);
-      if (s.includes('T')) {
-        return s.split('T')[1].substring(0, 5);
-      } else if (s.includes(' ')) {
-        return s.split(' ')[1].substring(0, 5);
-      }
-      return s.substring(0, 5);
-    }
-
-    // CALENDAR EVENTS FETCH (PURE LOCAL TIME RENDERING - PREVENT UTC-7 SHIFTS)
+    // CALENDAR EVENTS FETCH (PURE LOCAL DATE STRING RENDERING - 100% PREVENT UTC SHIFTS)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
+      
+      allEventsList = data || []; // Cache events for staff summary searching
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
+      
       const events = (data || []).map(ev => {
         let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
-        let startTimePart = parseExactTimeString(ev.start_time);
-        let endTimePart = parseExactTimeString(ev.end_time);
+        let startTimePart = adjustUtcToThaiDisplay(ev.start_time);
+        let endTimePart = adjustUtcToThaiDisplay(ev.end_time);
 
-        let cleanStart = `${datePart}T${startTimePart}:00`;
-        let cleanEnd = `${datePart}T${endTimePart}:00`;
-
+        // Feed pure YYYY-MM-DD string as date only, and keep raw time in title/properties
         return {
           id: ev.id,
-          title: `[${ev.department || 'ALL'}] ${ev.event_title}`,
-          start: cleanStart,
-          end: cleanEnd,
+          title: `${startTimePart} [${ev.department || 'ALL'}] ${ev.event_title}`,
+          start: datePart,
+          end: datePart,
           backgroundColor: deptColors[ev.department] || '#6366f1',
           borderColor: deptColors[ev.department] || '#6366f1',
           extendedProps: { 
