@@ -1277,7 +1277,7 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT SUBMIT WITH OVERLAP / CONFLICT CHECKING LOGIC
+    // EVENT SUBMIT WITH 4-LEVEL CONFLICT CHECKING (Location, Department, Host, Tagged Staff)
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -1318,36 +1318,53 @@
         return;
       }
 
-      // ==================== CHECK CONFLICT / OVERLAP LOGIC ====================
+      // ==================== 4-LEVEL CONFLICT / OVERLAP CHECKING ====================
       const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
       
       if (!fetchErr && existingEvents) {
         for (const ev of existingEvents) {
-          // If updating, skip current event ID
           if (rawEventId && parseInt(rawEventId, 10) === ev.id) continue;
 
           const exStartMs = new Date(ev.start_time).getTime();
           const exEndMs = new Date(ev.end_time).getTime();
 
-          // Check if time ranges overlap: (StartA < EndB) AND (EndA > StartB)
+          // Time range overlap check
           const isTimeOverlapped = (newStartMs < exEndMs) && (newEndMs > exStartMs);
 
           if (isTimeOverlapped) {
-            // Check 1: Main Host Conflict
-            if (ev.main_host && ev.main_host.trim().toLowerCase() === mainHost.trim().toLowerCase()) {
+            // Check 1: Location Conflict
+            if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) {
               alert(currentLang==='en' 
-                ? `⚠️ Schedule Conflict! ${mainHost} is already assigned to "${ev.event_title}" during this time.`
+                ? `⚠️ Venue Conflict! Location "${location}" is already booked for "${ev.event_title}" during this time.`
+                : `⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`
+              );
+              return;
+            }
+
+            // Check 2: Department Conflict (Exclude ALL dept)
+            if (dept !== 'ALL' && ev.department === dept) {
+              alert(currentLang==='en'
+                ? `⚠️ Department Conflict! Department [${dept}] already has an active event "${ev.event_title}" during this time.`
+                : `⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากฝ่าย [${dept}] มีคิวงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`
+              );
+              return;
+            }
+
+            // Check 3: Main Host Conflict
+            if (ev.main_host && mainHost && ev.main_host.trim().toLowerCase() === mainHost.trim().toLowerCase()) {
+              alert(currentLang==='en' 
+                ? `⚠️ Host Conflict! ${mainHost} is assigned to "${ev.event_title}" during this time.`
                 : `⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากคุณ ${mainHost} ติดคิวงาน "${ev.event_title}" ในช่วงเวลานี้อยู่แล้ว`
               );
               return;
             }
 
-            // Check 2: Tagged Admins Conflict
+            // Check 4: Tagged Staff Conflict
             if (selectedAdmins.length > 0 && ev.organizer) {
               for (const admin of selectedAdmins) {
                 if (ev.organizer.includes(admin.full_name)) {
                   alert(currentLang==='en' 
-                    ? `⚠️ Staff Conflict! ${admin.full_name} (${admin.nickname || '-'}) is already tagged in "${ev.event_title}" during this time.`
+                    ? `⚠️ Staff Conflict! ${admin.full_name} (${admin.nickname || '-'}) is tagged in "${ev.event_title}" during this time.`
                     : `⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากทีมงาน ${admin.full_name} (${admin.nickname || '-'}) ถูกแท็กในงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`
                   );
                   return;
@@ -1362,14 +1379,14 @@
       const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
       let chatMentionStr = chatMentionList.join(', ') || '-';
 
-      // Auto-tag Facility Admins if Location is Specified or Facility Dept Selected
+      // Auto-tag Facility Admins
       const facilityAdmins = allAdmins.filter(a => a.department === 'FACILITY');
       if ((location.trim() !== '' || dept === 'FACILITY') && facilityAdmins.length > 0) {
         const facilityMentions = facilityAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name}) [ฝ่ายอาคารฯ]` : `${a.full_name}`);
         chatMentionStr += `<br>🏢 <font color="#d97706"><b>[เรียนฝ่ายอาคารสถานที่]:</b> ${facilityMentions.join(', ')}</font>`;
       }
 
-      // Auto-tag Marketing Admins if Marketing Dept Selected
+      // Auto-tag Marketing Admins
       const marketingAdmins = allAdmins.filter(a => a.department === 'MARKETING');
       if (dept === 'MARKETING' && marketingAdmins.length > 0) {
         const marketingMentions = marketingAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name}) [ฝ่ายการตลาด]` : `${a.full_name}`);
@@ -1410,7 +1427,6 @@
 
       if (error) { alert('Error: ' + error.message); return; }
 
-      // Send Location & Dept Specific Google Chat Notification
       sendGoogleChatNotification({
         title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`,
         details: [
@@ -1720,11 +1736,13 @@
       calendar.render();
     }
 
+    // CALENDAR EVENTS FETCH (RAW LOCAL FORMAT FOR STRICT FULLCALENDAR DISPLAY)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'MARKETING': '#a855f7', 'ALL': '#8b5cf6' };
       const events = (data || []).map(ev => {
+        // Strip out Timezone offset strings to prevent 7-hour shifts on FullCalendar
         let cleanStart = ev.start_time ? String(ev.start_time).substring(0, 16) : ev.event_date;
         let cleanEnd = ev.end_time ? String(ev.end_time).substring(0, 16) : null;
 
