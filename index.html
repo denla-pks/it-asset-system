@@ -240,7 +240,7 @@
               <select id="event-location-select" onchange="toggleCustomLocationInput()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-medium mb-1.5">
                 <!-- Dynamically populated from Location Management -->
               </select>
-              <input type="text" id="event-location-custom" placeholder="กรุณาระบุสถานที่อื่นๆ..." class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none hidden">
+              <input type="text" id="event-location-custom" placeholder="กรุณาระบุสถานที่..." class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none hidden">
             </div>
 
             <!-- SEPARATE DATE & TIME SELECTORS -->
@@ -677,12 +677,8 @@
     let currentFilteredEquipment = [];
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
 
-    const DEFAULT_LOCATIONS = [
-      "หอประชุมชั้น 5",
-      "ห้องประชุมอาคาร 20 ปี",
-      "สนามฟุตบอล / ลานกิจกรรมกลางแจ้ง",
-      "โรงอาหาร / โรงยิม"
-    ];
+    // Empty Default Locations list as requested
+    const DEFAULT_LOCATIONS = [];
     let customLocations = JSON.parse(localStorage.getItem('denla_custom_locations') || '[]');
 
     const I18N = {
@@ -1043,6 +1039,7 @@
       }
     }
 
+    // LOCATION MANAGEMENT FUNCTIONS
     function renderLocationDropdown() {
       const select = document.getElementById('event-location-select');
       const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
@@ -1061,12 +1058,17 @@
       const tagContainer = document.getElementById('admin-location-tags');
       const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
 
+      if (allLocs.length === 0) {
+        tagContainer.innerHTML = `<p class="text-slate-400 text-xs italic">ยังไม่มีสถานที่ในระบบ สามารถพิมพ์เพิ่มสถานที่จัดงานใหม่ได้ที่ช่องด้านบน</p>`;
+        return;
+      }
+
       tagContainer.innerHTML = allLocs.map(loc => {
         const isCustom = customLocations.includes(loc);
         return `
           <span class="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700">
             📍 ${loc}
-            ${isCustom ? `<button onclick="deleteCustomLocation('${loc}')" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✕</button>` : ''}
+            <button onclick="deleteCustomLocation('${loc}')" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✕</button>
           </span>
         `;
       }).join('');
@@ -1220,7 +1222,7 @@
       }, 60000);
     }
 
-    // STRICT TIME PARSER
+    // STRICT TIME FORMATTER
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
       const d = new Date(dateInput);
@@ -1409,7 +1411,7 @@
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
     }
 
-    // EVENT SUBMIT WITH STRICT LOCATION & TAGGED STAFF CONFLICT CHECKING
+    // EVENT SUBMIT WITH LOCATION & TAGGED STAFF CONFLICT CHECKING
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -1554,7 +1556,6 @@
 
       if (error) { alert('Error: ' + error.message); return; }
 
-      // Send Chat Notification
       sendGoogleChatNotification({
         title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`,
         details: [
@@ -1880,9 +1881,9 @@
       calendar.render();
     }
 
-    // STRICT TIME PARSER HELPER: Extract Raw Local Time String (HH:mm) to Prevent Timezone Shifts
-    function parseRawTimeStr(isoStr) {
-      if (!isoStr) return '';
+    // STRICT TIME PARSER HELPER: Extract Raw Hours & Minutes (HH:mm) directly from DB string
+    function parseRawTimeOnly(isoStr) {
+      if (!isoStr) return '00:00';
       let str = String(isoStr);
       if (str.includes('T')) {
         return str.split('T')[1].substring(0, 5);
@@ -1892,18 +1893,18 @@
       return str.substring(0, 5);
     }
 
-    // CALENDAR EVENTS FETCH (RAW EXACT LOCAL TIME RENDERING)
+    // CALENDAR EVENTS FETCH (RAW STRICT LOCAL TIME RENDERING)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
       const events = (data || []).map(ev => {
-        let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
-        let startTimePart = parseRawTimeStr(ev.start_time);
-        let endTimePart = parseRawTimeStr(ev.end_time);
+        let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
+        let startTimePart = parseRawTimeOnly(ev.start_time);
+        let endTimePart = parseRawTimeOnly(ev.end_time);
 
-        let cleanStart = startTimePart ? `${datePart}T${startTimePart}:00` : datePart;
-        let cleanEnd = endTimePart ? `${datePart}T${endTimePart}:00` : null;
+        let cleanStart = `${datePart}T${startTimePart}:00`;
+        let cleanEnd = `${datePart}T${endTimePart}:00`;
 
         return {
           id: ev.id,
