@@ -1494,14 +1494,6 @@
       return `${dateStr}T${timeStr}:00+07:00`;
     }
 
-    function toggleBorrowTypeMode() {
+   function toggleBorrowTypeMode() {
       const type = document.getElementById('borrow-type-select').value;
-      const boxReturnDate = document.getElementById('box-return-date');
-      const btnSubmit = document.getElementById('btn-submit-borrow');
-      const dict = I18N[currentLang] || I18N.th;
-
-      if (type === 'LONG_TERM') {
-        boxReturnDate.classList.add('hidden');
-        document.getElementById('return-date').required = false;
-        btnSubmit.innerHTML = `🏢 ${currentLang === 'en' ? 'Confirm Long-term Issuance & Notify Chat' : 'ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat'}`;
-        btnSubmit.className = 'w-full bg-indigo-800 hover:bg
+      // ... (ลากคลุมดำตรงนี้ยาวลงไปจนสุดไฟล์)
