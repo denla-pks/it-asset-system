@@ -9,10 +9,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-  <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Sarabun', sans-serif; }
     .fc-event { cursor: pointer; border-radius: 8px !important; padding: 3px 6px !important; font-size: 0.82rem !important; border: none !important; }
@@ -23,7 +22,6 @@
       display: none !important;
     }
 
-    /* Print styling to force exactly 1 page and remove default headers/footers */
     @media print {
       @page {
         size: A4 portrait;
@@ -51,41 +49,41 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
 
-  <!-- Header Navigation -->
-  <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+  <header class="bg-indigo-700 text-white shadow-xl sticky top-0 z-40 border-b border-indigo-800/60">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row justify-between items-center gap-3">
+      
       <div class="flex items-center space-x-3">
-        <div class="bg-white p-1 rounded-full shadow-md flex items-center justify-center">
-          <img src="logo.png" alt="Denla Logo" class="h-10 w-10 object-contain">
+        <div class="bg-white p-1.5 rounded-2xl shadow-inner flex items-center justify-center border border-indigo-200/30">
+          <img src="logo.png" alt="Denla Logo" class="h-9 w-9 object-contain" onerror="this.style.display='none'">
         </div>
         <div>
-          <h1 id="app-title" class="text-xl font-bold">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
-          <p id="app-subtitle" class="text-xs text-indigo-200">Denla IT, AV, Media & Facility Management</p>
+          <h1 id="app-title" class="text-lg md:text-xl font-extrabold tracking-tight">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
+          <p id="app-subtitle" class="text-[11px] text-indigo-200 font-medium">Denla Kindergarten • IT, AV, Media & Facility</p>
         </div>
       </div>
       
       <div class="flex flex-wrap items-center gap-2">
-        <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
-          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 <span data-i18n="navBorrow">ยืม-คืน & เบิกส่งมอบ</span></button>
-          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 <span data-i18n="navCalendar">คิวงาน/ปฏิทิน</span></button>
-          <button onclick="switchTab('display')" id="tab-display" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white bg-indigo-900/40">📺 <span data-i18n="navDisplay">จอแสดงกิจกรรม (Display Board)</span></button>
-          <button onclick="switchTab('staff-summary')" id="tab-staff-summary" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">📊 <span>สรุปภาระงานทีมงาน (Admin)</span></button>
-          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white bg-indigo-900/50">🖥️ <span data-i18n="navInventory">คลังอุปกรณ์รวม (Admin)</span></button>
+        <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-2xl border border-indigo-600/50 backdrop-blur">
+          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow">📱 <span data-i18n="navBorrow">ยืม-คืน & เบิกส่งมอบ</span></button>
+          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-medium transition text-indigo-100 hover:text-white hover:bg-indigo-800/40">📅 <span data-i18n="navCalendar">คิวงาน/ปฏิทิน</span></button>
+          <button onclick="switchTab('display')" id="tab-display" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-medium transition text-indigo-100 hover:text-white hover:bg-indigo-800/40">📺 <span data-i18n="navDisplay">จอแสดงกิจกรรม</span></button>
+          <button onclick="switchTab('staff-summary')" id="tab-staff-summary" class="tab-btn admin-col hidden px-3 py-1.5 rounded-xl text-xs font-bold transition text-amber-300 hover:bg-amber-400/20 border border-amber-400/30">📊 <span>สรุปภาระงาน (Admin)</span></button>
+          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-xl text-xs font-bold transition text-amber-300 hover:bg-amber-400/20 border border-amber-400/30">🖥️ <span data-i18n="navInventory">คลังอุปกรณ์ (Admin)</span></button>
         </nav>
 
-        <!-- Language Selector -->
-        <div class="flex items-center bg-indigo-900/80 rounded-xl p-0.5 border border-indigo-500/50">
-          <button onclick="changeLanguage('th')" id="lang-th" class="px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow">🇹🇭 TH</button>
-          <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white">🇬🇧 EN</button>
+        <div class="flex items-center bg-indigo-900/80 rounded-2xl p-0.5 border border-indigo-500/50">
+          <button onclick="changeLanguage('th')" id="lang-th" class="px-2 py-1 rounded-xl text-xs font-bold transition bg-white text-indigo-950 shadow">TH</button>
+          <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-xl text-xs font-bold transition text-indigo-200 hover:text-white">EN</button>
         </div>
 
         <div class="flex gap-1">
-          <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition">🔐 <span data-i18n="btnLogin">เข้าสู่ระบบ Admin</span></button>
-          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-medium px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition border border-indigo-500">📝 <span data-i18n="btnRegister">ลงทะเบียน Admin</span></button>
+          <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-md transition flex items-center gap-1">🔐 <span data-i18n="btnLogin">เข้าระบบ Admin</span></button>
+          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-indigo-200 hover:text-white font-medium px-3 py-1.5 rounded-xl text-xs transition border border-indigo-600">📝 <span data-i18n="btnRegister">ลงทะเบียน</span></button>
         </div>
       </div>
+
     </div>
   </header>
 
@@ -96,7 +94,6 @@
       <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800" data-i18n="btnLogout">ออกจากระบบ Admin</button>
     </div>
 
-    <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ & เบิกส่งมอบระยะยาว ==================== -->
     <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -118,7 +115,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-600 mb-1" data-i18n="lblSelectEquipment">เลือกรายการอุปกรณ์</label>
-              <select id="borrow-asset-select" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+              <select id="borrow-asset-select" onchange="showEquipmentPreview(this.value)" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
                 <option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>
               </select>
             </div>
@@ -165,7 +162,6 @@
         </div>
       </div>
 
-      <!-- BORROW RECORDS TABLE WITH FILTER SEARCH -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -223,7 +219,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: คิวงาน/กิจกรรม ==================== -->
     <section id="sec-event" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
@@ -257,16 +252,13 @@
               <input type="text" id="event-main-host" required placeholder="เช่น อ.วิชัย (ฝ่ายโสตฯ) / ครูสมชาย" class="w-full p-2 border border-indigo-200 rounded-lg text-sm outline-none bg-white">
             </div>
 
-            <!-- DYNAMIC LOCATION DROPDOWN & CUSTOM INPUT -->
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">📍 สถานที่จัดงาน *</label>
               <select id="event-location-select" onchange="toggleCustomLocationInput()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-medium mb-1.5">
-                <!-- Dynamically populated from Location Management -->
               </select>
               <input type="text" id="event-location-custom" placeholder="กรุณาระบุสถานที่..." class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none hidden">
             </div>
 
-            <!-- DISPLAY BOARD TOGGLE OPTION -->
             <div class="p-2.5 bg-indigo-50/80 rounded-xl border border-indigo-200">
               <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-indigo-900">
                 <input type="checkbox" id="chk-show-display" checked class="rounded text-indigo-600 focus:ring-0">
@@ -274,7 +266,6 @@
               </label>
             </div>
 
-            <!-- SEPARATE DATE & TIME SELECTORS -->
             <div class="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <p class="text-xs font-bold text-indigo-900 border-b border-slate-200 pb-1" data-i18n="lblDateTimeTitle">⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):</p>
               
@@ -305,7 +296,6 @@
               </div>
             </div>
 
-            <!-- FACILITY STAFF & PARKING REQUEST BOX (EXCLUDED SECURITY AS REQUESTED) -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่ (ระบุจำนวน):</label>
               
@@ -335,7 +325,6 @@
                 </div>
               </div>
 
-              <!-- Tag Admin Checklist -->
               <div class="pt-2 border-t border-amber-200 space-y-1">
                 <label class="block text-xs font-bold text-amber-900" data-i18n="lblTagTeam">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
                 <div class="flex flex-wrap gap-1 text-[11px]">
@@ -381,7 +370,6 @@
             </div>
           </div>
 
-          <!-- CALENDAR FILTER BAR: STAFF SEARCH & DEPT SELECTOR -->
           <div class="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-2 text-xs">
             <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
               <div class="flex flex-1 gap-2 w-full">
@@ -421,11 +409,9 @@
       </div>
     </section>
 
-    <!-- ==================== TAB: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) ==================== -->
     <section id="sec-display" class="space-y-6 hidden">
       <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6">
         
-        <!-- Header Bar -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 text-white p-6 rounded-2xl shadow-lg gap-4">
           <div class="flex items-center gap-4">
             <div class="bg-white/15 p-3 rounded-2xl border border-white/20 backdrop-blur shadow-inner">
@@ -448,7 +434,6 @@
           </div>
         </div>
 
-        <!-- Status Bar -->
         <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm text-xs">
           <div class="flex items-center gap-2 font-bold text-slate-700">
             <span>👥 กิจกรรมวันนี้</span>
@@ -463,12 +448,10 @@
           </div>
         </div>
 
-        <!-- Cards List -->
         <div id="display-board-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <p class="text-slate-400 text-center py-12 col-span-2">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
         </div>
 
-        <!-- Footer Notice Bar -->
         <div class="bg-indigo-950 text-indigo-200 text-xs p-3 px-5 rounded-xl flex items-center justify-between">
           <span>📢 กิจกรรมถัดไปจะแสดงอัตโนมัติ</span>
           <span id="display-board-last-update" class="text-indigo-400 font-mono">อัปเดตล่าสุด --:-- น.</span>
@@ -477,7 +460,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB: สรุปภาระงานทีมงาน (STAFF WORKLOAD SUMMARY) ==================== -->
     <section id="sec-staff-summary" class="space-y-6 hidden admin-col">
       <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-800 space-y-4">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
@@ -533,10 +515,8 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์ & จัดการสถานที่ (Admin Zone) ==================== -->
     <section id="sec-inventory" class="space-y-6 hidden admin-col">
       
-      <!-- ADMIN LOCATION MANAGEMENT ZONE -->
       <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏢 [Admin Zone] จัดการสถานที่จัดงาน (Location Management)</h2>
         <div class="flex flex-col sm:flex-row gap-2">
@@ -544,11 +524,9 @@
           <button onclick="addNewLocation()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-5 py-2.5 rounded-xl text-sm shadow transition">+ เพิ่มสถานที่จัดงาน</button>
         </div>
         <div id="admin-location-tags" class="flex flex-wrap gap-1.5 pt-2">
-          <!-- Dynamically populated location tags with delete button -->
         </div>
       </div>
 
-      <!-- ADMIN EQUIPMENT FORM -->
       <div id="admin-equipment-form" class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ <span data-i18n="inventoryAddTitle">[Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</span></h2>
@@ -646,7 +624,6 @@
 
   </main>
 
-  <!-- MODAL: RETURN INSPECTION MODAL -->
   <div id="modal-return-inspect" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 <span data-i18n="inspectTitle">ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</span></h3>
@@ -677,7 +654,6 @@
     </div>
   </div>
 
-  <!-- MODAL: EVENT DETAILS -->
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
@@ -719,13 +695,11 @@
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE EXACTLY MATCHING IMAGE -->
   <div id="printable-area" class="hidden p-8 font-sans max-w-4xl mx-auto bg-white text-slate-900">
     
-    <!-- Top Header -->
     <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
       <div class="flex items-center gap-4">
-        <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain">
+        <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
         <div>
           <h1 class="text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1>
           <p class="text-base font-bold text-slate-600">(Denla Kindergarten)</p>
@@ -748,13 +722,11 @@
       </div>
     </div>
 
-    <!-- Title Banner -->
     <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
       <h2 class="text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
       <p class="text-base font-extrabold text-indigo-800">งานกิจกรรม: <span id="print-title" class="underline decoration-indigo-300 decoration-2">-</span></p>
     </div>
 
-    <!-- Event Info Grid -->
     <div class="grid grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
       <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept" class="font-bold text-indigo-900">-</span></p>
       <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900">-</span></p>
@@ -763,7 +735,6 @@
       <p class="col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks" class="text-slate-700">-</span></p>
     </div>
 
-    <!-- SECTION 1: STAFF & SUPPORT TABLE -->
     <div class="mb-4">
       <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">
         <span>1. ทีมงานและการสนับสนุนกิจกรรม</span>
@@ -806,7 +777,6 @@
       </table>
     </div>
 
-    <!-- SECTION 2: EQUIPMENT CHECKLIST TABLE -->
     <div class="mb-4">
       <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">
         2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน
@@ -826,7 +796,6 @@
       </table>
     </div>
 
-    <!-- SECTION 3: CHECKLIST & SIGNATURES -->
     <div class="mb-6 space-y-3">
       <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">
         3. สถานะการจัดเตรียมและตรวจสอบ
@@ -838,7 +807,6 @@
         <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
       </div>
 
-      <!-- Signatures Box -->
       <div class="grid grid-cols-3 gap-4 text-center text-xs pt-6 border-t border-slate-300 mt-6">
         <div class="space-y-8">
           <p>ลงชื่อ ...........................................................</p>
@@ -860,7 +828,6 @@
 
   </div>
 
-  <!-- MODALS LOGIN/REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 <span data-i18n="modalLoginTitle">เข้าสู่ระบบ Admin</span></h3>
@@ -899,10 +866,11 @@
     </div>
   </div>
 
-  <!-- JavaScript Core -->
   <script>
     const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
+    // ⚠️ สำคัญมาก: คุณต้องเปลี่ยนรหัสด้านล่างนี้ให้เป็น JWT ที่ถูกต้องจากหน้าเว็บ Supabase
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
+    
     const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
     const MASTER_KEY = 'DENLA2026';
     const SESSION_DURATION_MINUTES = 60;
@@ -928,7 +896,7 @@
         appSubtitle: "Denla IT, AV, Media & Facility Management",
         navBorrow: "ยืม-คืน & เบิกส่งมอบ",
         navCalendar: "คิวงาน/ปฏิทิน",
-        navDisplay: "จอแสดงกิจกรรม (Display Board)",
+        navDisplay: "จอแสดงกิจกรรม",
         navInventory: "คลังอุปกรณ์รวม (Admin)",
         btnLogin: "เข้าสู่ระบบ Admin",
         btnRegister: "ลงทะเบียน Admin",
@@ -1238,15 +1206,16 @@
       futureDate.setDate(futureDate.getDate() + 3);
       document.getElementById('return-date').value = futureDate.toISOString().split('T')[0];
 
-      await fetchAllAdmins();
-      await loadActiveBorrows();
-      await fetchAllEquipment();
+      // โหลดข้อมูลต่างๆ ด้วย try-catch เพื่อป้องกันการค้าง
+      try { await fetchAllAdmins(); } catch (e) { console.error(e); }
+      try { await fetchAllEquipment(); } catch (e) { console.error(e); }
+      try { await loadActiveBorrows(); } catch (e) { console.error(e); }
+      
       initCalendar();
       checkAdminSession();
       setupActivityListeners();
       applyLanguage(currentLang);
 
-      // Start Live Clock
       setInterval(() => {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
@@ -1268,40 +1237,30 @@
 
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (dict[key]) {
-          el.innerHTML = dict[key];
-        }
+        if (dict[key]) { el.innerHTML = dict[key]; }
       });
 
       document.getElementById('app-title').textContent = dict.appTitle;
       document.getElementById('app-subtitle').textContent = dict.appSubtitle;
 
       if (lang === 'th') {
-        document.getElementById('lang-th').className = 'px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow';
-        document.getElementById('lang-en').className = 'px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white';
+        document.getElementById('lang-th').className = 'px-2 py-1 rounded-xl text-xs font-bold transition bg-white text-indigo-950 shadow';
+        document.getElementById('lang-en').className = 'px-2 py-1 rounded-xl text-xs font-bold transition text-indigo-200 hover:text-white';
       } else {
-        document.getElementById('lang-en').className = 'px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow';
-        document.getElementById('lang-th').className = 'px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white';
+        document.getElementById('lang-en').className = 'px-2 py-1 rounded-xl text-xs font-bold transition bg-white text-indigo-950 shadow';
+        document.getElementById('lang-th').className = 'px-2 py-1 rounded-xl text-xs font-bold transition text-indigo-200 hover:text-white';
       }
 
       populateDateAndPickerDropdowns();
-
-      if (calendar) {
-        calendar.setOption('locale', lang === 'en' ? 'en' : 'th');
-      }
+      if (calendar) { calendar.setOption('locale', lang === 'en' ? 'en' : 'th'); }
     }
 
-    // LOCATION MANAGEMENT FUNCTIONS
     function renderLocationDropdown() {
       const select = document.getElementById('event-location-select');
       const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
       let html = '';
-
-      allLocs.forEach(loc => {
-        html += `<option value="${loc}">📍 ${loc}</option>`;
-      });
+      allLocs.forEach(loc => { html += `<option value="${loc}">📍 ${loc}</option>`; });
       html += `<option value="CUSTOM">✏️ สถานที่อื่นๆ (ระบุเอง...)</option>`;
-
       select.innerHTML = html;
       toggleCustomLocationInput();
     }
@@ -1309,12 +1268,10 @@
     function renderAdminLocationTags() {
       const tagContainer = document.getElementById('admin-location-tags');
       const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
-
       if (allLocs.length === 0) {
         tagContainer.innerHTML = `<p class="text-slate-400 text-xs italic">ยังไม่มีสถานที่ในระบบ สามารถพิมพ์เพิ่มสถานที่จัดงานใหม่ได้ที่ช่องด้านบน</p>`;
         return;
       }
-
       tagContainer.innerHTML = allLocs.map(loc => {
         return `
           <span class="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700">
@@ -1329,16 +1286,10 @@
       const input = document.getElementById('admin-new-location');
       const val = input.value.trim();
       if (!val) { alert('กรุณากรอกชื่อสถานที่'); return; }
-
-      if ([...DEFAULT_LOCATIONS, ...customLocations].includes(val)) {
-        alert('สถานที่นี้มีอยู่ในระบบแล้ว');
-        return;
-      }
-
+      if ([...DEFAULT_LOCATIONS, ...customLocations].includes(val)) { alert('สถานที่นี้มีอยู่ในระบบแล้ว'); return; }
       customLocations.push(val);
       localStorage.setItem('denla_custom_locations', JSON.stringify(customLocations));
       input.value = '';
-      
       renderLocationDropdown();
       renderAdminLocationTags();
       alert(`✅ เพิ่มสถานที่ "${val}" เรียบร้อยแล้ว`);
@@ -1371,7 +1322,6 @@
       const selectedEndVal = endSelect.value || '16:30';
 
       let timeOptions = '';
-
       for (let hour = 0; hour < 24; hour++) {
         for (let min = 0; min < 60; min += 5) {
           const hh = String(hour).padStart(2, '0');
@@ -1400,17 +1350,13 @@
         const prevYear = yearSel.value || String(curYear);
 
         let dayHtml = '';
-        for (let d = 1; d <= 31; d++) {
-          dayHtml += `<option value="${String(d).padStart(2, '0')}">${d}</option>`;
-        }
+        for (let d = 1; d <= 31; d++) { dayHtml += `<option value="${String(d).padStart(2, '0')}">${d}</option>`; }
         daySel.innerHTML = dayHtml;
         daySel.value = prevDay;
 
         let monthHtml = '';
         const monthList = currentLang === 'en' ? ENG_MONTHS : THAI_MONTHS;
-        monthList.forEach((mName, idx) => {
-          monthHtml += `<option value="${String(idx + 1).padStart(2, '0')}">${mName}</option>`;
-        });
+        monthList.forEach((mName, idx) => { monthHtml += `<option value="${String(idx + 1).padStart(2, '0')}">${mName}</option>`; });
         monthSel.innerHTML = monthHtml;
         monthSel.value = prevMonth;
 
@@ -1442,12 +1388,8 @@
             currentAdmin = sessionData.admin;
             setAdminState(true, false);
             refreshAdminSession();
-          } else {
-            logoutAdmin(true);
-          }
-        } catch (e) {
-          localStorage.removeItem('denla_admin_session');
-        }
+          } else { logoutAdmin(true); }
+        } catch (e) { localStorage.removeItem('denla_admin_session'); }
       }
     }
 
@@ -1459,11 +1401,8 @@
 
     function setupActivityListeners() {
       ['click', 'mousemove', 'keydown', 'scroll'].forEach(evt => {
-        window.addEventListener(evt, () => {
-          if (currentAdmin) refreshAdminSession();
-        }, { passive: true });
+        window.addEventListener(evt, () => { if (currentAdmin) refreshAdminSession(); }, { passive: true });
       });
-
       setInterval(() => {
         const storedSession = localStorage.getItem('denla_admin_session');
         if (storedSession) {
@@ -1473,7 +1412,6 @@
       }, 60000);
     }
 
-    // PURE TIME STRING PARSER
     function adjustUtcToThaiDisplay(isoStr) {
       if (!isoStr) return '00:00';
       let str = String(isoStr);
@@ -1488,7 +1426,6 @@
         let h = (parseInt(hp[0], 10) + 7) % 24;
         return `${String(h).padStart(2, '0')}:${hp[1]}`;
       }
-
       return timePart;
     }
 
@@ -1510,7 +1447,6 @@
         let timeDisplay = timePart ? ` ${timePart.replace(':', '.')}${currentLang==='en'?'':' น.'}` : '';
         return `${d}/${m}/${yearDisplay}${timeDisplay}`;
       }
-
       return str;
     }
 
@@ -1528,7 +1464,7 @@
       if (type === 'LONG_TERM') {
         boxReturnDate.classList.add('hidden');
         document.getElementById('return-date').required = false;
-        btnSubmit.innerHTML = `🏢 ${currentLang === 'en' ? 'Confirm Long-term Issuance & Notify Chat' : 'ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat'}`;
+        btnSubmit.innerHTML = `🏢 ${currentLang === 'en' ? 'Confirm Long-term Issuance' : 'ยืนยันการส่งมอบอุปกรณ์ระยะยาว'}`;
         btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
       } else {
         boxReturnDate.classList.remove('hidden');
@@ -1539,7 +1475,8 @@
     }
 
     async function fetchAllAdmins() {
-      const { data } = await _supabase.from('admin_users').select('*').order('department');
+      const { data, error } = await _supabase.from('admin_users').select('*').order('department');
+      if (error) { console.warn("Cannot load admins:", error); }
       allAdmins = data || [];
       renderTagAdminList();
     }
@@ -1550,7 +1487,6 @@
         container.innerHTML = `<p class="text-slate-400 text-center py-1">${currentLang==='en'?'No Admins Registered':'ยังไม่มีรายชื่อ Admin ในระบบ'}</p>`;
         return;
       }
-
       const deptNames = { 'IT': '💻 IT', 'AV': '🔊 AV', 'MEDIA': '📷 Media', 'FACILITY': '🏢 อาคารฯ' };
 
       container.innerHTML = allAdmins.map(admin => `
@@ -1593,13 +1529,7 @@
       if (key !== MASTER_KEY) { alert(currentLang==='en'?'❌ Incorrect Master Key!':'❌ Master Key ไม่ถูกต้อง!'); return; }
 
       const { error } = await _supabase.from('admin_users').insert([{
-        emp_id: empId,
-        full_name: name,
-        nickname: nickname,
-        email: email,
-        department: dept,
-        username: user,
-        password: pass
+        emp_id: empId, full_name: name, nickname: nickname, email: email, department: dept, username: user, password: pass
       }]);
 
       if (error) { alert('Error: ' + error.message); return; }
@@ -1650,11 +1580,8 @@
 
     function logoutAdmin(isAuto = false) {
       setAdminState(false, false);
-      if (isAuto) {
-        alert(currentLang==='en'?'⌛ Session Expired. Automatically logged out.':'⌛ หมดเวลาเซสชัน 60 นาที ระบบได้ทำการออกจากระบบ Admin อัตโนมัติ');
-      } else {
-        alert(currentLang==='en'?'🔒 Admin Logged Out':'🔒 ออกจากระบบ Admin เรียบร้อย');
-      }
+      if (isAuto) { alert(currentLang==='en'?'⌛ Session Expired. Automatically logged out.':'⌛ หมดเวลาเซสชัน ระบบได้ทำการออกจากระบบ Admin อัตโนมัติ'); } 
+      else { alert(currentLang==='en'?'🔒 Admin Logged Out':'🔒 ออกจากระบบ Admin เรียบร้อย'); }
     }
 
     function switchTab(tabName) {
@@ -1667,20 +1594,19 @@
         const sec = document.getElementById(`sec-${t}`);
         if (sec) sec.classList.add('hidden');
         const btn = document.getElementById(`tab-${t}`);
-        if (btn && t !== 'inventory' && t !== 'staff-summary') btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white';
+        if (btn && t !== 'inventory' && t !== 'staff-summary') btn.className = 'tab-btn px-3 py-1.5 rounded-xl text-xs font-medium transition text-indigo-100 hover:text-white hover:bg-indigo-800/40';
       });
 
       const activeSec = document.getElementById(`sec-${tabName}`);
       if (activeSec) activeSec.classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-${tabName}`);
-      if (activeBtn && tabName !== 'inventory' && tabName !== 'staff-summary') activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow';
+      if (activeBtn && tabName !== 'inventory' && tabName !== 'staff-summary') activeBtn.className = 'tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow';
 
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
       if (tabName === 'display') renderDisplayBoardCards();
       if (tabName === 'staff-summary') renderStaffWorkloadSummary();
     }
 
-    // RENDER STAFF WORKLOAD SUMMARY TABLE IN SEPARATE ADMIN TAB
     function renderStaffWorkloadSummary() {
       const tbody = document.getElementById('table-staff-workload');
       const searchName = document.getElementById('staff-search-name')?.value.trim().toLowerCase() || '';
@@ -1695,17 +1621,14 @@
 
       let filtered = allEventsList.filter(ev => {
         const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
-        
         if (startDate && evDateStr < startDate) return false;
         if (endDate && evDateStr > endDate) return false;
         if (searchDept !== 'ALL' && ev.department !== searchDept) return false;
-
         if (searchName !== '') {
           const matchHost = (ev.main_host || '').toLowerCase().includes(searchName);
           const matchOrganizer = (ev.organizer || '').toLowerCase().includes(searchName);
           if (!matchHost && !matchOrganizer) return false;
         }
-
         return true;
       });
 
@@ -1728,7 +1651,6 @@
       }).join('');
     }
 
-    // RENDER DISPLAY BOARD (Modern Light Theme + Today Only + Smart Sorting)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
@@ -1754,7 +1676,6 @@
         return;
       }
 
-      // Filter TODAY ONLY + Shown on Display Board
       const displayEvents = data.filter(ev => {
         const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
         const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
@@ -1770,7 +1691,6 @@
 
       const nowMs = now.getTime();
 
-      // Priority Sorting: LIVE (1) -> Upcoming (2) -> Finished (3)
       displayEvents.sort((a, b) => {
         const aStart = new Date(a.start_time).getTime();
         const aEnd = new Date(a.end_time).getTime();
@@ -1827,9 +1747,7 @@
               </span>
               ${statusBadge}
             </div>
-
             <h3 class="text-2xl font-extrabold text-slate-900 leading-snug">${ev.event_title}</h3>
-
             <div class="space-y-2 text-xs text-slate-600 pt-3 border-t border-slate-100 font-medium">
               <p class="flex items-center gap-2 text-slate-700">
                 <span class="p-1 bg-emerald-100 text-emerald-700 rounded-lg">📍</span> 
@@ -1849,11 +1767,7 @@
       }).join('');
     }
 
-    function filterCalendarEvents() {
-      if (calendar) {
-        calendar.refetchEvents();
-      }
-    }
+    function filterCalendarEvents() { if (calendar) { calendar.refetchEvents(); } }
 
     function clearCalendarFilters() {
       document.getElementById('calendar-filter-staff').value = '';
@@ -1861,7 +1775,6 @@
       if (calendar) calendar.refetchEvents();
     }
 
-    // EVENT SUBMIT
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -1889,10 +1802,8 @@
       const remarks = document.getElementById('event-remarks').value;
       const showDisplay = document.getElementById('chk-show-display')?.checked;
 
-      // Facility Requests
       const nHousekeeper = parseInt(document.getElementById('num-housekeeper').value || 0, 10);
       const nTechnician = parseInt(document.getElementById('num-technician').value || 0, 10);
-      const nSecurity = parseInt(document.getElementById('num-security').value || 0, 10);
       const nParking = parseInt(document.getElementById('num-parking').value || 0, 10);
 
       const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
@@ -1903,12 +1814,9 @@
       let reqStaffList = [];
       if (nHousekeeper > 0) reqStaffList.push(`🧹 แม่บ้าน ${nHousekeeper} คน`);
       if (nTechnician > 0) reqStaffList.push(`🛠️ ช่างอาคาร ${nTechnician} คน`);
-      if (nSecurity > 0) reqStaffList.push(`🛡️ รปภ. ${nSecurity} คน`);
       if (nParking > 0) reqStaffList.push(`🚗 ช่องจอดรถ ${nParking} คัน`);
 
-      if (reqStaffList.length > 0) {
-        tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`);
-      }
+      if (reqStaffList.length > 0) { tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`); }
 
       const tagDisplayStr = tagDisplayList.join(', ') || (currentLang==='en'?'No Tagged Team':'ไม่มีทีมงานแท็ก');
 
@@ -1923,7 +1831,6 @@
         return;
       }
 
-      // ==================== STRICT LOCATION & TAGGED STAFF CONFLICT CHECK ====================
       const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
       
       if (!fetchErr && existingEvents) {
@@ -1932,11 +1839,9 @@
 
           const exStartMs = new Date(ev.start_time).getTime();
           const exEndMs = new Date(ev.end_time).getTime();
-
           const isTimeOverlapped = (newStartMs < exEndMs) && (newEndMs > exStartMs);
 
           if (isTimeOverlapped) {
-            // Check 1: Location Conflict
             if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) {
               alert(currentLang==='en' 
                 ? `⚠️ Venue Conflict! Location "${location}" is already booked for event "${ev.event_title}" during this time.`
@@ -1945,7 +1850,6 @@
               return;
             }
 
-            // Check 2: Tagged Staff Conflict
             if (selectedAdmins.length > 0 && ev.organizer) {
               for (const admin of selectedAdmins) {
                 if (ev.organizer.includes(admin.full_name)) {
@@ -1961,11 +1865,9 @@
         }
       }
 
-      // Build User Mentions for Google Chat
       const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
       let chatMentionStr = chatMentionList.join(', ') || '-';
 
-      // Facility Mentions
       const facilityAdmins = allAdmins.filter(a => a.department === 'FACILITY');
       if ((reqStaffList.length > 0 || dept === 'FACILITY') && facilityAdmins.length > 0) {
         const facilityMentions = facilityAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
@@ -1981,9 +1883,7 @@
       });
 
       let detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
-      if (!showDisplay) {
-        detailsPayload += '|HIDE_DISPLAY:true';
-      }
+      if (!showDisplay) { detailsPayload += '|HIDE_DISPLAY:true'; }
 
       const payload = {
         department: dept, 
@@ -2151,13 +2051,31 @@
       if (calendar) calendar.refetchEvents();
     }
 
+    // ==========================================
+    // CORE FETCH FUNCTIONS (With Error Handling)
+    // ==========================================
     async function fetchAllEquipment() {
-      const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
-      if (error) { console.error('Error:', error); return; }
-      allEquipment = data || [];
-      renderEquipmentDropdown();
-      renderInventoryTable(allEquipment);
-      renderEventEquipmentAccordion();
+      const select = document.getElementById('borrow-asset-select');
+      try {
+        select.innerHTML = '<option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>';
+
+        const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
+        
+        if (error) { 
+          console.error('Supabase Error (equipment):', error); 
+          select.innerHTML = `<option value="">❌ ข้อผิดพลาด: ไม่สามารถดึงข้อมูลได้</option>`;
+          return; 
+        }
+        
+        allEquipment = data || [];
+        renderEquipmentDropdown();
+        renderInventoryTable(allEquipment);
+        renderEventEquipmentAccordion();
+
+      } catch (err) {
+        console.error('JS Error (equipment):', err);
+        select.innerHTML = `<option value="">❌ ระบบขัดข้อง: ไม่สามารถเชื่อมต่อฐานข้อมูลได้</option>`;
+      }
     }
 
     function renderEventEquipmentAccordion() {
@@ -2202,11 +2120,9 @@
       
       let filtered = allEquipment.filter(item => {
         if (item.status === 'UNAVAILABLE') return false;
-        
         const totalQty = item.quantity || 1;
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
         const availableQty = totalQty - borrowedCount;
-
         return availableQty > 0 && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH');
       });
 
@@ -2222,7 +2138,6 @@
         opt.textContent = `[${item.asset_label}] ${item.name} (${currentLang==='en'?'Available':'ว่าง'} ${availableQty}/${totalQty}) (${item.department || 'IT'})`;
         select.appendChild(opt);
       });
-      select.onchange = (e) => showEquipmentPreview(e.target.value);
     }
 
     function showEquipmentPreview(id) {
@@ -2269,10 +2184,7 @@
         error = res.error;
       }
 
-      if (error) {
-        alert('Error: ' + error.message);
-        return;
-      }
+      if (error) { alert('Error: ' + error.message); return; }
 
       alert(currentLang==='en'?'✅ Equipment Data Saved!':'✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!');
       resetEquipmentForm();
@@ -2324,23 +2236,15 @@
       calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: currentLang === 'en' ? 'en' : 'th',
-        eventTimeFormat: {
-          hour: '2-digit',
-          minute: '2-digit',
-          meridiem: false,
-          hour12: false
-        },
+        eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-        buttonText: currentLang === 'en' 
-          ? { today: 'Today', month: 'Month', week: 'Week', day: 'Day' } 
-          : { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
+        buttonText: currentLang === 'en' ? { today: 'Today', month: 'Month', week: 'Week', day: 'Day' } : { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
         events: fetchCalendarEvents,
         eventClick: function(info) { openEventDetailModal(info.event); }
       });
       calendar.render();
     }
 
-    // CALENDAR EVENTS FETCH (PURE LOCAL DATE RENDERING - PREVENT TIMEZONE SHIFTS)
     async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
@@ -2455,9 +2359,7 @@
       document.getElementById('print-datetime').textContent = `${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}`;
       document.getElementById('print-remarks').textContent = selectedEventForPrint.remarks || '-';
 
-      // Parse Tagged Members per Department
       const orgStr = selectedEventForPrint.organizer || '';
-      
       const getDeptStaffNames = (deptKey) => {
         if (!orgStr) return [];
         let members = orgStr.split(', ');
@@ -2470,31 +2372,16 @@
 
       document.getElementById('print-staff-it-count').textContent = `${itStaffs.length} คน`;
       document.getElementById('print-staff-it-names').textContent = itStaffs.join(', ') || '-';
-
       document.getElementById('print-staff-av-count').textContent = `${avStaffs.length} คน`;
       document.getElementById('print-staff-av-names').textContent = avStaffs.join(', ') || '-';
-
       document.getElementById('print-staff-media-count').textContent = `${mediaStaffs.length} คน`;
       document.getElementById('print-staff-media-names').textContent = mediaStaffs.join(', ') || '-';
 
-      // Parse Facility & Parking Requests from Organizer String
       let nHousekeeper = 0, nTech = 0, nSec = 0, nPark = 0;
-      if (orgStr.includes('แม่บ้าน')) {
-        let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/);
-        if (m) nHousekeeper = m[1];
-      }
-      if (orgStr.includes('ช่างอาคาร')) {
-        let m = orgStr.match(/ช่างอาคาร\s*(\d+)\s*คน/);
-        if (m) nTech = m[1];
-      }
-      if (orgStr.includes('รปภ.')) {
-        let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/);
-        if (m) nSec = m[1];
-      }
-      if (orgStr.includes('ช่องจอดรถ')) {
-        let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/);
-        if (m) nPark = m[1];
-      }
+      if (orgStr.includes('แม่บ้าน')) { let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/); if (m) nHousekeeper = m[1]; }
+      if (orgStr.includes('ช่างอาคาร')) { let m = orgStr.match(/ช่างอาคาร\s*(\d+)\s*คน/); if (m) nTech = m[1]; }
+      if (orgStr.includes('รปภ.')) { let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/); if (m) nSec = m[1]; }
+      if (orgStr.includes('ช่องจอดรถ')) { let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/); if (m) nPark = m[1]; }
 
       const facStaffs = getDeptStaffNames('FACILITY');
       document.getElementById('print-staff-facility-count').textContent = `${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}`;
@@ -2550,19 +2437,12 @@
       const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
       const availableQty = totalQty - borrowedCount;
 
-      if (availableQty <= 0) {
-        alert(currentLang==='en'?'❌ Equipment is fully borrowed':'❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว');
-        return;
-      }
+      if (availableQty <= 0) { alert(currentLang==='en'?'❌ Equipment is fully borrowed':'❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว'); return; }
 
       const displayReturnDate = (borrowType === 'LONG_TERM') ? 'Long-term (No Due Date)' : returnDate;
 
       await _supabase.from('borrow_records').insert([{ 
-        equipment_id: equipmentId, 
-        borrow_type: borrowType,
-        borrower_name: `${borrowerName} (${dept || 'N/A'})`, 
-        expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, 
-        note: note 
+        equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note 
       }]);
 
       const notifHeader = (borrowType === 'LONG_TERM') ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`;
@@ -2587,69 +2467,75 @@
     }
 
     async function loadActiveBorrows() {
-      const statusFilter = document.getElementById('filter-borrow-status').value;
-      const startDate = document.getElementById('filter-start-date').value;
-      const endDate = document.getElementById('filter-end-date').value;
-
-      let query = _supabase.from('borrow_records').select('*, equipment(*)').order('borrow_date', { ascending: false });
-
-      if (statusFilter === 'SHORT_TERM_BORROWED') {
-        query = query.eq('status', 'BORROWED').eq('borrow_type', 'SHORT_TERM');
-      } else if (statusFilter === 'LONG_TERM_BORROWED') {
-        query = query.eq('status', 'BORROWED').eq('borrow_type', 'LONG_TERM');
-      } else if (statusFilter === 'RETURNED') {
-        query = query.eq('status', 'RETURNED');
-      }
-
-      if (startDate) query = query.gte('borrow_date', `${startDate}T00:00:00`);
-      if (endDate) query = query.lte('borrow_date', `${endDate}T23:59:59`);
-
-      const { data } = await query;
-      activeBorrowRecords = data || [];
-
       const tbody = document.getElementById('table-active-borrows');
-      if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">${currentLang==='en'?'No Records Found':'ไม่พบรายการยืม-คืนตามเงื่อนไขที่ค้นหา'}</td></tr>`;
-        return;
-      }
+      try {
+        const statusFilter = document.getElementById('filter-borrow-status').value;
+        const startDate = document.getElementById('filter-start-date').value;
+        const endDate = document.getElementById('filter-end-date').value;
 
-      tbody.innerHTML = activeBorrowRecords.map(record => {
-        const isLongTerm = (record.borrow_type === 'LONG_TERM');
-        const isReturned = (record.status === 'RETURNED');
+        let query = _supabase.from('borrow_records').select('*, equipment(*)').order('borrow_date', { ascending: false });
 
-        const typeBadge = isLongTerm 
-          ? `<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ${currentLang==='en'?'Long-term':'ส่งมอบระยะยาว'}</span>` 
-          : `<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ${currentLang==='en'?'Daily':'ยืมรายวัน'}</span>`;
-        
-        const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">${currentLang==='en'?'No Due Date':'ไม่มีกำหนดคืน'}</span>` : new Date(record.expected_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH');
+        if (statusFilter === 'SHORT_TERM_BORROWED') { query = query.eq('status', 'BORROWED').eq('borrow_type', 'SHORT_TERM'); } 
+        else if (statusFilter === 'LONG_TERM_BORROWED') { query = query.eq('status', 'BORROWED').eq('borrow_type', 'LONG_TERM'); } 
+        else if (statusFilter === 'RETURNED') { query = query.eq('status', 'RETURNED'); }
 
-        let returnStatusCell = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ${currentLang==='en'?'Occupied':'ครอบครองอยู่'}</span>`;
-        if (isReturned) {
-          const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ${currentLang==='en'?'Minor Damage':'ชำรุดเล็กน้อย'})` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ${currentLang==='en'?'Damaged/Lost':'ชำรุดหนัก/สูญหาย'})` : ` (🟢 ${currentLang==='en'?'Good':'ปกติ'})`;
-          returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 ${currentLang==='en'?'Returned':'คืนแล้ว'} ${new Date(record.actual_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}${conditionText}</span>`;
+        if (startDate) query = query.gte('borrow_date', `${startDate}T00:00:00`);
+        if (endDate) query = query.lte('borrow_date', `${endDate}T23:59:59`);
+
+        const { data, error } = await query;
+        if (error) {
+          console.error("Supabase Error (borrow_records):", error);
+          tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ข้อผิดพลาด: ตรวจสอบการตั้งค่าฐานข้อมูล (ตาราง borrow_records)</td></tr>`;
+          return;
         }
 
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
-            <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
-            <td class="p-3">${typeBadge}</td>
-            <td class="p-3">${record.borrower_name}</td>
-            <td class="p-3">${new Date(record.borrow_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}</td>
-            <td class="p-3 text-amber-600 font-medium">${returnDisplay}</td>
-            <td class="p-3">${returnStatusCell}</td>
-            <td class="p-3 text-center">
-              ${!isReturned
-                ? (currentAdmin 
-                    ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ${currentLang==='en'?'Return Inspection':'ตรวจรับคืนโดย Admin'}</button>`
-                    : `<span class="text-xs text-slate-400 italic">🔒 ${currentLang==='en'?'Admin Only':'เฉพาะ Admin'}</span>`
-                  )
-                : `<span class="text-xs text-slate-400">${currentLang==='en'?'Completed':'ทำรายการแล้ว'}</span>`
-              }
-            </td>
-          </tr>
-        `;
-      }).join('');
+        activeBorrowRecords = data || [];
+
+        if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">${currentLang==='en'?'No Records Found':'ไม่พบรายการยืม-คืนตามเงื่อนไขที่ค้นหา'}</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = activeBorrowRecords.map(record => {
+          const isLongTerm = (record.borrow_type === 'LONG_TERM');
+          const isReturned = (record.status === 'RETURNED');
+
+          const typeBadge = isLongTerm 
+            ? `<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ${currentLang==='en'?'Long-term':'ส่งมอบระยะยาว'}</span>` 
+            : `<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ${currentLang==='en'?'Daily':'ยืมรายวัน'}</span>`;
+          
+          const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">${currentLang==='en'?'No Due Date':'ไม่มีกำหนดคืน'}</span>` : new Date(record.expected_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH');
+
+          let returnStatusCell = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ${currentLang==='en'?'Occupied':'ครอบครองอยู่'}</span>`;
+          if (isReturned) {
+            const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ${currentLang==='en'?'Minor Damage':'ชำรุดเล็กน้อย'})` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ${currentLang==='en'?'Damaged/Lost':'ชำรุดหนัก/สูญหาย'})` : ` (🟢 ${currentLang==='en'?'Good':'ปกติ'})`;
+            returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 ${currentLang==='en'?'Returned':'คืนแล้ว'} ${new Date(record.actual_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}${conditionText}</span>`;
+          }
+
+          return `
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
+              <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
+              <td class="p-3">${typeBadge}</td>
+              <td class="p-3">${record.borrower_name}</td>
+              <td class="p-3">${new Date(record.borrow_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}</td>
+              <td class="p-3 text-amber-600 font-medium">${returnDisplay}</td>
+              <td class="p-3">${returnStatusCell}</td>
+              <td class="p-3 text-center">
+                ${!isReturned
+                  ? (currentAdmin 
+                      ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ${currentLang==='en'?'Return Inspection':'ตรวจรับคืนโดย Admin'}</button>`
+                      : `<span class="text-xs text-slate-400 italic">🔒 ${currentLang==='en'?'Admin Only':'เฉพาะ Admin'}</span>`
+                    )
+                  : `<span class="text-xs text-slate-400">${currentLang==='en'?'Completed':'ทำรายการแล้ว'}</span>`
+                }
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ระบบทำงานผิดพลาดในการดึงข้อมูลยืมคืน</td></tr>`;
+      }
     }
 
     function clearBorrowFilters() {
@@ -2660,10 +2546,7 @@
     }
 
     function exportBorrowToExcel() {
-      if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        alert(currentLang==='en'?'❌ No records to export':'❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel');
-        return;
-      }
+      if (!activeBorrowRecords || activeBorrowRecords.length === 0) { alert(currentLang==='en'?'❌ No records to export':'❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel'); return; }
 
       const exportData = activeBorrowRecords.map(item => ({
         'Asset Label': item.equipment?.asset_label || '-',
@@ -2682,9 +2565,7 @@
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Borrow_Records");
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(workbook, `Denla_Borrow_Report_${todayStr}.xlsx`);
+      XLSX.writeFile(workbook, `Denla_Borrow_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
 
     async function exportEventsToExcel() {
@@ -2692,15 +2573,11 @@
       const endDate = document.getElementById('excel-event-end').value;
 
       let query = _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
-
       if (startDate) query = query.gte('start_time', `${startDate}T00:00:00`);
       if (endDate) query = query.lte('start_time', `${endDate}T23:59:59`);
 
       const { data, error } = await query;
-      if (error || !data || data.length === 0) {
-        alert(currentLang==='en'?'❌ No events found for export':'❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel');
-        return;
-      }
+      if (error || !data || data.length === 0) { alert(currentLang==='en'?'❌ No events found for export':'❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel'); return; }
 
       const exportData = data.map(ev => {
         let eqListNames = [];
@@ -2711,7 +2588,6 @@
             if (item) eqListNames.push(`[${item.asset_label}] ${item.name}`);
           });
         }
-
         return {
           'Queue ID': ev.id,
           'Department': ev.department || 'ALL',
@@ -2729,50 +2605,39 @@
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Event_Queue");
-
-      const rangeLabel = (startDate && endDate) ? `${startDate}_to_${endDate}` : 'All_Events';
-      XLSX.writeFile(workbook, `Denla_Events_Report_${rangeLabel}.xlsx`);
+      XLSX.writeFile(workbook, `Denla_Events_Report_${startDate&&endDate ? startDate+'_to_'+endDate : 'All'}.xlsx`);
     }
 
     function exportInventoryToExcel() {
-      if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) {
-        alert(currentLang==='en'?'❌ No inventory data to export':'❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel');
-        return;
-      }
+      if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) { alert(currentLang==='en'?'❌ No inventory data to export':'❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel'); return; }
 
       const exportData = currentFilteredEquipment.map(item => {
         const totalQty = item.quantity || 1;
         const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
         const availableQty = (item.status === 'UNAVAILABLE') ? 0 : (totalQty - borrowedCount);
 
-        const usageText = (item.usage_type === 'EVENT') ? 'Event Queue Only' : (item.usage_type === 'BORROW') ? 'Daily Borrow Only' : 'Both Event & Borrow';
-        const statusText = (item.status === 'UNAVAILABLE') ? 'Unavailable / Under Repair' : (availableQty <= 0) ? 'Out of Stock' : 'Available';
-
         return {
           'Asset Label': item.asset_label || '-',
           'Equipment Name': item.name || '-',
           'Department': item.department || 'IT',
-          'Usage Category': usageText,
+          'Usage Category': (item.usage_type === 'EVENT') ? 'Event Queue Only' : (item.usage_type === 'BORROW') ? 'Daily Borrow Only' : 'Both Event & Borrow',
           'Total Quantity': totalQty,
           'Available Quantity': availableQty,
           'Brand/Model': (item.brand && item.brand !== 'undefined') ? item.brand : '-',
           'Serial Number': item.serial_number || '-',
           'Storage Location': item.location || '-',
-          'Stock Status': statusText
+          'Stock Status': (item.status === 'UNAVAILABLE') ? 'Unavailable / Under Repair' : (availableQty <= 0) ? 'Out of Stock' : 'Available'
         };
       });
 
       const worksheet = XLSX.utils.json_to_sheet(exportData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Equipment_Inventory");
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(workbook, `Denla_Equipment_Inventory_${todayStr}.xlsx`);
+      XLSX.writeFile(workbook, `Denla_Equipment_Inventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
 
     function openReturnInspectionModal(recordId) {
       if (!currentAdmin) { alert('🔒 Admin Only'); return; }
-      
       const record = activeBorrowRecords.find(r => r.id === recordId);
       if (!record) return;
 
@@ -2780,29 +2645,22 @@
       document.getElementById('inspect-equipment-name').textContent = `[${record.equipment?.asset_label}] ${record.equipment?.name}`;
       document.getElementById('inspect-condition').value = 'GOOD';
       document.getElementById('inspect-remark').value = '';
-      
       document.getElementById('modal-return-inspect').classList.remove('hidden');
     }
 
     async function confirmReturnWithInspection() {
       if (!pendingReturnRecord) return;
-
       const condition = document.getElementById('inspect-condition').value;
       const remark = document.getElementById('inspect-remark').value;
 
       await _supabase.from('borrow_records').update({ 
-        status: 'RETURNED', 
-        actual_return_date: new Date().toISOString(),
-        return_condition: condition,
-        return_remark: remark
+        status: 'RETURNED', actual_return_date: new Date().toISOString(), return_condition: condition, return_remark: remark
       }).eq('id', pendingReturnRecord.id);
 
       if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') {
         await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', pendingReturnRecord.equipment_id);
         alert(currentLang==='en'?'⚠️ Returned! Equipment status set to UNAVAILABLE':'⚠️ รับคืนเรียบร้อย! อุปกรณ์นี้ถูกปรับสถานะเป็น "🔴 ไม่พร้อมใช้งาน/ส่งซ่อม" อัตโนมัติ');
-      } else {
-        alert(currentLang==='en'?'✅ Equipment Returned Successfully!':'✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
-      }
+      } else { alert(currentLang==='en'?'✅ Equipment Returned Successfully!':'✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว'); }
 
       closeModals();
       pendingReturnRecord = null;
@@ -2823,14 +2681,9 @@
         const brandDisplay = (item.brand && item.brand !== 'undefined') ? item.brand : '';
         
         let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Available':'พร้อมใช้งาน'} (${availableQty}/${totalQty})</span>`;
-        
-        if (item.status === 'UNAVAILABLE') {
-          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ${currentLang==='en'?'Unavailable':'ไม่พร้อมใช้งาน/ส่งซ่อม'}</span>`;
-        } else if (availableQty <= 0) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ${currentLang==='en'?'Out of Stock':'ถูกยืมหมดแล้ว'} (0/${totalQty})</span>`;
-        } else if (availableQty < totalQty) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Remaining':'คงเหลือ'} ${availableQty}/${totalQty}</span>`;
-        }
+        if (item.status === 'UNAVAILABLE') { stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ${currentLang==='en'?'Unavailable':'ไม่พร้อมใช้งาน/ส่งซ่อม'}</span>`; } 
+        else if (availableQty <= 0) { stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ${currentLang==='en'?'Out of Stock':'ถูกยืมหมดแล้ว'} (0/${totalQty})</span>`; } 
+        else if (availableQty < totalQty) { stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Remaining':'คงเหลือ'} ${availableQty}/${totalQty}</span>`; }
 
         return `
           <tr class="hover:bg-slate-50 transition">
