@@ -23,7 +23,6 @@
       display: none !important;
     }
 
-    /* Print styling to force exactly 1 page and remove default headers/footers */
     @media print {
       @page {
         size: A4 portrait;
@@ -423,7 +422,7 @@
 
     <!-- ==================== TAB: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) ==================== -->
     <section id="sec-display" class="space-y-6 hidden">
-      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6">
+      <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-200 space-y-6">
         
         <!-- Header Bar -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 text-white p-6 rounded-2xl shadow-lg gap-4">
@@ -903,7 +902,16 @@
   <script>
     const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
-    const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
+    
+    // WEBHOOK URLS DISPATCHER
+    const WEBHOOK_URLS = {
+      FACILITY: 'https://chat.googleapis.com/v1/spaces/AAQAwleRG_U/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=vIUs3kfzRlu54IQdvpZJL5K40uhHJ6b6vEHA5lx-h90',
+      IT: 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M',
+      AV: 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M',
+      MEDIA: 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M',
+      DEFAULT: 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M'
+    };
+
     const MASTER_KEY = 'DENLA2026';
     const SESSION_DURATION_MINUTES = 60;
 
@@ -1728,7 +1736,7 @@
       }).join('');
     }
 
-    // RENDER DISPLAY BOARD (Modern Light Theme + Today Only + Smart Sorting)
+    // RENDER DISPLAY BOARD (Clean Light Theme + Today Only + Smart Sorting)
     async function renderDisplayBoardCards() {
       const container = document.getElementById('display-board-cards');
       const dateDisplay = document.getElementById('display-board-today-date');
@@ -1861,7 +1869,7 @@
       if (calendar) calendar.refetchEvents();
     }
 
-    // EVENT SUBMIT
+    // EVENT SUBMIT WITH WEBHOOK DISPATCHER PER DEPARTMENT
     async function handleEventSubmit(e) {
       e.preventDefault();
       const rawEventId = document.getElementById('event-id').value;
@@ -2010,7 +2018,9 @@
 
       if (error) { alert('Error: ' + error.message); return; }
 
+      // Send Chat Notification to Specific Department Webhook Room
       sendGoogleChatNotification({
+        department: dept,
         title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`,
         details: [
           `<b>ชื่อกิจกรรม:</b> ${title}`,
@@ -2137,6 +2147,7 @@
       if (error) { alert('Error: ' + error.message); return; }
 
       sendGoogleChatNotification({
+        department: selectedEventForPrint.dept,
         title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`,
         details: [
           `<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`,
@@ -2860,19 +2871,29 @@
       renderInventoryTable(filtered);
     }
 
-    async function sendGoogleChatNotification({ title, details }) {
-      if (!GOOGLE_CHAT_WEBHOOK_URL) return;
+    async function sendGoogleChatNotification({ department, title, details }) {
+      const webhookUrl = WEBHOOK_URLS[department] || WEBHOOK_URLS.DEFAULT;
+      if (!webhookUrl) return;
+
       const payload = {
         cardsV2: [{
           cardId: 'notificationCard',
           card: {
-            header: { title: title, subtitle: 'ระบบแจ้งเตือน IT, AV, Media & Facility เด่นหล้า' },
+            header: { title: title, subtitle: `ระบบแจ้งเตือนแผนก ${department || 'เด่นหล้า'}` },
             sections: [{ widgets: [{ textParagraph: { text: details.join('<br>') } }] }]
           }
         }]
       };
-      try { await fetch(GOOGLE_CHAT_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); }
-      catch (err) { console.error('Chat err:', err); }
+
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.error('Google Chat Notification Error:', err);
+      }
     }
 
     function toggleScanner() {
