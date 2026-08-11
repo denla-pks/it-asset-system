@@ -9,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-  <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -52,11 +51,9 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
 
-  <!-- Header Navigation Bar -->
   <header class="bg-indigo-700 text-white shadow-xl sticky top-0 z-40 border-b border-indigo-800/60">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row justify-between items-center gap-3">
       
-      <!-- Brand & Title -->
       <div class="flex items-center space-x-3">
         <div class="bg-white p-1.5 rounded-2xl shadow-inner flex items-center justify-center border border-indigo-200/30">
           <img src="logo.png" alt="Denla Logo" class="h-9 w-9 object-contain">
@@ -67,7 +64,6 @@
         </div>
       </div>
       
-      <!-- Nav Tabs & Admin Control -->
       <div class="flex flex-wrap items-center gap-2">
         <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-2xl border border-indigo-600/50 backdrop-blur">
           <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-white text-indigo-700 shadow">📱 <span data-i18n="navBorrow">ยืม-คืน & เบิกส่งมอบ</span></button>
@@ -77,7 +73,6 @@
           <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-xl text-xs font-bold transition text-amber-300 hover:bg-amber-400/20 border border-amber-400/30">🖥️ <span data-i18n="navInventory">คลังอุปกรณ์ (Admin)</span></button>
         </nav>
 
-        <!-- Language Selector -->
         <div class="flex items-center bg-indigo-900/80 rounded-2xl p-0.5 border border-indigo-500/50">
           <button onclick="changeLanguage('th')" id="lang-th" class="px-2 py-1 rounded-xl text-xs font-bold transition bg-white text-indigo-950 shadow">TH</button>
           <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-xl text-xs font-bold transition text-indigo-200 hover:text-white">EN</button>
@@ -99,7 +94,6 @@
       <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800" data-i18n="btnLogout">ออกจากระบบ Admin</button>
     </div>
 
-    <!-- ==================== TAB 1: ยืม-คืนอุปกรณ์ & เบิกส่งมอบระยะยาว ==================== -->
     <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -168,7 +162,6 @@
         </div>
       </div>
 
-      <!-- BORROW RECORDS TABLE WITH FILTER SEARCH -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -226,7 +219,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: คิวงาน/กิจกรรม ==================== -->
     <section id="sec-event" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
@@ -260,16 +252,13 @@
               <input type="text" id="event-main-host" required placeholder="เช่น อ.วิชัย (ฝ่ายโสตฯ) / ครูสมชาย" class="w-full p-2 border border-indigo-200 rounded-lg text-sm outline-none bg-white">
             </div>
 
-            <!-- DYNAMIC LOCATION DROPDOWN & CUSTOM INPUT -->
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">📍 สถานที่จัดงาน *</label>
               <select id="event-location-select" onchange="toggleCustomLocationInput()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-medium mb-1.5">
-                <!-- Dynamically populated from Location Management -->
-              </select>
+                </select>
               <input type="text" id="event-location-custom" placeholder="กรุณาระบุสถานที่..." class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none hidden">
             </div>
 
-            <!-- DISPLAY BOARD TOGGLE OPTION -->
             <div class="p-2.5 bg-indigo-50/80 rounded-xl border border-indigo-200">
               <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-indigo-900">
                 <input type="checkbox" id="chk-show-display" checked class="rounded text-indigo-600 focus:ring-0">
@@ -277,7 +266,6 @@
               </label>
             </div>
 
-            <!-- SEPARATE DATE & TIME SELECTORS -->
             <div class="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <p class="text-xs font-bold text-indigo-900 border-b border-slate-200 pb-1" data-i18n="lblDateTimeTitle">⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):</p>
               
@@ -308,7 +296,6 @@
               </div>
             </div>
 
-            <!-- FACILITY STAFF & PARKING REQUEST BOX -->
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่ (ระบุจำนวน):</label>
               
@@ -338,7 +325,6 @@
                 </div>
               </div>
 
-              <!-- Tag Admin Checklist -->
               <div class="pt-2 border-t border-amber-200 space-y-1">
                 <label class="block text-xs font-bold text-amber-900" data-i18n="lblTagTeam">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
                 <div class="flex flex-wrap gap-1 text-[11px]">
@@ -384,7 +370,6 @@
             </div>
           </div>
 
-          <!-- CALENDAR FILTER BAR: STAFF SEARCH & DEPT SELECTOR -->
           <div class="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-2 text-xs">
             <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
               <div class="flex flex-1 gap-2 w-full">
@@ -424,11 +409,9 @@
       </div>
     </section>
 
-    <!-- ==================== TAB: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD EXACTLY MATCHING IMAGE) ==================== -->
     <section id="sec-display" class="space-y-6 hidden">
       <div class="bg-slate-100 text-slate-800 p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-200 space-y-6">
         
-        <!-- Header Bar Matching Image Layout -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gradient-to-r from-indigo-950 via-indigo-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl gap-4 border border-indigo-800/50">
           <div class="flex items-center gap-4">
             <div class="bg-indigo-800/40 p-3.5 rounded-2xl border border-indigo-500/30 backdrop-blur shadow-inner">
@@ -451,7 +434,6 @@
           </div>
         </div>
 
-        <!-- Status Bar Matching Image -->
         <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-xs">
           <div class="flex items-center gap-2 font-extrabold text-slate-800">
             <span>👥 กิจกรรมวันนี้</span>
@@ -466,12 +448,10 @@
           </div>
         </div>
 
-        <!-- Horizontal Cards List Matching Image Layout -->
         <div id="display-board-cards" class="space-y-3">
           <p class="text-slate-400 text-center py-12">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
         </div>
 
-        <!-- Footer Notice Bar -->
         <div class="bg-indigo-950 text-indigo-200 text-xs p-3.5 px-6 rounded-2xl flex items-center justify-between shadow-inner">
           <span class="flex items-center gap-2 font-medium">🔄 ข้อมูลกิจกรรมอัปเดตอัตโนมัติ</span>
           <span id="display-board-last-update" class="text-indigo-400 font-mono">อัปเดตล่าสุด --:-- น.</span>
@@ -480,7 +460,6 @@
       </div>
     </section>
 
-    <!-- ==================== TAB: สรุปภาระงานทีมงาน (STAFF WORKLOAD SUMMARY) ==================== -->
     <section id="sec-staff-summary" class="space-y-6 hidden admin-col">
       <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-800 space-y-4">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
@@ -536,10 +515,8 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 3: คลังอุปกรณ์ & จัดการสถานที่ (Admin Zone) ==================== -->
     <section id="sec-inventory" class="space-y-6 hidden admin-col">
       
-      <!-- ADMIN LOCATION MANAGEMENT ZONE -->
       <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏢 [Admin Zone] จัดการสถานที่จัดงาน (Location Management)</h2>
         <div class="flex flex-col sm:flex-row gap-2">
@@ -547,11 +524,9 @@
           <button onclick="addNewLocation()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-5 py-2.5 rounded-xl text-sm shadow transition">+ เพิ่มสถานที่จัดงาน</button>
         </div>
         <div id="admin-location-tags" class="flex flex-wrap gap-1.5 pt-2">
-          <!-- Dynamically populated location tags with delete button -->
-        </div>
+          </div>
       </div>
 
-      <!-- ADMIN EQUIPMENT FORM -->
       <div id="admin-equipment-form" class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ <span data-i18n="inventoryAddTitle">[Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</span></h2>
@@ -649,7 +624,6 @@
 
   </main>
 
-  <!-- MODAL: RETURN INSPECTION MODAL -->
   <div id="modal-return-inspect" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 <span data-i18n="inspectTitle">ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</span></h3>
@@ -680,7 +654,6 @@
     </div>
   </div>
 
-  <!-- MODAL: EVENT DETAILS -->
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3">
@@ -722,10 +695,8 @@
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE EXACTLY MATCHING IMAGE -->
   <div id="printable-area" class="hidden p-8 font-sans max-w-4xl mx-auto bg-white text-slate-900">
     
-    <!-- Top Header -->
     <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
       <div class="flex items-center gap-4">
         <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain">
@@ -751,13 +722,11 @@
       </div>
     </div>
 
-    <!-- Title Banner -->
     <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
       <h2 class="text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
       <p class="text-base font-extrabold text-indigo-800">งานกิจกรรม: <span id="print-title" class="underline decoration-indigo-300 decoration-2">-</span></p>
     </div>
 
-    <!-- Event Info Grid -->
     <div class="grid grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
       <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept" class="font-bold text-indigo-900">-</span></p>
       <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900">-</span></p>
@@ -766,7 +735,6 @@
       <p class="col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks" class="text-slate-700">-</span></p>
     </div>
 
-    <!-- SECTION 1: STAFF & SUPPORT TABLE -->
     <div class="mb-4">
       <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">
         <span>1. ทีมงานและการสนับสนุนกิจกรรม</span>
@@ -809,7 +777,6 @@
       </table>
     </div>
 
-    <!-- SECTION 2: EQUIPMENT CHECKLIST TABLE -->
     <div class="mb-4">
       <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">
         2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน
@@ -829,7 +796,6 @@
       </table>
     </div>
 
-    <!-- SECTION 3: CHECKLIST & SIGNATURES -->
     <div class="mb-6 space-y-3">
       <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">
         3. สถานะการจัดเตรียมและตรวจสอบ
@@ -841,7 +807,6 @@
         <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
       </div>
 
-      <!-- Signatures Box -->
       <div class="grid grid-cols-3 gap-4 text-center text-xs pt-6 border-t border-slate-300 mt-6">
         <div class="space-y-8">
           <p>ลงชื่อ ...........................................................</p>
@@ -863,7 +828,6 @@
 
   </div>
 
-  <!-- MODALS LOGIN/REGISTER -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
       <h3 class="text-lg font-bold text-slate-800">🔐 <span data-i18n="modalLoginTitle">เข้าสู่ระบบ Admin</span></h3>
@@ -902,7 +866,6 @@
     </div>
   </div>
 
-  <!-- JavaScript Core -->
   <script>
     const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
@@ -1585,7 +1548,7 @@
 
     function clearAllTags() {
       document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => cb.checked = false);
-      ['num-housekeeper', 'num-technician', 'num-security', 'num-parking'].forEach(id => {
+      ['num-housekeeper', 'num-technician', 'num-parking'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = 0;
       });
@@ -1843,7 +1806,6 @@
         return `
           <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-8 ${deptBorderColors[ev.department] || 'border-l-indigo-600'} p-4 md:p-5 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${isFinished ? 'opacity-65 grayscale-[15%]' : ''}">
             
-            <!-- Left Group: Number & Time -->
             <div class="flex items-center gap-4 min-w-[220px]">
               <span class="w-8 h-8 rounded-full ${deptNumBgColors[ev.department] || 'bg-indigo-600'} text-white font-extrabold text-xs flex items-center justify-center shadow">
                 ${seqNo}
@@ -1853,7 +1815,6 @@
               </div>
             </div>
 
-            <!-- Middle Group: Dept Badge & Title -->
             <div class="flex-1 space-y-1">
               <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${deptBadgeColors[ev.department] || 'bg-indigo-600 text-white'}">
                 ${ev.department || 'ALL'}
@@ -1861,7 +1822,6 @@
               <h3 class="text-lg md:text-xl font-bold text-slate-900 leading-snug">${ev.event_title}</h3>
             </div>
 
-            <!-- Right Info: Location & Host -->
             <div class="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start md:items-end lg:items-center gap-3 text-xs font-semibold text-slate-600 border-t md:border-t-0 md:border-l border-slate-100 pt-2 md:pt-0 md:pl-4 min-w-[240px]">
               <div class="space-y-1 flex-1">
                 <p class="flex items-center gap-1.5 text-slate-700">
@@ -1872,7 +1832,6 @@
                 </p>
               </div>
 
-              <!-- Status Capsule -->
               <div class="self-start md:self-end">
                 ${statusBadge}
               </div>
@@ -1895,1024 +1854,5 @@
       if (calendar) calendar.refetchEvents();
     }
 
-    // EVENT SUBMIT WITH WEBHOOK DISPATCHER PER DEPARTMENT
-    async function handleEventSubmit(e) {
-      e.preventDefault();
-      const rawEventId = document.getElementById('event-id').value;
-      const dept = document.getElementById('event-dept-select').value;
-      const title = document.getElementById('event-title').value;
-      const mainHost = document.getElementById('event-main-host').value;
-      
-      const locationSel = document.getElementById('event-location-select').value;
-      const locationCustom = document.getElementById('event-location-custom').value;
-      const location = (locationSel === 'CUSTOM') ? locationCustom : locationSel;
-      
-      const startYear = document.getElementById('start-year').value;
-      const startMonth = document.getElementById('start-month').value;
-      const startDay = document.getElementById('start-day').value;
-      const startTime = document.getElementById('event-start-time').value;
-
-      const endYear = document.getElementById('end-year').value;
-      const endMonth = document.getElementById('end-month').value;
-      const endDay = document.getElementById('end-day').value;
-      const endTime = document.getElementById('event-end-time').value;
-
-      const startDateStr = `${startYear}-${startMonth}-${startDay}`;
-      const endDateStr = `${endYear}-${endMonth}-${endDay}`;
-      
-      const remarks = document.getElementById('event-remarks').value;
-      const showDisplay = document.getElementById('chk-show-display')?.checked;
-
-      // Facility Requests
-      const nHousekeeper = parseInt(document.getElementById('num-housekeeper').value || 0, 10);
-      const nTechnician = parseInt(document.getElementById('num-technician').value || 0, 10);
-      const nSecurity = parseInt(document.getElementById('num-security').value || 0, 10);
-      const nParking = parseInt(document.getElementById('num-parking').value || 0, 10);
-
-      const checkedTags = document.querySelectorAll('input[name="tag-admin-item"]:checked');
-      const selectedAdmins = Array.from(checkedTags).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
-
-      let tagDisplayList = selectedAdmins.map(a => `${a.full_name} (${a.nickname || '-'}) [${a.department}]`);
-      
-      let reqStaffList = [];
-      if (nHousekeeper > 0) reqStaffList.push(`🧹 แม่บ้าน ${nHousekeeper} คน`);
-      if (nTechnician > 0) reqStaffList.push(`🛠️ ช่างอาคาร ${nTechnician} คน`);
-      if (nSecurity > 0) reqStaffList.push(`🛡️ รปภ. ${nSecurity} คน`);
-      if (nParking > 0) reqStaffList.push(`🚗 ช่องจอดรถ ${nParking} คัน`);
-
-      if (reqStaffList.length > 0) {
-        tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`);
-      }
-
-      const tagDisplayStr = tagDisplayList.join(', ') || (currentLang==='en'?'No Tagged Team':'ไม่มีทีมงานแท็ก');
-
-      const isoStart = formatLocalToISO(startDateStr, startTime);
-      const isoEnd = formatLocalToISO(endDateStr, endTime);
-
-      const newStartMs = new Date(isoStart).getTime();
-      const newEndMs = new Date(isoEnd).getTime();
-
-      if (newEndMs <= newStartMs) {
-        alert(currentLang==='en'?'⚠️ End time must be later than start time!':'⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!');
-        return;
-      }
-
-      // ==================== STRICT LOCATION & TAGGED STAFF CONFLICT CHECK ====================
-      const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
-      
-      if (!fetchErr && existingEvents) {
-        for (const ev of existingEvents) {
-          if (rawEventId && parseInt(rawEventId, 10) === ev.id) continue;
-
-          const exStartMs = new Date(ev.start_time).getTime();
-          const exEndMs = new Date(ev.end_time).getTime();
-
-          const isTimeOverlapped = (newStartMs < exEndMs) && (newEndMs > exStartMs);
-
-          if (isTimeOverlapped) {
-            // Check 1: Location Conflict
-            if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) {
-              alert(currentLang==='en' 
-                ? `⚠️ Venue Conflict! Location "${location}" is already booked for event "${ev.event_title}" during this time.`
-                : `⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`
-              );
-              return;
-            }
-
-            // Check 2: Tagged Staff Conflict
-            if (selectedAdmins.length > 0 && ev.organizer) {
-              for (const admin of selectedAdmins) {
-                if (ev.organizer.includes(admin.full_name)) {
-                  alert(currentLang==='en' 
-                    ? `⚠️ Staff Conflict! Staff ${admin.full_name} (${admin.nickname || '-'}) is already tagged in "${ev.event_title}" during this time.`
-                    : `⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากทีมงาน ${admin.full_name} (${admin.nickname || '-'}) ถูกแท็กในงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`
-                  );
-                  return;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // Build User Mentions for Google Chat
-      const chatMentionList = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
-      let chatMentionStr = chatMentionList.join(', ') || '-';
-
-      // Facility Mentions
-      const facilityAdmins = allAdmins.filter(a => a.department === 'FACILITY');
-      if ((reqStaffList.length > 0 || dept === 'FACILITY') && facilityAdmins.length > 0) {
-        const facilityMentions = facilityAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`);
-        const staffReqMsg = reqStaffList.length > 0 ? ` (ขอสนับสนุน: ${reqStaffList.join(', ')})` : '';
-        chatMentionStr += `<br>🏢 <font color="#d97706"><b>[เรียนฝ่ายอาคารสถานที่]:</b> ${facilityMentions.join(', ')}${staffReqMsg}</font>`;
-      }
-
-      const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked');
-      const selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value);
-      const selectedEqNames = Array.from(checkedBoxes).map(cb => {
-        const item = allEquipment.find(i => i.id == cb.value);
-        return item ? `[${item.asset_label}] ${item.name}` : '';
-      });
-
-      let detailsPayload = `EQ_IDS:${selectedEqIds.join(',')}`;
-      if (!showDisplay) {
-        detailsPayload += '|HIDE_DISPLAY:true';
-      }
-
-      const payload = {
-        department: dept, 
-        event_title: title, 
-        main_host: mainHost,
-        location: location, 
-        start_time: isoStart, 
-        end_time: isoEnd, 
-        event_date: startDateStr, 
-        organizer: tagDisplayStr, 
-        details: detailsPayload,
-        remarks: remarks
-      };
-
-      let error = null;
-      if (rawEventId && rawEventId !== '') {
-        const evId = parseInt(rawEventId, 10);
-        const res = await _supabase.from('event_queue').update(payload).eq('id', evId);
-        error = res.error;
-      } else {
-        const res = await _supabase.from('event_queue').insert([payload]);
-        error = res.error;
-      }
-
-      if (error) { alert('Error: ' + error.message); return; }
-
-      // Send Chat Notification to Specific Department Webhook Room
-      sendGoogleChatNotification({
-        department: dept,
-        title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`,
-        details: [
-          `<b>ชื่อกิจกรรม:</b> ${title}`,
-          `<b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> ${mainHost}`,
-          `<b>📍 สถานที่จัดงาน:</b> <font color="#0284c7"><b>${location}</b></font>`,
-          `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`,
-          `<b>เวลาเสร็จงาน:</b> ${formatThaiDateTime(isoEnd)}`,
-          `<b>🏷️ ทีมงานรับผิดชอบปฏิบัติงาน:</b><br>${chatMentionStr}`,
-          `<b>📝 หมายเหตุ:</b> ${remarks || '-'}`,
-          `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
-        ]
-      });
-
-      alert(rawEventId ? (currentLang==='en'?'✅ Event Queue Updated!':'✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!') : (currentLang==='en'?'✅ Event Saved!':'✅ บันทึกคิวงานเรียบร้อย!'));
-      resetEventForm();
-      if (calendar) calendar.refetchEvents();
-    }
-
-    function editEventFromModal() {
-      if (!currentAdmin || !selectedEventForPrint) return;
-
-      document.getElementById('event-id').value = selectedEventForPrint.eventId;
-      document.getElementById('event-dept-select').value = selectedEventForPrint.dept || 'IT';
-      document.getElementById('event-title').value = selectedEventForPrint.title || '';
-      document.getElementById('event-main-host').value = selectedEventForPrint.mainHost || '';
-      
-      const loc = selectedEventForPrint.location || '';
-      const locSel = document.getElementById('event-location-select');
-      let foundOption = false;
-      for (let opt of locSel.options) {
-        if (opt.value === loc) {
-          locSel.value = loc;
-          foundOption = true;
-          break;
-        }
-      }
-      if (!foundOption) {
-        locSel.value = 'CUSTOM';
-        document.getElementById('event-location-custom').value = loc;
-      }
-      toggleCustomLocationInput();
-
-      const chkDisplay = document.getElementById('chk-show-display');
-      if (chkDisplay) {
-        chkDisplay.checked = !selectedEventForPrint.details?.includes('HIDE_DISPLAY:true');
-      }
-      
-      if (selectedEventForPrint.rawStart) {
-        const dStart = new Date(selectedEventForPrint.rawStart);
-        document.getElementById('start-year').value = String(dStart.getFullYear());
-        document.getElementById('start-month').value = String(dStart.getMonth() + 1).padStart(2, '0');
-        document.getElementById('start-day').value = String(dStart.getDate()).padStart(2, '0');
-
-        let mStart = Math.floor(dStart.getMinutes() / 5) * 5;
-        document.getElementById('event-start-time').value = `${String(dStart.getHours()).padStart(2,'0')}:${String(mStart).padStart(2,'0')}`;
-      }
-      if (selectedEventForPrint.rawEnd) {
-        const dEnd = new Date(selectedEventForPrint.rawEnd);
-        document.getElementById('end-year').value = String(dEnd.getFullYear());
-        document.getElementById('end-month').value = String(dEnd.getMonth() + 1).padStart(2, '0');
-        document.getElementById('end-day').value = String(dEnd.getDate()).padStart(2, '0');
-
-        let mEnd = Math.floor(dEnd.getMinutes() / 5) * 5;
-        document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(mEnd).padStart(2,'0')}`;
-      }
-
-      document.getElementById('event-remarks').value = selectedEventForPrint.remarks || '';
-
-      clearAllTags();
-      document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
-
-      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
-        const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
-        ids.forEach(id => {
-          const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`);
-          if (cb) cb.checked = true;
-        });
-      }
-
-      document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] ${currentLang==='en'?'Edit Event Queue':'แก้ไขคิวงาน'} (ID: ${selectedEventForPrint.eventId})`;
-      document.getElementById('btn-submit-event').innerHTML = `💾 ${currentLang==='en'?'Update Event Queue':'ยืนยันการอัปเดตคิวงาน'}`;
-      document.getElementById('btn-submit-event').className = 'w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition';
-      document.getElementById('btn-cancel-edit-event').classList.remove('hidden');
-
-      closeModals();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function resetEventForm() {
-      document.getElementById('form-event').reset();
-      document.getElementById('event-id').value = '';
-      
-      const now = new Date();
-      const curDay = String(now.getDate()).padStart(2, '0');
-      const curMonth = String(now.getMonth() + 1).padStart(2, '0');
-      const curYear = String(now.getFullYear());
-
-      ['start', 'end'].forEach(prefix => {
-        document.getElementById(`${prefix}-day`).value = curDay;
-        document.getElementById(`${prefix}-month`).value = curMonth;
-        document.getElementById(`${prefix}-year`).value = curYear;
-      });
-
-      document.getElementById('event-start-time').value = '08:30';
-      document.getElementById('event-end-time').value = '16:30';
-
-      toggleCustomLocationInput();
-      clearAllTags();
-      document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
-      const dict = I18N[currentLang] || I18N.th;
-      document.getElementById('form-event-title').innerHTML = `➕ ${dict.eventFormTitle}`;
-      document.getElementById('btn-submit-event').innerHTML = `📅 ${dict.btnSubmitEvent}`;
-      document.getElementById('btn-submit-event').className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition';
-      document.getElementById('btn-cancel-edit-event').classList.add('hidden');
-    }
-
-    async function cancelEvent() {
-      if (!currentAdmin) { alert(currentLang==='en'?'🔒 Admin Only':'🔒 สิทธิ์ไม่ถูกต้อง!'); return; }
-      if (!selectedEventForPrint || !selectedEventForPrint.eventId) return;
-
-      if (!confirm(`${currentLang==='en'?'⚠️ Cancel Event':'⚠️ ยืนยันยกเลิกคิวงานกิจกรรม'}: "${selectedEventForPrint.title}" ?`)) return;
-
-      const { error } = await _supabase.from('event_queue').delete().eq('id', selectedEventForPrint.eventId);
-      if (error) { alert('Error: ' + error.message); return; }
-
-      sendGoogleChatNotification({
-        department: selectedEventForPrint.dept,
-        title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`,
-        details: [
-          `<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`,
-          `<b>ผู้จัดงานเดิม:</b> ${selectedEventForPrint.mainHost}`,
-          `<b>สถานที่:</b> ${selectedEventForPrint.location}`,
-          `<b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.nickname || '-'}) [ฝ่าย ${currentAdmin.department || 'IT'}]`
-        ]
-      });
-
-      alert(currentLang==='en'?'✅ Event Cancelled!':'✅ ยกเลิกคิวงานกิจกรรมเรียบร้อยแล้ว');
-      closeModals();
-      if (calendar) calendar.refetchEvents();
-    }
-
-    async function fetchAllEquipment() {
-      const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
-      if (error) { console.error('Error:', error); return; }
-      allEquipment = data || [];
-      renderEquipmentDropdown();
-      renderInventoryTable(allEquipment);
-      renderEventEquipmentAccordion();
-    }
-
-    function renderEventEquipmentAccordion() {
-      const container = document.getElementById('event-equipment-accordion');
-      const depts = { 'AV': '🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)', 'IT': '💻 ฝ่ายไอที (IT)', 'MEDIA': '📷 ฝ่ายช่างภาพ/สื่อ (Media)', 'FACILITY': '🏢 ฝ่ายอาคารสถานที่ (Facility)' };
-      const eventAssets = allEquipment.filter(i => (i.usage_type || 'BOTH') === 'EVENT' || (i.usage_type || 'BOTH') === 'BOTH');
-
-      let html = '';
-      Object.keys(depts).forEach(deptKey => {
-        const items = eventAssets.filter(i => (i.department || 'IT') === deptKey);
-        if (items.length > 0) {
-          html += `
-            <details class="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden">
-              <summary class="font-bold text-slate-700 p-2.5 bg-slate-100 cursor-pointer hover:bg-indigo-50 flex justify-between items-center">
-                <span>${depts[deptKey]} (${items.length} ${currentLang==='en'?'Items':'รายการ'})</span>
-                <span class="text-slate-400 text-xs">▼</span>
-              </summary>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">
-          `;
-          items.forEach(item => {
-            const isUnavailable = (item.status === 'UNAVAILABLE');
-            const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
-            const statusLabel = isUnavailable ? ` <span class="text-rose-500 font-bold">[🔴 ${currentLang==='en'?'Unavailable':'ไม่พร้อมใช้งาน/ส่งซ่อม'}]</span>` : '';
-            
-            html += `
-              <label class="flex items-center gap-1.5 ${isUnavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}">
-                <input type="checkbox" name="event-eq-item" value="${item.id}" ${isUnavailable ? 'disabled' : ''} class="rounded text-indigo-600 focus:ring-0">
-                <span>[${item.asset_label}] ${item.name} ${brandStr}${statusLabel}</span>
-              </label>
-            `;
-          });
-          html += `</div></details>`;
-        }
-      });
-      container.innerHTML = html || `<p class="text-slate-400 text-center">${currentLang==='en'?'No Event Equipments':'ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ'}</p>`;
-    }
-
-    function renderEquipmentDropdown() {
-      const deptFilter = document.getElementById('borrow-dept-filter').value;
-      const select = document.getElementById('borrow-asset-select');
-      select.innerHTML = `<option value="">-- ${currentLang==='en'?'Select Equipment':'เลือกอุปกรณ์'} --</option>`;
-      
-      let filtered = allEquipment.filter(item => {
-        if (item.status === 'UNAVAILABLE') return false;
-        
-        const totalQty = item.quantity || 1;
-        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-        const availableQty = totalQty - borrowedCount;
-
-        return availableQty > 0 && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH');
-      });
-
-      if (deptFilter !== 'ALL') filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
-      
-      filtered.forEach(item => {
-        const totalQty = item.quantity || 1;
-        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-        const availableQty = totalQty - borrowedCount;
-
-        const opt = document.createElement('option');
-        opt.value = item.id;
-        opt.textContent = `[${item.asset_label}] ${item.name} (${currentLang==='en'?'Available':'ว่าง'} ${availableQty}/${totalQty}) (${item.department || 'IT'})`;
-        select.appendChild(opt);
-      });
-      select.onchange = (e) => showEquipmentPreview(e.target.value);
-    }
-
-    function showEquipmentPreview(id) {
-      const item = allEquipment.find(i => i.id == id);
-      const preview = document.getElementById('equipment-preview');
-      if (!item) { preview.classList.add('hidden'); return; }
-
-      const totalQty = item.quantity || 1;
-      const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-      const availableQty = totalQty - borrowedCount;
-
-      document.getElementById('prev-name').textContent = `${item.name} ${item.brand && item.brand !== 'undefined' ? item.brand : ''}`;
-      document.getElementById('prev-label').textContent = item.asset_label;
-      document.getElementById('prev-dept').textContent = item.department || 'IT';
-      document.getElementById('prev-location').textContent = item.location || '-';
-      document.getElementById('prev-stock').textContent = `${availableQty} / ${totalQty} ${currentLang==='en'?'Units':'ชิ้น'}`;
-      preview.classList.remove('hidden');
-    }
-
-    async function handleEquipmentSave(e) {
-      e.preventDefault();
-      if (!currentAdmin) return;
-
-      const rawId = document.getElementById('eq-id').value;
-      const payload = {
-        asset_label: document.getElementById('eq-label').value,
-        name: document.getElementById('eq-name').value,
-        quantity: parseInt(document.getElementById('eq-quantity').value || 1, 10),
-        department: document.getElementById('eq-dept').value,
-        usage_type: document.getElementById('eq-usage-type').value,
-        status: document.getElementById('eq-status').value,
-        brand: document.getElementById('eq-brand').value || '',
-        serial_number: document.getElementById('eq-serial').value || '',
-        location: document.getElementById('eq-location').value || ''
-      };
-
-      let error = null;
-      if (rawId && rawId !== '') {
-        const eqId = parseInt(rawId, 10);
-        const res = await _supabase.from('equipment').update(payload).eq('id', eqId);
-        error = res.error;
-      } else {
-        const res = await _supabase.from('equipment').insert([payload]);
-        error = res.error;
-      }
-
-      if (error) {
-        alert('Error: ' + error.message);
-        return;
-      }
-
-      alert(currentLang==='en'?'✅ Equipment Data Saved!':'✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!');
-      resetEquipmentForm();
-      await fetchAllEquipment();
-    }
-
-    function editEquipment(id) {
-      const item = allEquipment.find(i => i.id == id);
-      if (!item) return;
-
-      document.getElementById('form-equipment-title').innerHTML = `✏️ [Admin Zone] ${currentLang==='en'?'Edit Equipment':'แก้ไขรายการอุปกรณ์'} (ID: ${item.id})`;
-      document.getElementById('btn-save-equipment').innerHTML = `💾 ${currentLang==='en'?'Update Equipment':'ยืนยันการอัปเดตข้อมูล'}`;
-      document.getElementById('btn-save-equipment').className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
-
-      document.getElementById('eq-id').value = item.id;
-      document.getElementById('eq-label').value = item.asset_label || '';
-      document.getElementById('eq-name').value = item.name || '';
-      document.getElementById('eq-quantity').value = item.quantity || 1;
-      document.getElementById('eq-dept').value = item.department || 'IT';
-      document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
-      document.getElementById('eq-status').value = item.status || 'AVAILABLE';
-      document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : '';
-      document.getElementById('eq-serial').value = item.serial_number || '';
-      document.getElementById('eq-location').value = item.location || '';
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    async function deleteEquipment(id, name) {
-      if (!confirm(`${currentLang==='en'?'⚠️ Confirm Delete':'⚠️ ยืนยันลบ'}: ${name} ?`)) return;
-      await _supabase.from('equipment').delete().eq('id', id);
-      alert(currentLang==='en'?'✅ Deleted!':'✅ ลบอุปกรณ์เรียบร้อย!');
-      await fetchAllEquipment();
-    }
-
-    function resetEquipmentForm() {
-      document.getElementById('form-equipment').reset();
-      document.getElementById('eq-id').value = '';
-      document.getElementById('eq-quantity').value = 1;
-      document.getElementById('eq-status').value = 'AVAILABLE';
-      const dict = I18N[currentLang] || I18N.th;
-      document.getElementById('form-equipment-title').innerHTML = `🛠️ ${dict.inventoryAddTitle}`;
-      document.getElementById('btn-save-equipment').innerHTML = `💾 <span data-i18n="btnSaveEq">${dict.btnSaveEq}</span>`;
-      document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
-    }
-
-    function initCalendar() {
-      const calendarEl = document.getElementById('calendar');
-      calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: currentLang === 'en' ? 'en' : 'th',
-        eventTimeFormat: {
-          hour: '2-digit',
-          minute: '2-digit',
-          meridiem: false,
-          hour12: false
-        },
-        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-        buttonText: currentLang === 'en' 
-          ? { today: 'Today', month: 'Month', week: 'Week', day: 'Day' } 
-          : { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
-        events: fetchCalendarEvents,
-        eventClick: function(info) { openEventDetailModal(info.event); }
-      });
-      calendar.render();
-    }
-
-    // CALENDAR EVENTS FETCH
-    async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
-      const { data, error } = await _supabase.from('event_queue').select('*');
-      if (error) { failureCallback(error); return; }
-      
-      allEventsList = data || [];
-      const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
-      
-      const filterStaff = document.getElementById('calendar-filter-staff')?.value.trim().toLowerCase() || '';
-      const filterDept = document.getElementById('calendar-filter-dept')?.value || 'ALL';
-
-      let filteredData = (data || []).filter(ev => {
-        if (filterDept !== 'ALL' && ev.department !== filterDept) return false;
-        if (filterStaff !== '') {
-          const matchHost = (ev.main_host || '').toLowerCase().includes(filterStaff);
-          const matchOrganizer = (ev.organizer || '').toLowerCase().includes(filterStaff);
-          if (!matchHost && !matchOrganizer) return false;
-        }
-        return true;
-      });
-
-      const events = filteredData.map(ev => {
-        let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
-        let startTimePart = adjustUtcToThaiDisplay(ev.start_time);
-
-        return {
-          id: ev.id,
-          title: `${startTimePart} [${ev.department || 'ALL'}] ${ev.event_title}`,
-          start: datePart,
-          end: datePart,
-          backgroundColor: deptColors[ev.department] || '#6366f1',
-          borderColor: deptColors[ev.department] || '#6366f1',
-          extendedProps: { 
-            eventId: ev.id,
-            rawTitle: ev.event_title, 
-            dept: ev.department || 'ALL', 
-            mainHost: ev.main_host || '-', 
-            location: ev.location, 
-            organizer: ev.organizer, 
-            details: ev.details,
-            remarks: ev.remarks,
-            rawStart: ev.start_time,
-            rawEnd: ev.end_time
-          }
-        };
-      });
-      successCallback(events);
-    }
-
-    function openEventDetailModal(eventObj) {
-      const props = eventObj.extendedProps;
-      selectedEventForPrint = {
-        eventId: props.eventId,
-        title: props.rawTitle,
-        dept: props.dept,
-        mainHost: props.mainHost,
-        location: props.location,
-        organizer: props.organizer,
-        start: formatThaiDateTime(props.rawStart || eventObj.start),
-        end: formatThaiDateTime(props.rawEnd || eventObj.end),
-        rawStart: props.rawStart,
-        rawEnd: props.rawEnd,
-        details: props.details,
-        remarks: props.remarks
-      };
-      document.getElementById('detail-dept-badge').textContent = `${currentLang==='en'?'Dept':'ฝ่าย'}: ${props.dept}`;
-      document.getElementById('detail-title').textContent = props.rawTitle;
-      document.getElementById('detail-main-host').textContent = props.mainHost;
-      document.getElementById('detail-location').textContent = props.location;
-      document.getElementById('detail-organizer').textContent = props.organizer || '-';
-      document.getElementById('detail-start').textContent = selectedEventForPrint.start;
-      document.getElementById('detail-end').textContent = selectedEventForPrint.end;
-      document.getElementById('detail-remarks').textContent = props.remarks || '-';
-
-      let eqHtml = '';
-      if (props.details && props.details.includes('EQ_IDS:')) {
-        const ids = props.details.split('EQ_IDS:')[1].split('|')[0].split(',');
-        ids.forEach(id => {
-          const item = allEquipment.find(i => i.id == id.trim());
-          if (item) {
-            const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
-            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span><b>[${item.asset_label}]</b> ${item.name} ${brandStr} [${item.department}]</span><span class="text-slate-400">${currentLang==='en'?'Loc':'เก็บ'}: ${item.location || '-'}</span></div>`;
-          }
-        });
-      } else eqHtml = `<p class="text-slate-600">${props.details || '-'}</p>`;
-      document.getElementById('detail-equipment-list').innerHTML = eqHtml;
-
-      const editBtn = document.getElementById('btn-edit-event');
-      const cancelBtn = document.getElementById('btn-cancel-event');
-      if (currentAdmin) {
-        if (editBtn) editBtn.classList.remove('hidden');
-        if (cancelBtn) cancelBtn.classList.remove('hidden');
-      } else {
-        if (editBtn) editBtn.classList.add('hidden');
-        if (cancelBtn) cancelBtn.classList.add('hidden');
-      }
-
-      document.getElementById('modal-event-detail').classList.remove('hidden');
-    }
-
-    function printEventReport() {
-      if (!selectedEventForPrint) return;
-
-      const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
-      const docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
-
-      document.getElementById('print-doc-id').textContent = docId;
-      document.getElementById('print-now-date').textContent = new Date().toLocaleDateString('th-TH');
-      document.getElementById('print-title').textContent = selectedEventForPrint.title;
-      document.getElementById('print-dept').textContent = selectedEventForPrint.dept;
-      document.getElementById('print-main-host').textContent = selectedEventForPrint.mainHost;
-      document.getElementById('print-location').textContent = selectedEventForPrint.location;
-      document.getElementById('print-datetime').textContent = `${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}`;
-      document.getElementById('print-remarks').textContent = selectedEventForPrint.remarks || '-';
-
-      // Parse Tagged Members per Department
-      const orgStr = selectedEventForPrint.organizer || '';
-      
-      const getDeptStaffNames = (deptKey) => {
-        if (!orgStr) return [];
-        let members = orgStr.split(', ');
-        return members.filter(m => m.includes(`[${deptKey}]`)).map(m => m.split(' [')[0]);
-      };
-
-      const itStaffs = getDeptStaffNames('IT');
-      const avStaffs = getDeptStaffNames('AV');
-      const mediaStaffs = getDeptStaffNames('MEDIA');
-
-      document.getElementById('print-staff-it-count').textContent = `${itStaffs.length} คน`;
-      document.getElementById('print-staff-it-names').textContent = itStaffs.join(', ') || '-';
-
-      document.getElementById('print-staff-av-count').textContent = `${avStaffs.length} คน`;
-      document.getElementById('print-staff-av-names').textContent = avStaffs.join(', ') || '-';
-
-      document.getElementById('print-staff-media-count').textContent = `${mediaStaffs.length} คน`;
-      document.getElementById('print-staff-media-names').textContent = mediaStaffs.join(', ') || '-';
-
-      // Parse Facility & Parking Requests from Organizer String
-      let nHousekeeper = 0, nTech = 0, nSec = 0, nPark = 0;
-      if (orgStr.includes('แม่บ้าน')) {
-        let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/);
-        if (m) nHousekeeper = m[1];
-      }
-      if (orgStr.includes('ช่างอาคาร')) {
-        let m = orgStr.match(/ช่างอาคาร\s*(\d+)\s*คน/);
-        if (m) nTech = m[1];
-      }
-      if (orgStr.includes('รปภ.')) {
-        let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/);
-        if (m) nSec = m[1];
-      }
-      if (orgStr.includes('ช่องจอดรถ')) {
-        let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/);
-        if (m) nPark = m[1];
-      }
-
-      const facStaffs = getDeptStaffNames('FACILITY');
-      document.getElementById('print-staff-facility-count').textContent = `${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}`;
-      document.getElementById('print-staff-tech-count').textContent = `${nTech} คน`;
-      document.getElementById('print-staff-housekeeper-count').textContent = `${nHousekeeper} คน`;
-      document.getElementById('print-staff-security-count').textContent = `${nSec} คน`;
-      document.getElementById('print-parking-count').textContent = `${nPark} คัน`;
-
-      let tableHtml = '';
-      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
-        const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
-        ids.forEach(id => {
-          const item = allEquipment.find(i => i.id == id.trim());
-          if (item) {
-            const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
-            tableHtml += `
-              <tr class="hover:bg-slate-50">
-                <td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td>
-                <td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${brandStr}</td>
-                <td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td>
-                <td class="border border-slate-300 p-2">${item.location || '-'}</td>
-                <td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td>
-                <td class="border border-slate-300 p-2 text-slate-400"></td>
-              </tr>
-            `;
-          }
-        });
-      } else {
-        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`;
-      }
-
-      document.getElementById('print-equipment-table').innerHTML = tableHtml;
-
-      const printArea = document.getElementById('printable-area');
-      printArea.classList.remove('hidden');
-      window.print();
-      printArea.classList.add('hidden');
-    }
-
-    async function handleBorrowSubmit(e) {
-      e.preventDefault();
-      const equipmentId = document.getElementById('borrow-asset-select').value;
-      const borrowType = document.getElementById('borrow-type-select').value;
-      const borrowerName = document.getElementById('borrower-name').value;
-      const dept = document.getElementById('borrower-dept').value;
-      const returnDate = document.getElementById('return-date').value;
-      const note = document.getElementById('borrow-note').value;
-
-      if (!equipmentId) { alert(currentLang==='en'?'Please select equipment':'กรุณาเลือกอุปกรณ์'); return; }
-      const item = allEquipment.find(i => i.id == equipmentId);
-
-      const totalQty = item.quantity || 1;
-      const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-      const availableQty = totalQty - borrowedCount;
-
-      if (availableQty <= 0) {
-        alert(currentLang==='en'?'❌ Equipment is fully borrowed':'❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว');
-        return;
-      }
-
-      const displayReturnDate = (borrowType === 'LONG_TERM') ? 'Long-term (No Due Date)' : returnDate;
-
-      await _supabase.from('borrow_records').insert([{ 
-        equipment_id: equipmentId, 
-        borrow_type: borrowType,
-        borrower_name: `${borrowerName} (${dept || 'N/A'})`, 
-        expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, 
-        note: note 
-      }]);
-
-      const notifHeader = (borrowType === 'LONG_TERM') ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`;
-
-      sendGoogleChatNotification({
-        title: `${notifHeader} [ฝ่าย ${item.department || 'IT'}]`,
-        details: [
-          `<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`,
-          `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`,
-          `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`,
-          `<b>ผู้รับมอบ/ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`,
-          `<b>กำหนดคืน:</b> ${displayReturnDate}`,
-          `<b>วัตถุประสงค์/หมายเหตุ:</b> ${note || '-'}`
-        ]
-      });
-
-      alert(borrowType === 'LONG_TERM' ? (currentLang==='en'?'✅ Long-term Issuance Saved!':'✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!') : (currentLang==='en'?'✅ Borrowing Saved!':'✅ บันทึกการยืมเรียบร้อย!'));
-      document.getElementById('form-borrow').reset();
-      toggleBorrowTypeMode();
-      await fetchAllEquipment();
-      await loadActiveBorrows();
-    }
-
-    async function loadActiveBorrows() {
-      const statusFilter = document.getElementById('filter-borrow-status').value;
-      const startDate = document.getElementById('filter-start-date').value;
-      const endDate = document.getElementById('filter-end-date').value;
-
-      let query = _supabase.from('borrow_records').select('*, equipment(*)').order('borrow_date', { ascending: false });
-
-      if (statusFilter === 'SHORT_TERM_BORROWED') {
-        query = query.eq('status', 'BORROWED').eq('borrow_type', 'SHORT_TERM');
-      } else if (statusFilter === 'LONG_TERM_BORROWED') {
-        query = query.eq('status', 'BORROWED').eq('borrow_type', 'LONG_TERM');
-      } else if (statusFilter === 'RETURNED') {
-        query = query.eq('status', 'RETURNED');
-      }
-
-      if (startDate) query = query.gte('borrow_date', `${startDate}T00:00:00`);
-      if (endDate) query = query.lte('borrow_date', `${endDate}T23:59:59`);
-
-      const { data } = await query;
-      activeBorrowRecords = data || [];
-
-      const tbody = document.getElementById('table-active-borrows');
-      if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">${currentLang==='en'?'No Records Found':'ไม่พบรายการยืม-คืนตามเงื่อนไขที่ค้นหา'}</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = activeBorrowRecords.map(record => {
-        const isLongTerm = (record.borrow_type === 'LONG_TERM');
-        const isReturned = (record.status === 'RETURNED');
-
-        const typeBadge = isLongTerm 
-          ? `<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ${currentLang==='en'?'Long-term':'ส่งมอบระยะยาว'}</span>` 
-          : `<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ${currentLang==='en'?'Daily':'ยืมรายวัน'}</span>`;
-        
-        const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">${currentLang==='en'?'No Due Date':'ไม่มีกำหนดคืน'}</span>` : new Date(record.expected_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH');
-
-        let returnStatusCell = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ${currentLang==='en'?'Occupied':'ครอบครองอยู่'}</span>`;
-        if (isReturned) {
-          const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ${currentLang==='en'?'Minor Damage':'ชำรุดเล็กน้อย'})` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ${currentLang==='en'?'Damaged/Lost':'ชำรุดหนัก/สูญหาย'})` : ` (🟢 ${currentLang==='en'?'Good':'ปกติ'})`;
-          returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 ${currentLang==='en'?'Returned':'คืนแล้ว'} ${new Date(record.actual_return_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}${conditionText}</span>`;
-        }
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td>
-            <td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td>
-            <td class="p-3">${typeBadge}</td>
-            <td class="p-3">${record.borrower_name}</td>
-            <td class="p-3">${new Date(record.borrow_date).toLocaleDateString(currentLang==='en'?'en-GB':'th-TH')}</td>
-            <td class="p-3 text-amber-600 font-medium">${returnDisplay}</td>
-            <td class="p-3">${returnStatusCell}</td>
-            <td class="p-3 text-center">
-              ${!isReturned
-                ? (currentAdmin 
-                    ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ${currentLang==='en'?'Return Inspection':'ตรวจรับคืนโดย Admin'}</button>`
-                    : `<span class="text-xs text-slate-400 italic">🔒 ${currentLang==='en'?'Admin Only':'เฉพาะ Admin'}</span>`
-                  )
-                : `<span class="text-xs text-slate-400">${currentLang==='en'?'Completed':'ทำรายการแล้ว'}</span>`
-              }
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function clearBorrowFilters() {
-      document.getElementById('filter-borrow-status').value = 'SHORT_TERM_BORROWED';
-      document.getElementById('filter-start-date').value = '';
-      document.getElementById('filter-end-date').value = '';
-      loadActiveBorrows();
-    }
-
-    function exportBorrowToExcel() {
-      if (!activeBorrowRecords || activeBorrowRecords.length === 0) {
-        alert(currentLang==='en'?'❌ No records to export':'❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel');
-        return;
-      }
-
-      const exportData = activeBorrowRecords.map(item => ({
-        'Asset Label': item.equipment?.asset_label || '-',
-        'Equipment Name': item.equipment?.name || '-',
-        'Department': item.equipment?.department || 'IT',
-        'Issuance Type': item.borrow_type === 'LONG_TERM' ? 'Long-term' : 'Daily',
-        'Borrower/Assignee': item.borrower_name,
-        'Date Issued': new Date(item.borrow_date).toLocaleDateString('th-TH'),
-        'Due Date': item.borrow_type === 'LONG_TERM' ? 'No Due Date' : new Date(item.expected_return_date).toLocaleDateString('th-TH'),
-        'Status': item.status === 'RETURNED' ? 'Returned' : 'Occupied',
-        'Actual Return Date': item.actual_return_date ? new Date(item.actual_return_date).toLocaleDateString('th-TH') : '-',
-        'Return Condition': item.return_condition === 'GOOD' ? 'Good' : item.return_condition === 'MINOR_DAMAGE' ? 'Minor Damage' : item.return_condition === 'DAMAGED_LOST' ? 'Damaged/Lost' : '-',
-        'Remarks': item.note || '-'
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Borrow_Records");
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(workbook, `Denla_Borrow_Report_${todayStr}.xlsx`);
-    }
-
-    async function exportEventsToExcel() {
-      const startDate = document.getElementById('excel-event-start').value;
-      const endDate = document.getElementById('excel-event-end').value;
-
-      let query = _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
-
-      if (startDate) query = query.gte('start_time', `${startDate}T00:00:00`);
-      if (endDate) query = query.lte('start_time', `${endDate}T23:59:59`);
-
-      const { data, error } = await query;
-      if (error || !data || data.length === 0) {
-        alert(currentLang==='en'?'❌ No events found for export':'❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel');
-        return;
-      }
-
-      const exportData = data.map(ev => {
-        let eqListNames = [];
-        if (ev.details && ev.details.includes('EQ_IDS:')) {
-          const ids = ev.details.split('EQ_IDS:')[1].split('|')[0].split(',');
-          ids.forEach(id => {
-            const item = allEquipment.find(i => i.id == id.trim());
-            if (item) eqListNames.push(`[${item.asset_label}] ${item.name}`);
-          });
-        }
-
-        return {
-          'Queue ID': ev.id,
-          'Department': ev.department || 'ALL',
-          'Event Title': ev.event_title,
-          'Event Host': ev.main_host || '-',
-          'Location': ev.location,
-          'Start Time': formatThaiDateTime(ev.start_time),
-          'End Time': formatThaiDateTime(ev.end_time),
-          'Tagged Members': ev.organizer || '-',
-          'Prepared Equipment': eqListNames.join(', ') || '-',
-          'Remarks': ev.remarks || '-'
-        };
-      });
-
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Event_Queue");
-
-      const rangeLabel = (startDate && endDate) ? `${startDate}_to_${endDate}` : 'All_Events';
-      XLSX.writeFile(workbook, `Denla_Events_Report_${rangeLabel}.xlsx`);
-    }
-
-    function exportInventoryToExcel() {
-      if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) {
-        alert(currentLang==='en'?'❌ No inventory data to export':'❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel');
-        return;
-      }
-
-      const exportData = currentFilteredEquipment.map(item => {
-        const totalQty = item.quantity || 1;
-        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-        const availableQty = (item.status === 'UNAVAILABLE') ? 0 : (totalQty - borrowedCount);
-
-        const usageText = (item.usage_type === 'EVENT') ? 'Event Queue Only' : (item.usage_type === 'BORROW') ? 'Daily Borrow Only' : 'Both Event & Borrow';
-        const statusText = (item.status === 'UNAVAILABLE') ? 'Unavailable / Under Repair' : (availableQty <= 0) ? 'Out of Stock' : 'Available';
-
-        return {
-          'Asset Label': item.asset_label || '-',
-          'Equipment Name': item.name || '-',
-          'Department': item.department || 'IT',
-          'Usage Category': usageText,
-          'Total Quantity': totalQty,
-          'Available Quantity': availableQty,
-          'Brand/Model': (item.brand && item.brand !== 'undefined') ? item.brand : '-',
-          'Serial Number': item.serial_number || '-',
-          'Storage Location': item.location || '-',
-          'Stock Status': statusText
-        };
-      });
-
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Equipment_Inventory");
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(workbook, `Denla_Equipment_Inventory_${todayStr}.xlsx`);
-    }
-
-    function openReturnInspectionModal(recordId) {
-      if (!currentAdmin) { alert('🔒 Admin Only'); return; }
-      
-      const record = activeBorrowRecords.find(r => r.id === recordId);
-      if (!record) return;
-
-      pendingReturnRecord = record;
-      document.getElementById('inspect-equipment-name').textContent = `[${record.equipment?.asset_label}] ${record.equipment?.name}`;
-      document.getElementById('inspect-condition').value = 'GOOD';
-      document.getElementById('inspect-remark').value = '';
-      
-      document.getElementById('modal-return-inspect').classList.remove('hidden');
-    }
-
-    async function confirmReturnWithInspection() {
-      if (!pendingReturnRecord) return;
-
-      const condition = document.getElementById('inspect-condition').value;
-      const remark = document.getElementById('inspect-remark').value;
-
-      await _supabase.from('borrow_records').update({ 
-        status: 'RETURNED', 
-        actual_return_date: new Date().toISOString(),
-        return_condition: condition,
-        return_remark: remark
-      }).eq('id', pendingReturnRecord.id);
-
-      if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') {
-        await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', pendingReturnRecord.equipment_id);
-        alert(currentLang==='en'?'⚠️ Returned! Equipment status set to UNAVAILABLE':'⚠️ รับคืนเรียบร้อย! อุปกรณ์นี้ถูกปรับสถานะเป็น "🔴 ไม่พร้อมใช้งาน/ส่งซ่อม" อัตโนมัติ');
-      } else {
-        alert(currentLang==='en'?'✅ Equipment Returned Successfully!':'✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว');
-      }
-
-      closeModals();
-      pendingReturnRecord = null;
-      await fetchAllEquipment();
-      await loadActiveBorrows();
-    }
-
-    function renderInventoryTable(items) {
-      currentFilteredEquipment = items || [];
-      const tbody = document.getElementById('table-inventory');
-      
-      tbody.innerHTML = items.map(item => {
-        const totalQty = item.quantity || 1;
-        const borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-        const availableQty = totalQty - borrowedCount;
-
-        const usageBadge = (item.usage_type === 'EVENT') ? `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 ${currentLang==='en'?'Event':'กิจกรรม'}</span>` : (item.usage_type === 'BORROW') ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ${currentLang==='en'?'Borrow':'ยืม-คืน'}</span>` : `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ${currentLang==='en'?'Both':'ทั้งคู่'}</span>`;
-        const brandDisplay = (item.brand && item.brand !== 'undefined') ? item.brand : '';
-        
-        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Available':'พร้อมใช้งาน'} (${availableQty}/${totalQty})</span>`;
-        
-        if (item.status === 'UNAVAILABLE') {
-          stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ${currentLang==='en'?'Unavailable':'ไม่พร้อมใช้งาน/ส่งซ่อม'}</span>`;
-        } else if (availableQty <= 0) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ${currentLang==='en'?'Out of Stock':'ถูกยืมหมดแล้ว'} (0/${totalQty})</span>`;
-        } else if (availableQty < totalQty) {
-          stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 ${currentLang==='en'?'Remaining':'คงเหลือ'} ${availableQty}/${totalQty}</span>`;
-        }
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td>
-            <td class="p-3 font-medium text-slate-800">${item.name}</td>
-            <td class="p-3 text-center font-bold text-slate-700">${totalQty}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.status === 'UNAVAILABLE' ? 0 : availableQty}</td>
-            <td class="p-3">${usageBadge}</td>
-            <td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td>
-            <td class="p-3">${brandDisplay} ${item.model || ''}</td>
-            <td class="p-3">${item.location || '-'}</td>
-            <td class="p-3">${stockBadge}</td>
-            <td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}">
-              <button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ ${currentLang==='en'?'Edit':'แก้ไข'}</button>
-              <button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ${currentLang==='en'?'Delete':'ลบ'}</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function filterInventory() {
-      const q = document.getElementById('search-inventory').value.toLowerCase();
-      const typeFilter = document.getElementById('inventory-type-filter').value;
-      let filtered = allEquipment.filter(i => i.name.toLowerCase().includes(q) || i.asset_label.toLowerCase().includes(q));
-      if (typeFilter !== 'ALL') filtered = filtered.filter(i => (i.usage_type || 'BOTH') === typeFilter || (i.usage_type || 'BOTH') === 'BOTH');
-      renderInventoryTable(filtered);
-    }
-
-    function toggleScanner() {
-      const readerDiv = document.getElementById('reader');
-      if (readerDiv.classList.contains('hidden')) {
-        readerDiv.classList.remove('hidden');
-        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        scanner.render((decodedText) => {
-          const item = allEquipment.find(i => i.asset_label.toLowerCase() === decodedText.toLowerCase());
-          if (item) {
-            document.getElementById('borrow-asset-select').value = item.id;
-            showEquipmentPreview(item.id);
-            alert(`✅ ${currentLang==='en'?'Found Equipment':'เจออุปกรณ์'}: ${item.name}`);
-            toggleScanner();
-          }
-        });
-      } else { readerDiv.classList.add('hidden'); }
-    }
-  </script>
-</body>
-</html>
+    // EVENT SUBMIT WITH SAFELY HANDLED FACILITY REQUESTS
+    async
