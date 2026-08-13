@@ -18,23 +18,6 @@
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
     input[type="datetime-local"]::-webkit-datetime-edit-ampm-field { display: none !important; }
-    
-    /* ระบบ CSS พิมพ์ PDF ที่แก้ไขใหม่สำหรับรองรับมือถือ 100% */
-    @media print {
-      @page { size: A4 portrait; margin: 0.5cm; }
-      body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      
-      /* ซ่อนทุกอย่างที่เป็นลูกโดยตรงของ body ยกเว้น #printable-area */
-      body > *:not(#printable-area) { display: none !important; }
-      
-      #printable-area { 
-        display: block !important; 
-        position: relative !important; 
-        width: 100% !important; 
-        padding: 0 !important; 
-        margin: 0 !important;
-      }
-    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
@@ -498,7 +481,7 @@
           <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition justify-center items-center gap-1">🗑️ ยกเลิกงาน</button>
         </div>
         <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto order-1 md:order-2">
-          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (PDF)</button>
+          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (เปิดแท็บใหม่)</button>
           <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-center order-2 sm:order-1">ปิดหน้าต่าง</button>
         </div>
       </div>
@@ -538,78 +521,6 @@
       <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-slate-100">
         <button onclick="handleRegister()" class="w-full sm:w-auto px-6 py-3 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow order-1 sm:order-2">ยืนยันสมัคร Admin</button>
         <button onclick="closeModals()" class="w-full sm:w-auto px-5 py-3 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1">ยกเลิก</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PRINTABLE TEMPLATE (แก้ไขการซ่อน/แสดงผลให้พิมพ์ได้ 100% บนมือถือ iOS & Android) -->
-  <div id="printable-area" class="hidden font-sans bg-white text-slate-900 absolute top-0 left-0 w-full z-[9999] min-h-screen">
-    <!-- เนื้อหาสำหรับ Print (กำหนด style inline บางจุดเพื่อความชัวร์เวลา Print) -->
-    <div style="padding: 2rem; max-width: 800px; margin: 0 auto;">
-      <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
-        <div class="flex items-center gap-4">
-          <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
-          <div><h1 class="text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1><p class="text-base font-bold text-slate-600">(Denla Kindergarten)</p></div>
-        </div>
-        <div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1 bg-slate-50 min-w-[220px]">
-          <div class="flex justify-between"><span class="font-bold text-slate-600">เลขที่เอกสาร :</span><span id="print-doc-id" class="font-mono font-bold text-indigo-900">-</span></div>
-          <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">วันที่พิมพ์ :</span><span id="print-now-date" class="font-medium">-</span></div>
-          <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">แบบฟอร์ม :</span><span class="font-medium">FM-AVS-001</span></div>
-        </div>
-      </div>
-      <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
-        <h2 class="text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
-        <p class="text-base font-extrabold text-indigo-800">งานกิจกรรม: <span id="print-title" class="underline decoration-indigo-300 decoration-2">-</span></p>
-      </div>
-      <div class="grid grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
-        <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept" class="font-bold text-indigo-900">-</span></p>
-        <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900">-</span></p>
-        <p><b>สถานที่จัดงาน:</b> <span id="print-location" class="font-bold text-indigo-900">-</span></p>
-        <p><b>วันและเวลากิจกรรม:</b> <span id="print-datetime" class="font-bold text-indigo-900">-</span></p>
-        <p class="col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks" class="text-slate-700">-</span></p>
-      </div>
-      <div class="mb-4">
-        <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
-        <table class="w-full border-collapse border border-slate-300 text-xs text-left">
-          <thead><tr class="bg-indigo-50 font-bold text-indigo-950"><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมระบบและสื่อ</th><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมสถานที่และบริการ</th><th class="border border-slate-300 p-2 w-1/3 text-center">การจัดสรรที่จอดรถ</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
-                <p><b>IT:</b> <span id="print-staff-it-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-it-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
-                <p><b>โสตฯ:</b> <span id="print-staff-av-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-av-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
-                <p><b>ช่างภาพ:</b> <span id="print-staff-media-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-media-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p>
-              </td>
-              <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
-                <p><b>ฝ่ายอาคาร:</b> <span id="print-staff-facility-count" class="font-bold">0 คน</span></p><p><b>ช่างอาคาร:</b> <span id="print-staff-tech-count" class="font-bold">0 คน</span></p>
-                <p><b>แม่บ้าน:</b> <span id="print-staff-housekeeper-count" class="font-bold">0 คน</span></p><p><b>รปภ.:</b> <span id="print-staff-security-count" class="font-bold">0 คน</span></p>
-              </td>
-              <td class="border border-slate-300 p-2.5 space-y-2 align-top">
-                <p><b>จำนวนที่จอดรถ:</b> <span id="print-parking-count" class="font-bold text-indigo-900">0 คัน</span></p>
-                <p><b>พื้นที่จอดรถ:</b> .....................................</p><p><b>ผู้ประสานงาน:</b> .....................................</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="mb-4">
-        <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน</h3>
-        <table class="w-full border-collapse border border-slate-300 text-xs text-left">
-          <thead><tr class="bg-indigo-900 text-white font-bold text-center"><th class="border border-slate-300 p-2 w-14">ตรวจเช็ก</th><th class="border border-slate-300 p-2">รายการอุปกรณ์ / ยี่ห้อรุ่น</th><th class="border border-slate-300 p-2 w-20">ฝ่ายดูแล</th><th class="border border-slate-300 p-2 w-28">สถานที่เก็บ</th><th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th><th class="border border-slate-300 p-2 w-24">หมายเหตุ</th></tr></thead>
-          <tbody id="print-equipment-table"></tbody>
-        </table>
-      </div>
-      <div class="mb-6 space-y-3">
-        <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">3. สถานะการจัดเตรียมและตรวจสอบ</h3>
-        <div class="grid grid-cols-3 gap-2 border border-slate-300 rounded-b-lg p-2.5 text-xs bg-slate-50">
-          <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>จัดเตรียมอุปกรณ์ครบถ้วน</span></label>
-          <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ทดสอบการใช้งานเรียบร้อย</span></label>
-          <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
-        </div>
-        <div class="grid grid-cols-3 gap-4 text-center text-xs pt-6 border-t border-slate-300 mt-6">
-          <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p><p>วันที่ ..... / ..... / .........</p></div>
-          <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p><p>วันที่ ..... / ..... / .........</p></div>
-          <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p><p>วันที่ ..... / ..... / .........</p></div>
-        </div>
       </div>
     </div>
   </div>
@@ -1052,20 +963,20 @@
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
-    // ฟังก์ชันพิมพ์ใบงานแก้ไขล่าสุดสำหรับมือถือ
+    // ==========================================
+    // ฟังก์ชันพิมพ์ใบงานแบบใหม่ (เปิดแท็บใหม่)
+    // ==========================================
     function printEventReport() {
       if (!selectedEventForPrint) return;
+      
       const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
-      document.getElementById('print-doc-id').textContent = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
-      document.getElementById('print-now-date').textContent = new Date().toLocaleDateString('th-TH'); document.getElementById('print-title').textContent = selectedEventForPrint.title;
-      document.getElementById('print-dept').textContent = selectedEventForPrint.dept; document.getElementById('print-main-host').textContent = selectedEventForPrint.mainHost;
-      document.getElementById('print-location').textContent = selectedEventForPrint.location; document.getElementById('print-datetime').textContent = `${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}`; document.getElementById('print-remarks').textContent = selectedEventForPrint.remarks || '-';
+      const docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
+      const nowDate = new Date().toLocaleDateString('th-TH');
 
-      const orgStr = selectedEventForPrint.organizer || '', getDeptStaffNames = (deptKey) => orgStr ? orgStr.split(', ').filter(m => m.includes(`[${deptKey}]`)).map(m => m.split(' [')[0]) : [];
+      const orgStr = selectedEventForPrint.organizer || '';
+      const getDeptStaffNames = (deptKey) => orgStr ? orgStr.split(', ').filter(m => m.includes(`[${deptKey}]`)).map(m => m.split(' [')[0]) : [];
+      
       const itStaffs = getDeptStaffNames('IT'), avStaffs = getDeptStaffNames('AV'), mediaStaffs = getDeptStaffNames('MEDIA'), facStaffs = getDeptStaffNames('FACILITY');
-      document.getElementById('print-staff-it-count').textContent = `${itStaffs.length} คน`; document.getElementById('print-staff-it-names').textContent = itStaffs.join(', ') || '-';
-      document.getElementById('print-staff-av-count').textContent = `${avStaffs.length} คน`; document.getElementById('print-staff-av-names').textContent = avStaffs.join(', ') || '-';
-      document.getElementById('print-staff-media-count').textContent = `${mediaStaffs.length} คน`; document.getElementById('print-staff-media-names').textContent = mediaStaffs.join(', ') || '-';
 
       let nHousekeeper = 0, nTech = 0, nSec = 0, nPark = 0;
       if (orgStr.includes('แม่บ้าน')) { let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/); if (m) nHousekeeper = m[1]; }
@@ -1073,28 +984,167 @@
       if (orgStr.includes('รปภ.')) { let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/); if (m) nSec = m[1]; }
       if (orgStr.includes('ช่องจอดรถ')) { let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/); if (m) nPark = m[1]; }
 
-      document.getElementById('print-staff-facility-count').textContent = `${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}`;
-      document.getElementById('print-staff-tech-count').textContent = `${nTech} คน`; document.getElementById('print-staff-housekeeper-count').textContent = `${nHousekeeper} คน`;
-      document.getElementById('print-staff-security-count').textContent = `${nSec} คน`; document.getElementById('print-parking-count').textContent = `${nPark} คัน`;
-
       let tableHtml = '';
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
         const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
-        ids.forEach(id => { const item = allEquipment.find(i => i.id == id.trim()); if (item) { tableHtml += `<tr class="hover:bg-slate-50"><td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td><td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''}</td><td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td><td class="border border-slate-300 p-2">${item.location || '-'}</td><td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td><td class="border border-slate-300 p-2 text-slate-400"></td></tr>`; } });
-      } else { tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`; }
-      document.getElementById('print-equipment-table').innerHTML = tableHtml;
-
-      const printArea = document.getElementById('printable-area'); 
-      printArea.classList.remove('hidden'); 
-      
-      // บังคับให้เบราว์เซอร์รับรู้ว่ามีเนื้อหาแสดงขึ้นมาก่อนพิมพ์ (แก้บั๊กมือถือ)
-      void printArea.offsetWidth; 
-      
-      try {
-        window.print();
-      } finally {
-        setTimeout(() => { printArea.classList.add('hidden'); }, 1000); 
+        ids.forEach(id => { 
+          const item = allEquipment.find(i => i.id == id.trim()); 
+          if (item) { 
+            tableHtml += `<tr class="hover:bg-slate-50"><td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td><td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''}</td><td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td><td class="border border-slate-300 p-2">${item.location || '-'}</td><td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td><td class="border border-slate-300 p-2 text-slate-400"></td></tr>`; 
+          } 
+        });
+      } else { 
+        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`; 
       }
+
+      // เปิดหน้าต่างใหม่เพื่อพิมพ์
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('⚠️ เบราว์เซอร์ของคุณบล็อกหน้าต่าง Pop-up \nกรุณาอนุญาต (Allow Pop-ups) ให้เว็บไซต์นี้เพื่อทำการพิมพ์ใบงาน');
+        return;
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="th-TH">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>ใบงานกิจกรรม - ${selectedEventForPrint.title}</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+          <style>
+            body { font-family: 'Sarabun', sans-serif; }
+            @media print {
+              .no-print { display: none !important; }
+              @page { size: A4 portrait; margin: 0.5cm; }
+              body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .print-container { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            }
+          </style>
+        </head>
+        <body class="bg-slate-100 text-slate-900 pb-12">
+          
+          <!-- แถบเมนูด้านบน (ไม่ถูกพิมพ์) -->
+          <div class="no-print bg-indigo-800 text-white p-4 sticky top-0 z-50 shadow-md">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div class="text-center sm:text-left">
+                <h2 class="text-lg md:text-xl font-bold">ตัวอย่างก่อนพิมพ์ (Print Preview)</h2>
+                <p class="text-xs text-indigo-200">ตรวจสอบความถูกต้องก่อนกดพิมพ์</p>
+              </div>
+              <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="window.close()" class="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold transition">ปิดหน้าต่าง</button>
+                <button onclick="window.print()" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg text-sm font-bold shadow-lg transition flex items-center justify-center gap-2">
+                  🖨️ กดพิมพ์ใบงาน
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- หน้ากระดาษใบงาน -->
+          <div class="print-container max-w-4xl mx-auto bg-white p-6 md:p-12 mt-6 shadow-xl border border-slate-200 rounded-lg">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4 gap-4">
+              <div class="flex items-center gap-4">
+                <img src="${window.location.origin}/logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
+                <div><h1 class="text-xl md:text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1><p class="text-sm md:text-base font-bold text-slate-600">(Denla Kindergarten)</p></div>
+              </div>
+              <div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1 bg-slate-50 w-full sm:w-auto sm:min-w-[220px]">
+                <div class="flex justify-between"><span class="font-bold text-slate-600">เลขที่เอกสาร :</span><span class="font-mono font-bold text-indigo-900">${docId}</span></div>
+                <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">วันที่พิมพ์ :</span><span class="font-medium">${nowDate}</span></div>
+                <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">แบบฟอร์ม :</span><span class="font-medium">FM-AVS-001</span></div>
+              </div>
+            </div>
+
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
+              <h2 class="text-lg md:text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
+              <p class="text-sm md:text-base font-extrabold text-indigo-800">งานกิจกรรม: <span class="underline decoration-indigo-300 decoration-2">${selectedEventForPrint.title}</span></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
+              <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.dept}</span></p>
+              <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.mainHost}</span></p>
+              <p><b>สถานที่จัดงาน:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.location}</span></p>
+              <p><b>วันและเวลากิจกรรม:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}</span></p>
+              <p class="md:col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span class="text-slate-700">${selectedEventForPrint.remarks || '-'}</span></p>
+            </div>
+
+            <div class="mb-4">
+              <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-slate-300 text-[11px] md:text-xs text-left min-w-[600px]">
+                  <thead><tr class="bg-indigo-50 font-bold text-indigo-950"><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมระบบและสื่อ</th><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมสถานที่และบริการ</th><th class="border border-slate-300 p-2 w-1/3 text-center">การจัดสรรที่จอดรถ</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+                        <p><b>IT:</b> <span class="font-bold text-indigo-900">${itStaffs.length} คน</span></p><p class="text-[10px] md:text-[11px] text-slate-600 pl-2 font-medium">${itStaffs.join(', ') || '-'}</p><hr class="border-slate-200">
+                        <p><b>โสตฯ:</b> <span class="font-bold text-indigo-900">${avStaffs.length} คน</span></p><p class="text-[10px] md:text-[11px] text-slate-600 pl-2 font-medium">${avStaffs.join(', ') || '-'}</p><hr class="border-slate-200">
+                        <p><b>ช่างภาพ:</b> <span class="font-bold text-indigo-900">${mediaStaffs.length} คน</span></p><p class="text-[10px] md:text-[11px] text-slate-600 pl-2 font-medium">${mediaStaffs.join(', ') || '-'}</p>
+                      </td>
+                      <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+                        <p><b>ฝ่ายอาคาร:</b> <span class="font-bold">${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}</span></p>
+                        <p><b>ช่างอาคาร:</b> <span class="font-bold">${nTech} คน</span></p>
+                        <p><b>แม่บ้าน:</b> <span class="font-bold">${nHousekeeper} คน</span></p>
+                        <p><b>รปภ.:</b> <span class="font-bold">${nSec} คน</span></p>
+                      </td>
+                      <td class="border border-slate-300 p-2.5 space-y-2 align-top">
+                        <p><b>จำนวนที่จอดรถ:</b> <span class="font-bold text-indigo-900">${nPark} คัน</span></p>
+                        <p><b>พื้นที่จอดรถ:</b> .....................................</p>
+                        <p><b>ผู้ประสานงาน:</b> .....................................</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-slate-300 text-[11px] md:text-xs text-left min-w-[600px]">
+                  <thead><tr class="bg-indigo-900 text-white font-bold text-center"><th class="border border-slate-300 p-2 w-14">ตรวจเช็ก</th><th class="border border-slate-300 p-2">รายการอุปกรณ์ / ยี่ห้อรุ่น</th><th class="border border-slate-300 p-2 w-20">ฝ่ายดูแล</th><th class="border border-slate-300 p-2 w-28">สถานที่เก็บ</th><th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th><th class="border border-slate-300 p-2 w-24">หมายเหตุ</th></tr></thead>
+                  <tbody>
+                    ${tableHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mb-6 space-y-3">
+              <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">3. สถานะการจัดเตรียมและตรวจสอบ</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 border border-slate-300 rounded-b-lg p-2.5 text-xs bg-slate-50">
+                <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>จัดเตรียมอุปกรณ์ครบถ้วน</span></label>
+                <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ทดสอบการใช้งานเรียบร้อย</span></label>
+                <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs pt-6 border-t border-slate-300 mt-6">
+                <div class="space-y-6 md:space-y-8">
+                  <p>ลงชื่อ ...........................................................</p>
+                  <p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p>
+                  <p>วันที่ ..... / ..... / .........</p>
+                </div>
+                <div class="space-y-6 md:space-y-8">
+                  <p>ลงชื่อ ...........................................................</p>
+                  <p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p>
+                  <p>วันที่ ..... / ..... / .........</p>
+                </div>
+                <div class="space-y-6 md:space-y-8">
+                  <p>ลงชื่อ ...........................................................</p>
+                  <p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p>
+                  <p>วันที่ ..... / ..... / .........</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
     }
 
     async function handleBorrowSubmit(e) {
