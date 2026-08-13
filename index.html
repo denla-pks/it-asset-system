@@ -159,7 +159,7 @@
             <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
               <tr>
                 <th class="p-3">ลาเบล</th><th class="p-3">อุปกรณ์</th><th class="p-3">ประเภท</th><th class="p-3">ผู้ยืม / ผู้ครอบครอง</th>
-                <th class="p-3">วันที่ยืม/ส่งมอบ</th><th class="p-3">กำหนดคืน</th><th class="p-3">สถานะการคืน</th><th class="p-3 text-center">การจัดการคืน (Admin)</th>
+                <th class="p-3">วันที่ยืม/ส่งมอบ</th><th class="p-3">กำหนดคืน</th><th class="p-3">สถานะการคืน</th><th class="p-3 text-center">การจัดการ (Admin)</th>
               </tr>
             </thead>
             <tbody id="table-active-borrows" class="divide-y divide-slate-100">
@@ -439,7 +439,6 @@
         </div>
       </div>
     </section>
-
   </main>
 
   <!-- MODAL: RETURN INSPECTION (Responsive) -->
@@ -538,7 +537,7 @@
   </div>
 
   <!-- PRINTABLE TEMPLATE -->
-  <div id="printable-area" class="hidden p-8 font-sans max-w-4xl mx-auto bg-white text-slate-900">
+  <div id="printable-area" class="hidden p-8 font-sans max-w-4xl mx-auto bg-white text-slate-900 absolute top-0 left-0 w-full z-[9999]">
     <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
       <div class="flex items-center gap-4">
         <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
@@ -876,7 +875,7 @@
         if (pA !== pB) return pA - pB; return aStart - bStart;
       });
 
-      const deptColors = { 'AV': { bg: 'bg-rose-500' }, 'IT': { bg: 'bg-sky-500' }, 'MEDIA': { bg: 'bg-emerald-500' }, 'FACILITY': { bg: 'bg-amber-500' }, 'ALL': { bg: 'bg-purple-600' } };
+      const deptColors = { 'AV': { bg: 'bg-rose-500', text: 'text-rose-500' }, 'IT': { bg: 'bg-sky-500', text: 'text-sky-500' }, 'MEDIA': { bg: 'bg-emerald-500', text: 'text-emerald-500' }, 'FACILITY': { bg: 'bg-amber-500', text: 'text-amber-600' }, 'ALL': { bg: 'bg-purple-600', text: 'text-purple-600' } };
 
       container.innerHTML = displayEvents.map((ev, index) => {
         const startMs = new Date(ev.start_time).getTime(), endMs = new Date(ev.end_time).getTime(), seqNum = String(index + 1).padStart(2, '0');
@@ -885,8 +884,10 @@
         else if (nowMs > endMs) { statusObj = { text: 'เสร็จสิ้นแล้ว', dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-600 border-emerald-200' }; }
 
         const cTheme = deptColors[ev.department] || deptColors['ALL'];
+        const isFinished = nowMs > endMs;
+
         return `
-          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex items-stretch overflow-hidden transition-all ${nowMs > endMs ? 'opacity-60 grayscale-[20%]' : 'hover:shadow-md'}">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex items-stretch overflow-hidden transition-all ${isFinished ? 'opacity-60 grayscale-[20%]' : 'hover:shadow-md'}">
             <div class="w-3.5 ${cTheme.bg}"></div>
             <div class="flex flex-1 p-5 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-0 items-center">
               <div class="col-span-3 flex flex-col justify-center">
@@ -895,11 +896,11 @@
               </div>
               <div class="col-span-5 flex flex-col justify-center lg:border-l border-slate-200 lg:pl-6">
                 <span class="${cTheme.bg} text-white text-[10px] px-2.5 py-0.5 rounded-full w-max mb-1.5 font-bold tracking-widest uppercase shadow-sm">${ev.department || 'ALL'}</span>
-                <div class="text-base md:text-lg font-bold text-slate-800 leading-snug truncate pr-2">${ev.event_title}</div>
+                <div class="text-base md:text-lg font-bold text-slate-800 leading-snug truncate pr-2" title="${ev.event_title}">${ev.event_title}</div>
               </div>
               <div class="col-span-2 flex flex-col justify-center lg:border-l border-slate-200 lg:pl-6 space-y-2 text-xs md:text-sm font-semibold text-slate-700">
-                <div class="flex items-center gap-2"><span class="text-rose-500 text-base">📍</span> <span class="truncate">${ev.location || '-'}</span></div>
-                <div class="flex items-center gap-2"><span class="text-indigo-600 text-base">👤</span> <span class="truncate">${ev.main_host || '-'}</span></div>
+                <div class="flex items-center gap-2"><span class="text-rose-500 text-base">📍</span> <span class="truncate" title="${ev.location || '-'}">${ev.location || '-'}</span></div>
+                <div class="flex items-center gap-2"><span class="text-indigo-600 text-base">👤</span> <span class="truncate" title="${ev.main_host || '-'}">${ev.main_host || '-'}</span></div>
               </div>
               <div class="col-span-2 flex lg:justify-end items-center lg:border-l border-slate-200 lg:pl-6 pt-2 lg:pt-0">
                 <span class="px-4 py-1.5 rounded-full border ${statusObj.badge} text-xs md:text-sm font-extrabold flex items-center gap-2 shadow-sm whitespace-nowrap"><span class="w-2.5 h-2.5 rounded-full ${statusObj.dot}"></span>${statusObj.text}</span>
@@ -1073,21 +1074,47 @@
       } else { tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`; }
       document.getElementById('print-equipment-table').innerHTML = tableHtml;
 
-      const printArea = document.getElementById('printable-area'); printArea.classList.remove('hidden'); window.print(); printArea.classList.add('hidden');
+      const printArea = document.getElementById('printable-area'); 
+      printArea.classList.remove('hidden'); 
+      setTimeout(() => { window.print(); setTimeout(() => { printArea.classList.add('hidden'); }, 2000); }, 400); 
     }
 
     async function handleBorrowSubmit(e) {
       e.preventDefault();
+      
+      const btnSubmit = document.getElementById('btn-submit-borrow');
+      if (btnSubmit.disabled) return; // ป้องกันการกดเบิ้ล
+
       const equipmentId = document.getElementById('borrow-asset-select').value, borrowType = document.getElementById('borrow-type-select').value, borrowerName = document.getElementById('borrower-name').value, dept = document.getElementById('borrower-dept').value, returnDate = document.getElementById('return-date').value, note = document.getElementById('borrow-note').value;
       if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
+      
       const item = allEquipment.find(i => i.id == equipmentId), availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
       if (availableQty <= 0) { alert('❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว'); return; }
 
-      await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note }]);
+      // ล็อคปุ่ม
+      btnSubmit.disabled = true;
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = '⏳ กำลังบันทึกข้อมูล...';
+
+      const { error } = await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note }]);
+      
+      if (error) { 
+        alert('Error: ' + error.message); 
+        btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; 
+        return; 
+      }
+
       sendGoogleChatNotification({ title: `${borrowType === 'LONG_TERM' ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`} [ฝ่าย ${item.department || 'IT'}]`, details: [`<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`, `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`, `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`, `<b>ผู้รับมอบ/ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`, `<b>กำหนดคืน:</b> ${borrowType === 'LONG_TERM' ? 'Long-term (No Due Date)' : returnDate}`, `<b>วัตถุประสงค์/หมายเหตุ:</b> ${note || '-'}`] });
       
       alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
-      document.getElementById('form-borrow').reset(); toggleBorrowTypeMode(); await fetchAllEquipment(); await loadActiveBorrows();
+      document.getElementById('form-borrow').reset(); 
+      toggleBorrowTypeMode(); 
+      await fetchAllEquipment(); 
+      await loadActiveBorrows();
+
+      // ปลดล็อคปุ่ม
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = originalText;
     }
 
     async function loadActiveBorrows() {
@@ -1115,9 +1142,38 @@
             const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ชำรุดเล็กน้อย)` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ชำรุดหนัก/สูญหาย)` : ` (🟢 ปกติ)`;
             returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 คืนแล้ว ${new Date(record.actual_return_date).toLocaleDateString('th-TH')}${conditionText}</span>`;
           }
-          return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td><td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td><td class="p-3">${typeBadge}</td><td class="p-3">${record.borrower_name}</td><td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td><td class="p-3 text-amber-600 font-medium">${returnDisplay}</td><td class="p-3">${returnStatusCell}</td><td class="p-3 text-center">${!isReturned ? (currentAdmin ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ตรวจรับคืนโดย Admin</button>` : `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`) : `<span class="text-xs text-slate-400">ทำรายการแล้ว</span>`}</td></tr>`;
+
+          // เพิ่มปุ่มยกเลิกการยืมสำหรับ Admin
+          let actionCell = `<span class="text-xs text-slate-400">ทำรายการแล้ว</span>`;
+          if (!isReturned) {
+            if (currentAdmin) {
+              actionCell = `
+                <div class="flex flex-col xl:flex-row justify-center items-center gap-1">
+                  <button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-emerald-200 whitespace-nowrap w-full xl:w-auto">↩️ ตรวจรับคืน</button>
+                  <button onclick="cancelBorrowRecord(${record.id})" class="bg-rose-100 text-rose-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-rose-200 whitespace-nowrap w-full xl:w-auto">🗑️ ยกเลิก</button>
+                </div>
+              `;
+            } else {
+              actionCell = `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`;
+            }
+          }
+
+          return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td><td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td><td class="p-3">${typeBadge}</td><td class="p-3">${record.borrower_name}</td><td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td><td class="p-3 text-amber-600 font-medium">${returnDisplay}</td><td class="p-3">${returnStatusCell}</td><td class="p-3 text-center">${actionCell}</td></tr>`;
         }).join('');
       } catch (err) { tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ระบบทำงานผิดพลาดในการดึงข้อมูลยืมคืน</td></tr>`; }
+    }
+
+    // ฟังก์ชันใหม่: ยกเลิกการยืม
+    async function cancelBorrowRecord(recordId) {
+      if (!currentAdmin) { alert('🔒 Admin Only'); return; }
+      if (!confirm('⚠️ ยืนยันการยกเลิกรายการยืมนี้?\n\nข้อมูลการยืมจะถูกลบออกจากระบบ และอุปกรณ์จะถูกคืนเข้าคลังทันที')) return;
+
+      const { error } = await _supabase.from('borrow_records').delete().eq('id', recordId);
+      if (error) { alert('Error: ' + error.message); return; }
+
+      alert('✅ ยกเลิกรายการยืมเรียบร้อยแล้ว');
+      await fetchAllEquipment(); 
+      await loadActiveBorrows(); 
     }
 
     function clearBorrowFilters() { document.getElementById('filter-borrow-status').value = 'SHORT_TERM_BORROWED'; document.getElementById('filter-start-date').value = ''; document.getElementById('filter-end-date').value = ''; loadActiveBorrows(); }
