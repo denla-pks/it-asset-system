@@ -18,15 +18,21 @@
     .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
     .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
     input[type="datetime-local"]::-webkit-datetime-edit-ampm-field { display: none !important; }
+    
+    /* ระบบ CSS พิมพ์ PDF ที่แก้ไขใหม่สำหรับรองรับมือถือ 100% */
     @media print {
       @page { size: A4 portrait; margin: 0.5cm; }
-      html, body { height: 100%; overflow: hidden; }
-      body * { visibility: hidden !important; }
-      #printable-area, #printable-area * { visibility: visible !important; }
+      body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      
+      /* ซ่อนทุกอย่างที่เป็นลูกโดยตรงของ body ยกเว้น #printable-area */
+      body > *:not(#printable-area) { display: none !important; }
+      
       #printable-area { 
-        position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; 
-        display: block !important; background: white !important; color: black !important; 
-        padding: 0 !important; margin: 0 !important;
+        display: block !important; 
+        position: relative !important; 
+        width: 100% !important; 
+        padding: 0 !important; 
+        margin: 0 !important;
       }
     }
   </style>
@@ -536,71 +542,74 @@
     </div>
   </div>
 
-  <!-- PRINTABLE TEMPLATE -->
-  <div id="printable-area" class="hidden p-8 font-sans max-w-4xl mx-auto bg-white text-slate-900 absolute top-0 left-0 w-full z-[9999]">
-    <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
-      <div class="flex items-center gap-4">
-        <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
-        <div><h1 class="text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1><p class="text-base font-bold text-slate-600">(Denla Kindergarten)</p></div>
+  <!-- PRINTABLE TEMPLATE (แก้ไขการซ่อน/แสดงผลให้พิมพ์ได้ 100% บนมือถือ iOS & Android) -->
+  <div id="printable-area" class="hidden font-sans bg-white text-slate-900 absolute top-0 left-0 w-full z-[9999] min-h-screen">
+    <!-- เนื้อหาสำหรับ Print (กำหนด style inline บางจุดเพื่อความชัวร์เวลา Print) -->
+    <div style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+      <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
+        <div class="flex items-center gap-4">
+          <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
+          <div><h1 class="text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1><p class="text-base font-bold text-slate-600">(Denla Kindergarten)</p></div>
+        </div>
+        <div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1 bg-slate-50 min-w-[220px]">
+          <div class="flex justify-between"><span class="font-bold text-slate-600">เลขที่เอกสาร :</span><span id="print-doc-id" class="font-mono font-bold text-indigo-900">-</span></div>
+          <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">วันที่พิมพ์ :</span><span id="print-now-date" class="font-medium">-</span></div>
+          <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">แบบฟอร์ม :</span><span class="font-medium">FM-AVS-001</span></div>
+        </div>
       </div>
-      <div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1 bg-slate-50 min-w-[220px]">
-        <div class="flex justify-between"><span class="font-bold text-slate-600">เลขที่เอกสาร :</span><span id="print-doc-id" class="font-mono font-bold text-indigo-900">-</span></div>
-        <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">วันที่พิมพ์ :</span><span id="print-now-date" class="font-medium">-</span></div>
-        <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">แบบฟอร์ม :</span><span class="font-medium">FM-AVS-001</span></div>
+      <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
+        <h2 class="text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
+        <p class="text-base font-extrabold text-indigo-800">งานกิจกรรม: <span id="print-title" class="underline decoration-indigo-300 decoration-2">-</span></p>
       </div>
-    </div>
-    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
-      <h2 class="text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
-      <p class="text-base font-extrabold text-indigo-800">งานกิจกรรม: <span id="print-title" class="underline decoration-indigo-300 decoration-2">-</span></p>
-    </div>
-    <div class="grid grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
-      <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept" class="font-bold text-indigo-900">-</span></p>
-      <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900">-</span></p>
-      <p><b>สถานที่จัดงาน:</b> <span id="print-location" class="font-bold text-indigo-900">-</span></p>
-      <p><b>วันและเวลากิจกรรม:</b> <span id="print-datetime" class="font-bold text-indigo-900">-</span></p>
-      <p class="col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks" class="text-slate-700">-</span></p>
-    </div>
-    <div class="mb-4">
-      <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
-      <table class="w-full border-collapse border border-slate-300 text-xs text-left">
-        <thead><tr class="bg-indigo-50 font-bold text-indigo-950"><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมระบบและสื่อ</th><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมสถานที่และบริการ</th><th class="border border-slate-300 p-2 w-1/3 text-center">การจัดสรรที่จอดรถ</th></tr></thead>
-        <tbody>
-          <tr>
-            <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
-              <p><b>IT:</b> <span id="print-staff-it-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-it-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
-              <p><b>โสตฯ:</b> <span id="print-staff-av-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-av-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
-              <p><b>ช่างภาพ:</b> <span id="print-staff-media-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-media-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p>
-            </td>
-            <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
-              <p><b>ฝ่ายอาคาร:</b> <span id="print-staff-facility-count" class="font-bold">0 คน</span></p><p><b>ช่างอาคาร:</b> <span id="print-staff-tech-count" class="font-bold">0 คน</span></p>
-              <p><b>แม่บ้าน:</b> <span id="print-staff-housekeeper-count" class="font-bold">0 คน</span></p><p><b>รปภ.:</b> <span id="print-staff-security-count" class="font-bold">0 คน</span></p>
-            </td>
-            <td class="border border-slate-300 p-2.5 space-y-2 align-top">
-              <p><b>จำนวนที่จอดรถ:</b> <span id="print-parking-count" class="font-bold text-indigo-900">0 คัน</span></p>
-              <p><b>พื้นที่จอดรถ:</b> .....................................</p><p><b>ผู้ประสานงาน:</b> .....................................</p>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="mb-4">
-      <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน</h3>
-      <table class="w-full border-collapse border border-slate-300 text-xs text-left">
-        <thead><tr class="bg-indigo-900 text-white font-bold text-center"><th class="border border-slate-300 p-2 w-14">ตรวจเช็ก</th><th class="border border-slate-300 p-2">รายการอุปกรณ์ / ยี่ห้อรุ่น</th><th class="border border-slate-300 p-2 w-20">ฝ่ายดูแล</th><th class="border border-slate-300 p-2 w-28">สถานที่เก็บ</th><th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th><th class="border border-slate-300 p-2 w-24">หมายเหตุ</th></tr></thead>
-        <tbody id="print-equipment-table"></tbody>
-      </table>
-    </div>
-    <div class="mb-6 space-y-3">
-      <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">3. สถานะการจัดเตรียมและตรวจสอบ</h3>
-      <div class="grid grid-cols-3 gap-2 border border-slate-300 rounded-b-lg p-2.5 text-xs bg-slate-50">
-        <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>จัดเตรียมอุปกรณ์ครบถ้วน</span></label>
-        <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ทดสอบการใช้งานเรียบร้อย</span></label>
-        <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
+      <div class="grid grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
+        <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept" class="font-bold text-indigo-900">-</span></p>
+        <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900">-</span></p>
+        <p><b>สถานที่จัดงาน:</b> <span id="print-location" class="font-bold text-indigo-900">-</span></p>
+        <p><b>วันและเวลากิจกรรม:</b> <span id="print-datetime" class="font-bold text-indigo-900">-</span></p>
+        <p class="col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks" class="text-slate-700">-</span></p>
       </div>
-      <div class="grid grid-cols-3 gap-4 text-center text-xs pt-6 border-t border-slate-300 mt-6">
-        <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p><p>วันที่ ..... / ..... / .........</p></div>
-        <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p><p>วันที่ ..... / ..... / .........</p></div>
-        <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p><p>วันที่ ..... / ..... / .........</p></div>
+      <div class="mb-4">
+        <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
+        <table class="w-full border-collapse border border-slate-300 text-xs text-left">
+          <thead><tr class="bg-indigo-50 font-bold text-indigo-950"><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมระบบและสื่อ</th><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมสถานที่และบริการ</th><th class="border border-slate-300 p-2 w-1/3 text-center">การจัดสรรที่จอดรถ</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+                <p><b>IT:</b> <span id="print-staff-it-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-it-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
+                <p><b>โสตฯ:</b> <span id="print-staff-av-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-av-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
+                <p><b>ช่างภาพ:</b> <span id="print-staff-media-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-media-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p>
+              </td>
+              <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+                <p><b>ฝ่ายอาคาร:</b> <span id="print-staff-facility-count" class="font-bold">0 คน</span></p><p><b>ช่างอาคาร:</b> <span id="print-staff-tech-count" class="font-bold">0 คน</span></p>
+                <p><b>แม่บ้าน:</b> <span id="print-staff-housekeeper-count" class="font-bold">0 คน</span></p><p><b>รปภ.:</b> <span id="print-staff-security-count" class="font-bold">0 คน</span></p>
+              </td>
+              <td class="border border-slate-300 p-2.5 space-y-2 align-top">
+                <p><b>จำนวนที่จอดรถ:</b> <span id="print-parking-count" class="font-bold text-indigo-900">0 คัน</span></p>
+                <p><b>พื้นที่จอดรถ:</b> .....................................</p><p><b>ผู้ประสานงาน:</b> .....................................</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mb-4">
+        <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน</h3>
+        <table class="w-full border-collapse border border-slate-300 text-xs text-left">
+          <thead><tr class="bg-indigo-900 text-white font-bold text-center"><th class="border border-slate-300 p-2 w-14">ตรวจเช็ก</th><th class="border border-slate-300 p-2">รายการอุปกรณ์ / ยี่ห้อรุ่น</th><th class="border border-slate-300 p-2 w-20">ฝ่ายดูแล</th><th class="border border-slate-300 p-2 w-28">สถานที่เก็บ</th><th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th><th class="border border-slate-300 p-2 w-24">หมายเหตุ</th></tr></thead>
+          <tbody id="print-equipment-table"></tbody>
+        </table>
+      </div>
+      <div class="mb-6 space-y-3">
+        <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">3. สถานะการจัดเตรียมและตรวจสอบ</h3>
+        <div class="grid grid-cols-3 gap-2 border border-slate-300 rounded-b-lg p-2.5 text-xs bg-slate-50">
+          <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>จัดเตรียมอุปกรณ์ครบถ้วน</span></label>
+          <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ทดสอบการใช้งานเรียบร้อย</span></label>
+          <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
+        </div>
+        <div class="grid grid-cols-3 gap-4 text-center text-xs pt-6 border-t border-slate-300 mt-6">
+          <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p><p>วันที่ ..... / ..... / .........</p></div>
+          <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p><p>วันที่ ..... / ..... / .........</p></div>
+          <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p><p>วันที่ ..... / ..... / .........</p></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1043,6 +1052,7 @@
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
+    // ฟังก์ชันพิมพ์ใบงานแก้ไขล่าสุดสำหรับมือถือ
     function printEventReport() {
       if (!selectedEventForPrint) return;
       const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
@@ -1076,14 +1086,22 @@
 
       const printArea = document.getElementById('printable-area'); 
       printArea.classList.remove('hidden'); 
-      setTimeout(() => { window.print(); setTimeout(() => { printArea.classList.add('hidden'); }, 2000); }, 400); 
+      
+      // บังคับให้เบราว์เซอร์รับรู้ว่ามีเนื้อหาแสดงขึ้นมาก่อนพิมพ์ (แก้บั๊กมือถือ)
+      void printArea.offsetWidth; 
+      
+      try {
+        window.print();
+      } finally {
+        setTimeout(() => { printArea.classList.add('hidden'); }, 1000); 
+      }
     }
 
     async function handleBorrowSubmit(e) {
       e.preventDefault();
       
       const btnSubmit = document.getElementById('btn-submit-borrow');
-      if (btnSubmit.disabled) return; // ป้องกันการกดเบิ้ล
+      if (btnSubmit.disabled) return; 
 
       const equipmentId = document.getElementById('borrow-asset-select').value, borrowType = document.getElementById('borrow-type-select').value, borrowerName = document.getElementById('borrower-name').value, dept = document.getElementById('borrower-dept').value, returnDate = document.getElementById('return-date').value, note = document.getElementById('borrow-note').value;
       if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
@@ -1091,28 +1109,19 @@
       const item = allEquipment.find(i => i.id == equipmentId), availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
       if (availableQty <= 0) { alert('❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว'); return; }
 
-      // ล็อคปุ่ม
       btnSubmit.disabled = true;
       const originalText = btnSubmit.innerHTML;
       btnSubmit.innerHTML = '⏳ กำลังบันทึกข้อมูล...';
 
       const { error } = await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note }]);
       
-      if (error) { 
-        alert('Error: ' + error.message); 
-        btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; 
-        return; 
-      }
+      if (error) { alert('Error: ' + error.message); btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; }
 
       sendGoogleChatNotification({ title: `${borrowType === 'LONG_TERM' ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`} [ฝ่าย ${item.department || 'IT'}]`, details: [`<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`, `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`, `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`, `<b>ผู้รับมอบ/ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`, `<b>กำหนดคืน:</b> ${borrowType === 'LONG_TERM' ? 'Long-term (No Due Date)' : returnDate}`, `<b>วัตถุประสงค์/หมายเหตุ:</b> ${note || '-'}`] });
       
       alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
-      document.getElementById('form-borrow').reset(); 
-      toggleBorrowTypeMode(); 
-      await fetchAllEquipment(); 
-      await loadActiveBorrows();
+      document.getElementById('form-borrow').reset(); toggleBorrowTypeMode(); await fetchAllEquipment(); await loadActiveBorrows();
 
-      // ปลดล็อคปุ่ม
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = originalText;
     }
@@ -1143,37 +1152,23 @@
             returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 คืนแล้ว ${new Date(record.actual_return_date).toLocaleDateString('th-TH')}${conditionText}</span>`;
           }
 
-          // เพิ่มปุ่มยกเลิกการยืมสำหรับ Admin
           let actionCell = `<span class="text-xs text-slate-400">ทำรายการแล้ว</span>`;
           if (!isReturned) {
             if (currentAdmin) {
-              actionCell = `
-                <div class="flex flex-col xl:flex-row justify-center items-center gap-1">
-                  <button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-emerald-200 whitespace-nowrap w-full xl:w-auto">↩️ ตรวจรับคืน</button>
-                  <button onclick="cancelBorrowRecord(${record.id})" class="bg-rose-100 text-rose-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-rose-200 whitespace-nowrap w-full xl:w-auto">🗑️ ยกเลิก</button>
-                </div>
-              `;
-            } else {
-              actionCell = `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`;
-            }
+              actionCell = `<div class="flex flex-col xl:flex-row justify-center items-center gap-1"><button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-emerald-200 whitespace-nowrap w-full xl:w-auto">↩️ ตรวจรับคืน</button><button onclick="cancelBorrowRecord(${record.id})" class="bg-rose-100 text-rose-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-rose-200 whitespace-nowrap w-full xl:w-auto">🗑️ ยกเลิก</button></div>`;
+            } else { actionCell = `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`; }
           }
-
           return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td><td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td><td class="p-3">${typeBadge}</td><td class="p-3">${record.borrower_name}</td><td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td><td class="p-3 text-amber-600 font-medium">${returnDisplay}</td><td class="p-3">${returnStatusCell}</td><td class="p-3 text-center">${actionCell}</td></tr>`;
         }).join('');
       } catch (err) { tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ระบบทำงานผิดพลาดในการดึงข้อมูลยืมคืน</td></tr>`; }
     }
 
-    // ฟังก์ชันใหม่: ยกเลิกการยืม
     async function cancelBorrowRecord(recordId) {
       if (!currentAdmin) { alert('🔒 Admin Only'); return; }
       if (!confirm('⚠️ ยืนยันการยกเลิกรายการยืมนี้?\n\nข้อมูลการยืมจะถูกลบออกจากระบบ และอุปกรณ์จะถูกคืนเข้าคลังทันที')) return;
-
       const { error } = await _supabase.from('borrow_records').delete().eq('id', recordId);
       if (error) { alert('Error: ' + error.message); return; }
-
-      alert('✅ ยกเลิกรายการยืมเรียบร้อยแล้ว');
-      await fetchAllEquipment(); 
-      await loadActiveBorrows(); 
+      alert('✅ ยกเลิกรายการยืมเรียบร้อยแล้ว'); await fetchAllEquipment(); await loadActiveBorrows(); 
     }
 
     function clearBorrowFilters() { document.getElementById('filter-borrow-status').value = 'SHORT_TERM_BORROWED'; document.getElementById('filter-start-date').value = ''; document.getElementById('filter-end-date').value = ''; loadActiveBorrows(); }
@@ -1262,6 +1257,9 @@
 
     async function handleEventSubmit(e) {
       e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-event');
+      if (btnSubmit.disabled) return; 
+
       const rawEventId = document.getElementById('event-id').value, dept = document.getElementById('event-dept-select').value, title = document.getElementById('event-title').value, mainHost = document.getElementById('event-main-host').value;
       const locationSel = document.getElementById('event-location-select').value, locationCustom = document.getElementById('event-location-custom').value, location = (locationSel === 'CUSTOM') ? locationCustom : locationSel;
       const startDateStr = `${document.getElementById('start-year').value}-${document.getElementById('start-month').value}-${document.getElementById('start-day').value}`, startTime = document.getElementById('event-start-time').value;
@@ -1290,6 +1288,10 @@
         }
       }
 
+      btnSubmit.disabled = true;
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = '⏳ กำลังบันทึกข้อมูล...';
+
       let chatMentionStr = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`).join(', ') || '-';
       const facilityAdmins = allAdmins.filter(a => a.department === 'FACILITY');
       if ((reqStaffList.length > 0 || dept === 'FACILITY') && facilityAdmins.length > 0) {
@@ -1300,10 +1302,21 @@
       const payload = { department: dept, event_title: title, main_host: mainHost, location: location, start_time: isoStart, end_time: isoEnd, event_date: startDateStr, organizer: tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก', details: `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}`, remarks: remarks };
 
       const { error } = rawEventId && rawEventId !== '' ? await _supabase.from('event_queue').update(payload).eq('id', parseInt(rawEventId, 10)) : await _supabase.from('event_queue').insert([payload]);
-      if (error) { alert('Error: ' + error.message); return; }
+      
+      if (error) { 
+        alert('Error: ' + error.message); 
+        btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; 
+        return; 
+      }
 
       sendGoogleChatNotification({ title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`, details: [`<b>ชื่อกิจกรรม:</b> ${title}`, `<b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> ${mainHost}`, `<b>📍 สถานที่จัดงาน:</b> <font color="#0284c7"><b>${location}</b></font>`, `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`, `<b>เวลาเสร็จงาน:</b> ${formatThaiDateTime(isoEnd)}`, `<b>🏷️ ทีมงานรับผิดชอบปฏิบัติงาน:</b><br>${chatMentionStr}`, `<b>📝 หมายเหตุ:</b> ${remarks || '-'}`, `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`] });
-      alert(rawEventId ? '✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!' : '✅ บันทึกคิวงานเรียบร้อย!'); resetEventForm(); if (calendar) calendar.refetchEvents();
+      alert(rawEventId ? '✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!' : '✅ บันทึกคิวงานเรียบร้อย!'); 
+      
+      resetEventForm(); 
+      if (calendar) calendar.refetchEvents();
+
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = originalText;
     }
 
     function editEventFromModal() {
