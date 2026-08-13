@@ -1,135 +1,1292 @@
-<!-- MODAL: RETURN INSPECTION MODAL -->
+<!DOCTYPE html>
+<html lang="th-TH">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการอุปกรณ์ IT & คิวงาน - เด่นหล้า</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; }
+    .fc-event { cursor: pointer; border-radius: 8px !important; padding: 3px 6px !important; font-size: 0.82rem !important; border: none !important; }
+    .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700 !important; }
+    .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; border-radius: 10px !important; }
+    input[type="datetime-local"]::-webkit-datetime-edit-ampm-field { display: none !important; }
+    @media print {
+      @page { size: A4 portrait; margin: 0.5cm; }
+      html, body { height: 100%; overflow: hidden; }
+      body * { visibility: hidden !important; }
+      #printable-area, #printable-area * { visibility: visible !important; }
+      #printable-area { 
+        position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; 
+        display: block !important; background: white !important; color: black !important; 
+        padding: 0 !important; margin: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+  <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white p-1 rounded-full shadow-md flex items-center justify-center">
+          <img src="logo.png" alt="Denla Logo" class="h-10 w-10 object-contain" onerror="this.style.display='none'">
+        </div>
+        <div>
+          <h1 id="app-title" class="text-xl font-bold">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
+          <p id="app-subtitle" class="text-xs text-indigo-200">Denla IT, AV, Media & Facility Management</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap items-center gap-2">
+        <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
+          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืน & เบิกส่งมอบ</button>
+          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 คิวงาน/ปฏิทิน</button>
+          <button onclick="switchTab('display')" id="tab-display" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📺 จอแสดงกิจกรรม</button>
+          <button onclick="switchTab('staff-summary')" id="tab-staff-summary" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white">📊 สรุปภาระงาน (Admin)</button>
+          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white">🖥️ คลังอุปกรณ์ (Admin)</button>
+        </nav>
+        <div class="flex items-center bg-indigo-900/80 rounded-xl p-0.5 border border-indigo-500/50">
+          <button onclick="changeLanguage('th')" id="lang-th" class="px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow">TH</button>
+          <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white">EN</button>
+        </div>
+        <div class="flex gap-1">
+          <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition">🔐 เข้าระบบ Admin</button>
+          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-medium px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition border border-indigo-500">📝 ลงทะเบียน Admin</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 mt-6">
+    <div id="admin-banner" class="hidden bg-amber-500 text-slate-900 px-4 py-2 rounded-xl mb-4 font-bold text-sm flex justify-between items-center shadow-md">
+      <span id="admin-welcome-text">🛠️ คุณอยู่ในโหมดแอดมิน - สิทธิ์จัดการระบบเปิดใช้งานแล้ว</span>
+      <button onclick="logoutAdmin()" class="bg-slate-900 text-white px-2.5 py-1 rounded-lg text-xs hover:bg-slate-800">ออกจากระบบ Admin</button>
+    </div>
+
+    <!-- TAB 1: ยืม-คืน -->
+    <section id="sec-borrow" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม / เบิก</h2>
+          <div class="mb-4">
+            <button onclick="toggleScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition">📷 เปิด/ปิด สแกน QR Code จากกล้อง</button>
+            <div id="reader" class="mt-3 hidden rounded-xl overflow-hidden border border-slate-200"></div>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">เลือกหมวดหมู่แผนก</label>
+              <select id="borrow-dept-filter" onchange="renderEquipmentDropdown()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none">
+                <option value="ALL">-- ทุกแผนก --</option>
+                <option value="IT">💻 ฝ่ายไอที (IT)</option>
+                <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+                <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+                <option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ (Facility)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">เลือกรายการอุปกรณ์</label>
+              <select id="borrow-asset-select" onchange="showEquipmentPreview(this.value)" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>
+              </select>
+            </div>
+          </div>
+          <div id="equipment-preview" class="mt-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 text-sm space-y-1 hidden">
+            <p><span class="font-bold text-indigo-900">ชื่ออุปกรณ์:</span> <span id="prev-name">-</span></p>
+            <p><span class="font-bold text-indigo-900">ลาเบล/รหัส:</span> <span id="prev-label" class="bg-indigo-200 px-2 py-0.5 rounded text-indigo-800 text-xs font-mono">-</span></p>
+            <p><span class="font-bold text-indigo-900">สถานที่เก็บ:</span> <span id="prev-location">-</span></p>
+            <p><span class="font-bold text-indigo-900">คงเหลือพร้อมยืม:</span> <span id="prev-stock" class="font-bold text-emerald-600">-</span></p>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">📝 2. กรอกข้อมูลการยืม / เบิกส่งมอบ</h2>
+          <form id="form-borrow" onsubmit="handleBorrowSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-indigo-900 mb-1">📋 ประเภทการเบิกใช้งาน *</label>
+              <select id="borrow-type-select" onchange="toggleBorrowTypeMode()" class="w-full p-2.5 border border-indigo-200 rounded-xl bg-indigo-50 text-sm font-bold text-indigo-900 outline-none">
+                <option value="SHORT_TERM">📱 ยืมใช้งานรายวัน (ยืม-คืนปกติ)</option>
+                <option value="LONG_TERM">🏢 เบิกใช้งานระยะยาว / ประจำตำแหน่ง (ส่งมอบอุปกรณ์)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อ-นามสกุล ผู้ยืม/ผู้รับมอบ *</label>
+              <input type="text" id="borrower-name" required placeholder="เช่น อ.สมชาย ใจดี" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">แผนก/ฝ่ายผู้ยืม/ประจำตำแหน่ง</label>
+              <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div id="box-return-date">
+              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
+              <input type="date" id="return-date" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">วัตถุประสงค์ / หมายเหตุการส่งมอบ</label>
+              <input type="text" id="borrow-note" placeholder="เช่น เครื่องประจำตำแหน่งครูสอน ป.2" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <button type="submit" id="btn-submit-borrow" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition">🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 pb-3 border-b border-slate-100">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">🔄 รายการอุปกรณ์ยืม-คืน & ส่งมอบครอบครอง</h2>
+          <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto text-xs">
+            <select id="filter-borrow-status" onchange="loadActiveBorrows()" class="p-2 border border-slate-200 rounded-xl bg-slate-50 outline-none font-bold text-slate-700">
+              <option value="SHORT_TERM_BORROWED">🟡 1. กำลังยืม (ยืมใช้งานรายวัน)</option>
+              <option value="LONG_TERM_BORROWED">🟣 2. เบิกครอบครองอยู่ (ระยะยาว)</option>
+              <option value="RETURNED">🟢 3. คืนเรียบร้อยแล้ว</option>
+              <option value="ALL">🌐 4. ทั้งหมด (แสดงทั้งกำลังยืมและคืนแล้ว)</option>
+            </select>
+            <input type="date" id="filter-start-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+            <input type="date" id="filter-end-date" onchange="loadActiveBorrows()" class="p-1.5 border border-slate-200 rounded-xl bg-slate-50 outline-none">
+            <button onclick="clearBorrowFilters()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-medium transition">ล้างเลือก</button>
+            <button onclick="loadActiveBorrows()" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-bold transition">🔄 รีเฟรช</button>
+            <button onclick="exportBorrowToExcel()" class="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow transition flex items-center gap-1">📊 ส่งออก Excel</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">ลาเบล</th><th class="p-3">อุปกรณ์</th><th class="p-3">ประเภท</th><th class="p-3">ผู้ยืม / ผู้ครอบครอง</th>
+                <th class="p-3">วันที่ยืม/ส่งมอบ</th><th class="p-3">กำหนดคืน</th><th class="p-3">สถานะการคืน</th><th class="p-3 text-center">การจัดการคืน (Admin)</th>
+              </tr>
+            </thead>
+            <tbody id="table-active-borrows" class="divide-y divide-slate-100">
+              <tr><td colspan="8" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: คิวงาน/กิจกรรม -->
+    <section id="sec-event" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-5 space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+            <h2 id="form-event-title" class="text-lg font-bold text-slate-800">➕ ลงคิวงาน / กิจกรรมใหม่</h2>
+            <button id="btn-cancel-edit-event" onclick="resetEventForm()" class="hidden text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-2.5 py-1 rounded-lg">ยกเลิกการแก้ไข</button>
+          </div>
+          <form id="form-event" onsubmit="handleEventSubmit(event)" class="space-y-3">
+            <input type="hidden" id="event-id">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">ส่วนงานที่รับผิดชอบหลัก *</label>
+              <select id="event-dept-select" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-bold text-indigo-900">
+                <option value="IT">💻 ฝ่ายไอที (IT)</option>
+                <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
+                <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
+                <option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ (Facility)</option>
+                <option value="ALL">🌐 รวมงานทุกแผนก (All Services)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อกิจกรรม / งาน *</label>
+              <input type="text" id="event-title" required placeholder="เช่น ถ่ายทำวิดีโอวันแม่" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+            </div>
+            <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
+              <label class="block text-xs font-bold text-indigo-900 mb-1">👤 ผู้จัดงาน / ผู้รับผิดชอบหลักงานนี้ *</label>
+              <input type="text" id="event-main-host" required placeholder="เช่น อ.วิชัย (ฝ่ายโสตฯ) / ครูสมชาย" class="w-full p-2 border border-indigo-200 rounded-lg text-sm outline-none bg-white">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">📍 สถานที่จัดงาน *</label>
+              <select id="event-location-select" onchange="toggleCustomLocationInput()" class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-medium mb-1.5"></select>
+              <input type="text" id="event-location-custom" placeholder="กรุณาระบุสถานที่..." class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none hidden">
+            </div>
+            <div class="p-2.5 bg-indigo-50/80 rounded-xl border border-indigo-200">
+              <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-indigo-900">
+                <input type="checkbox" id="chk-show-display" checked class="rounded text-indigo-600 focus:ring-0">
+                <span>📺 แสดงคิวงานนี้บนหน้าจอ Display Board สาธารณะ</span>
+              </label>
+            </div>
+            <div class="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <p class="text-xs font-bold text-indigo-900 border-b border-slate-200 pb-1">⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):</p>
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-700">📅 วัน-เวลา เริ่มงาน *</label>
+                <div class="grid grid-cols-3 gap-1">
+                  <select id="start-day" required class="p-1.5 border border-slate-200 rounded-lg text-xs bg-white"></select>
+                  <select id="start-month" required class="p-1.5 border border-slate-200 rounded-lg text-xs bg-white"></select>
+                  <select id="start-year" required class="p-1.5 border border-slate-200 rounded-lg text-xs bg-white"></select>
+                </div>
+                <div class="pt-1"><select id="event-start-time" required class="w-full p-2 border border-indigo-200 rounded-xl text-xs bg-white font-bold text-indigo-900"></select></div>
+              </div>
+              <div class="space-y-1 border-t border-slate-200 pt-2">
+                <label class="block text-[11px] font-bold text-slate-700">📅 วัน-เวลา เสร็จงาน *</label>
+                <div class="grid grid-cols-3 gap-1">
+                  <select id="end-day" required class="p-1.5 border border-slate-200 rounded-lg text-xs bg-white"></select>
+                  <select id="end-month" required class="p-1.5 border border-slate-200 rounded-lg text-xs bg-white"></select>
+                  <select id="end-year" required class="p-1.5 border border-slate-200 rounded-lg text-xs bg-white"></select>
+                </div>
+                <div class="pt-1"><select id="event-end-time" required class="w-full p-2 border border-indigo-200 rounded-xl text-xs bg-white font-bold text-indigo-900"></select></div>
+              </div>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
+              <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่:</label>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1"><span class="text-slate-700 font-medium">🧹 แม่บ้าน</span><div class="flex items-center gap-1"><input type="number" id="num-housekeeper" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900"><span>คน</span></div></div>
+                <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1"><span class="text-slate-700 font-medium">🛠️ ช่างอาคารฯ</span><div class="flex items-center gap-1"><input type="number" id="num-technician" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900"><span>คน</span></div></div>
+                <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1"><span class="text-slate-700 font-medium">🚗 ที่จอดรถ</span><div class="flex items-center gap-1"><input type="number" id="num-parking" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900"><span>คัน</span></div></div>
+              </div>
+              <div class="pt-2 border-t border-amber-200 space-y-1">
+                <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
+                <div class="flex flex-wrap gap-1 text-[11px]">
+                  <button type="button" onclick="selectAllTags('ALL')" class="bg-slate-800 text-white px-2 py-0.5 rounded-lg">+ แท็กทุกแผนก</button>
+                  <button type="button" onclick="selectAllTags('IT')" class="bg-blue-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก IT</button>
+                  <button type="button" onclick="selectAllTags('AV')" class="bg-rose-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก AV</button>
+                  <button type="button" onclick="selectAllTags('MEDIA')" class="bg-emerald-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก Media</button>
+                  <button type="button" onclick="selectAllTags('FACILITY')" class="bg-amber-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก อาคารฯ</button>
+                  <button type="button" onclick="clearAllTags()" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg">ล้างเลือก</button>
+                </div>
+                <div id="tag-admin-list" class="max-h-36 overflow-y-auto border border-amber-300 rounded-lg p-2 bg-white text-xs space-y-1"><p class="text-slate-400 text-center py-1">กำลังโหลดรายชื่อทีมงาน...</p></div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">🎪 เลือกอุปกรณ์เฉพาะสำหรับจัดงานกิจกรรม:</label>
+              <div id="event-equipment-accordion" class="space-y-2 text-xs"><p class="text-slate-400 text-center py-2">กำลังโหลดรายการอุปกรณ์จัดงาน...</p></div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุ / รายละเอียดเพิ่มเติม</label>
+              <textarea id="event-remarks" rows="2" placeholder="เช่น ขอปลั๊กสามตาเพิ่ม 2 จุด" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
+            </div>
+            <button type="submit" id="btn-submit-event" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition">📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน</button>
+          </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-7 space-y-4">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b pb-3 border-slate-100">
+            <h2 class="text-lg font-bold text-slate-800">📅 ปฏิทินคิวงานกิจกรรม</h2>
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-rose-500 inline-block"></span> โสตฯ</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-sky-500 inline-block"></span> ไอที</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-emerald-500 inline-block"></span> ช่างภาพ</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-amber-500 inline-block"></span> อาคารฯ</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-md bg-purple-500 inline-block"></span> รวมแผนก</span>
+            </div>
+          </div>
+          <div class="p-3 bg-indigo-50/80 rounded-xl border border-indigo-200 space-y-2 text-xs">
+            <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
+              <div class="flex flex-1 gap-2 w-full">
+                <input type="text" id="calendar-filter-staff" onkeyup="filterCalendarEvents()" placeholder="🔎 ค้นชื่อทีมงานปฏิบัติงาน..." class="p-2 border border-slate-200 rounded-xl outline-none bg-white text-xs flex-1">
+                <select id="calendar-filter-dept" onchange="filterCalendarEvents()" class="p-2 border border-slate-200 rounded-xl outline-none bg-white text-xs font-bold text-indigo-900">
+                  <option value="ALL">🌐 ทุกแผนก</option><option value="IT">💻 ฝ่าย IT</option><option value="AV">🔊 ฝ่าย AV</option><option value="MEDIA">📷 ฝ่าย Media</option><option value="FACILITY">🏢 ฝ่ายอาคารฯ</option>
+                </select>
+              </div>
+              <button onclick="clearCalendarFilters()" class="p-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium transition text-xs whitespace-nowrap">ล้างตัวกรอง</button>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-indigo-100">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-indigo-900">📊 เลือกช่วงวันที่ต้องการส่งออก Excel:</span>
+                <div class="flex items-center gap-1"><span>เริ่ม:</span><input type="date" id="excel-event-start" class="p-1 border border-indigo-200 rounded-lg outline-none bg-white"></div>
+                <div class="flex items-center gap-1"><span>ถึง:</span><input type="date" id="excel-event-end" class="p-1 border border-indigo-200 rounded-lg outline-none bg-white"></div>
+              </div>
+              <button onclick="exportEventsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold shadow transition flex items-center gap-1">📊 ส่งออกคิวงาน Excel</button>
+            </div>
+          </div>
+          <div id="calendar" class="min-h-[500px]"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) รูปแบบใหม่ -->
+    <section id="sec-display" class="hidden">
+      <div class="bg-[#f8f9fc] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col" style="min-height: 80vh;">
+        <div class="p-6 md:p-10 flex-1">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div class="flex items-center gap-5">
+              <div class="bg-indigo-100/80 p-4 rounded-3xl text-indigo-600 border border-indigo-200 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl md:text-4xl font-black text-slate-800 flex items-center gap-4">
+                  ตารางคิวงานกิจกรรมประจำวัน
+                  <span class="bg-indigo-700 text-white text-sm font-bold px-4 py-1.5 rounded-full shadow-md"><span id="display-board-total-count">0</span> กิจกรรม</span>
+                </h2>
+                <p class="text-sm md:text-base font-medium text-slate-500 mt-1">Denla Kindergarten Event Schedule</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-6 font-bold text-sm text-slate-600">
+              <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span> เสร็จสิ้นแล้ว</span>
+              <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span> กำลังดำเนินการ</span>
+              <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 rounded-full bg-slate-300 shadow-sm"></span> รอเริ่ม</span>
+            </div>
+          </div>
+          <div id="display-board-cards" class="space-y-4">
+            <p class="text-slate-400 text-center py-12 text-lg">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
+          </div>
+        </div>
+        <div class="bg-indigo-800 text-indigo-100 p-4 px-8 flex items-center justify-between">
+          <div class="flex items-center gap-2 font-medium text-sm md:text-base">
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="animation-duration: 3s;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            ข้อมูลกิจกรรมอัปเดตอัตโนมัติ
+          </div>
+          <div class="font-medium text-sm md:text-base">อัปเดตล่าสุด <span id="display-footer-last-update" class="font-mono font-bold tracking-wide">--:--</span> น.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: สรุปภาระงานทีมงาน -->
+    <section id="sec-staff-summary" class="space-y-6 hidden admin-col">
+      <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-800 space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-3 gap-2">
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">📊 [Admin Zone] สรุปคิวงานภาระหน้าที่ของทีมงาน (Staff Workload Summary)</h2>
+          <span class="text-xs text-slate-400">ค้นหางานที่ได้รับมอบหมายตามรายบุคคลหรือรายแผนก</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 text-xs">
+          <div><label class="block text-slate-300 mb-1">🔍 ค้นหาชื่อทีมงาน / ชื่อเล่น</label><input type="text" id="staff-search-name" onkeyup="renderStaffWorkloadSummary()" placeholder="เช่น ครูมีน, ช่างชัย, รัชพล..." class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none"></div>
+          <div><label class="block text-slate-300 mb-1">🏢 ฝ่ายสังกัดทีมงาน</label><select id="staff-search-dept" onchange="renderStaffWorkloadSummary()" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none"><option value="ALL">-- ทุกแผนก --</option><option value="IT">💻 ฝ่ายไอที (IT)</option><option value="AV">🔊 ฝ่ายโสตฯ (AV)</option><option value="MEDIA">📷 ฝ่ายสื่อ/ช่างภาพ (Media)</option><option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ (Facility)</option></select></div>
+          <div><label class="block text-slate-300 mb-1">📅 ตั้งแต่วันที่</label><input type="date" id="staff-search-start" onchange="renderStaffWorkloadSummary()" class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none"></div>
+          <div><label class="block text-slate-300 mb-1">📅 ถึงวันที่</label><input type="date" id="staff-search-end" onchange="renderStaffWorkloadSummary()" class="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white outline-none"></div>
+        </div>
+        <div class="overflow-x-auto pt-2">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-800 text-amber-300 font-bold border-b border-slate-700">
+              <tr><th class="p-2.5">ชื่อกิจกรรม/งาน</th><th class="p-2.5">ฝ่ายหลัก</th><th class="p-2.5">ผู้จัดงานหลัก</th><th class="p-2.5">ทีมงานร่วมปฏิบัติงาน (Tagged)</th><th class="p-2.5">วัน-เวลา</th><th class="p-2.5">สถานที่</th></tr>
+            </thead>
+            <tbody id="table-staff-workload" class="divide-y divide-slate-800">
+              <tr><td colspan="6" class="p-4 text-center text-slate-500">กรุณาพิมพ์ค้นหาชื่อ หรือเลือกแผนกทีมงาน...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: คลังอุปกรณ์ & จัดการสถานที่ -->
+    <section id="sec-inventory" class="space-y-6 hidden admin-col">
+      <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
+        <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">🏢 [Admin Zone] จัดการสถานที่จัดงาน (Location Management)</h2>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="admin-new-location" placeholder="พิมพ์ชื่อสถานที่จัดงานใหม่..." class="flex-1 p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
+          <button onclick="addNewLocation()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-5 py-2.5 rounded-xl text-sm shadow transition">+ เพิ่มสถานที่จัดงาน</button>
+        </div>
+        <div id="admin-location-tags" class="flex flex-wrap gap-1.5 pt-2"></div>
+      </div>
+
+      <div id="admin-equipment-form" class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg border border-slate-800 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+          <h2 id="form-equipment-title" class="text-lg font-bold text-amber-400 flex items-center gap-2">🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่</h2>
+          <button onclick="resetEquipmentForm()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1 rounded-lg">ล้างฟอร์ม / เพิ่มใหม่</button>
+        </div>
+        <form id="form-equipment" onsubmit="handleEquipmentSave(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input type="hidden" id="eq-id">
+          <div><label class="block text-xs text-slate-300 mb-1">ลาเบล/รหัสอุปกรณ์ *</label><input type="text" id="eq-label" required placeholder="เช่น DENLA-AV-001" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-slate-300 mb-1">ชื่ออุปกรณ์ *</label><input type="text" id="eq-name" required placeholder="เช่น ชุดตู้ลำโพงหอประชุม" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-amber-300 font-bold mb-1">จำนวนอุปกรณ์ทั้งหมด (ชิ้น) *</label><input type="number" id="eq-quantity" min="1" value="1" required class="w-full p-2.5 rounded-xl bg-slate-800 border border-amber-500 font-bold text-amber-300 text-sm outline-none"></div>
+          <div>
+            <label class="block text-xs text-slate-300 mb-1">ฝ่ายที่ดูแล *</label>
+            <select id="eq-dept" required class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none">
+              <option value="IT">💻 ฝ่ายไอที (IT)</option><option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option><option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option><option value="FACILITY">🏢 ฝ่ายอาคารสถานที่ (Facility)</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs text-amber-400 font-bold mb-1">🏷️ หมวดหมู่การใช้งานอุปกรณ์ *</label>
+            <select id="eq-usage-type" required class="w-full p-2.5 rounded-xl bg-amber-950/80 border border-amber-500 text-amber-200 text-sm font-bold outline-none">
+              <option value="BORROW">📱 อุปกรณ์สำหรับยืม-คืน รายวัน เท่านั้น</option><option value="EVENT">🎪 อุปกรณ์สำหรับจัดงานกิจกรรม (Event Asset) เท่านั้น</option><option value="BOTH">🔄 ใช้ได้ทั้ง ยืม-คืน และ จัดงานกิจกรรม</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs text-emerald-400 font-bold mb-1">⚡ สถานะสต็อกอุปกรณ์ (พร้อมใช้งาน/ส่งซ่อม) *</label>
+            <select id="eq-status" required class="w-full p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 text-sm font-bold outline-none">
+              <option value="AVAILABLE">🟢 พร้อมใช้งานปกติ (Available)</option><option value="UNAVAILABLE">🔴 ไม่พร้อมใช้งาน / ชำรุดส่งซ่อม (Unavailable)</option>
+            </select>
+          </div>
+          <div><label class="block text-xs text-slate-300 mb-1">ยี่ห้อ / รุ่น</label><input type="text" id="eq-brand" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-slate-300 mb-1">Serial Number</label><input type="text" id="eq-serial" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div><label class="block text-xs text-slate-300 mb-1">สถานที่เก็บ</label><input type="text" id="eq-location" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm outline-none"></div>
+          <div class="md:col-span-4 flex justify-end gap-2 pt-2">
+            <button type="submit" id="btn-save-equipment" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition">💾 บันทึกข้อมูลอุปกรณ์</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">📋 คลังอุปกรณ์รวม (Admin Zone)</h2>
+            <p class="text-xs text-slate-500">จัดการอุปกรณ์ยืม-คืน และ อุปกรณ์จัดงานกิจกรรม พร้อมระบบสต็อกคงเหลือ</p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <select id="inventory-type-filter" onchange="filterInventory()" class="p-2.5 border border-indigo-200 rounded-xl text-sm outline-none bg-indigo-50/50 font-bold text-indigo-900">
+              <option value="ALL">แสดงทุกประเภท</option><option value="BORROW">📱 เฉพาะอุปกรณ์ยืม-คืน</option><option value="EVENT">🎪 เฉพาะอุปกรณ์จัดงานกิจกรรม</option>
+            </select>
+            <input type="text" id="search-inventory" onkeyup="filterInventory()" placeholder="🔎 ค้นหาชื่อ, ลาเบล..." class="p-2.5 px-4 border border-slate-200 rounded-xl text-sm outline-none">
+            <button onclick="exportInventoryToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2.5 rounded-xl text-sm font-bold shadow transition flex items-center justify-center gap-1">📊 ส่งออก Excel</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-3">ลาเบล</th><th class="p-3">ชื่ออุปกรณ์</th><th class="p-3 text-center">จำนวนทั้งหมด</th><th class="p-3 text-center">จำนวนคงเหลือ</th><th class="p-3">หมวดใช้งาน</th>
+                <th class="p-3">ฝ่ายที่ดูแล</th><th class="p-3">ยี่ห้อ/รุ่น</th><th class="p-3">สถานที่เก็บ</th><th class="p-3">สถานะสต็อก</th><th class="p-3 text-center admin-col hidden">จัดการ (Admin)</th>
+              </tr>
+            </thead>
+            <tbody id="table-inventory" class="divide-y divide-slate-100">
+              <tr><td colspan="10" class="p-4 text-center text-slate-400">กำลังโหลดรายการ...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: RETURN INSPECTION (Responsive) -->
   <div id="modal-return-inspect" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-5 md:p-6 rounded-2xl shadow-xl w-full max-w-md space-y-4">
-      <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 <span data-i18n="inspectTitle">ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</span></h3>
-      
+      <h3 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">🔍 ตรวจสอบสภาพอุปกรณ์ก่อนรับคืน</h3>
+      <div><p class="text-xs text-slate-500 mb-1">อุปกรณ์ที่จะรับคืน:</p><p id="inspect-equipment-name" class="font-bold text-indigo-900 text-sm md:text-base bg-indigo-50 p-2.5 rounded-xl border border-indigo-100">-</p></div>
       <div>
-        <p class="text-xs text-slate-500 mb-1" data-i18n="inspectEqLbl">อุปกรณ์ที่จะรับคืน:</p>
-        <p id="inspect-equipment-name" class="font-bold text-indigo-900 text-sm md:text-base bg-indigo-50 p-2.5 rounded-xl border border-indigo-100">-</p>
-      </div>
-
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1" data-i18n="inspectCondLbl">🟢 สภาพอุปกรณ์เมื่อส่งคืน *</label>
+        <label class="block text-xs font-bold text-slate-700 mb-1">🟢 สภาพอุปกรณ์เมื่อส่งคืน *</label>
         <select id="inspect-condition" class="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold bg-slate-50 outline-none">
-          <option value="GOOD" data-i18n="optGood">🟢 สมบูรณ์พร้อมใช้งานปกติ (Good Condition)</option>
-          <option value="MINOR_DAMAGE" data-i18n="optMinorDamage">🟡 ชำรุดเล็กน้อย / ต้องซ่อมบำรุง (Minor Damage)</option>
-          <option value="DAMAGED_LOST" data-i18n="optDamagedLost">🔴 ชำรุดหนัก / อุปกรณ์สูญหาย (Damaged / Lost)</option>
+          <option value="GOOD">🟢 สมบูรณ์พร้อมใช้งานปกติ (Good Condition)</option>
+          <option value="MINOR_DAMAGE">🟡 ชำรุดเล็กน้อย / ต้องซ่อมบำรุง (Minor Damage)</option>
+          <option value="DAMAGED_LOST">🔴 ชำรุดหนัก / อุปกรณ์สูญหาย (Damaged / Lost)</option>
         </select>
       </div>
-
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1" data-i18n="inspectRemarkLbl">📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด</label>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">📝 หมายเหตุการตรวจรับคืน / บันทึกอาการชำรุด</label>
         <textarea id="inspect-remark" rows="2" placeholder="เช่น รอยขีดข่วนที่หน้าจอ, สายสัญญาณขาด" class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none"></textarea>
       </div>
-
       <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-slate-100">
-        <button onclick="confirmReturnWithInspection()" class="w-full sm:w-auto px-5 py-2.5 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow order-1 sm:order-2">↩️ <span data-i18n="btnConfirmReturn">ยืนยันการรับคืนอุปกรณ์</span></button>
-        <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1" data-i18n="btnCancelModal">ยกเลิก</button>
+        <button onclick="confirmReturnWithInspection()" class="w-full sm:w-auto px-5 py-2.5 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow order-1 sm:order-2">↩️ ยืนยันการรับคืนอุปกรณ์</button>
+        <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1">ยกเลิก</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: EVENT DETAILS -->
+  <!-- MODAL: EVENT DETAILS (Responsive) -->
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-5 md:p-6 rounded-3xl shadow-2xl w-full max-w-2xl space-y-4 max-h-[90vh] flex flex-col">
-      
-      <!-- Modal Header -->
       <div class="flex justify-between items-start border-b border-slate-100 pb-3 flex-shrink-0">
-        <div>
-          <span id="detail-dept-badge" class="px-3 py-1 rounded-full text-[10px] md:text-xs font-extrabold bg-indigo-100 text-indigo-800 tracking-wide">ฝ่าย -</span>
-          <h3 id="detail-title" class="text-lg md:text-xl font-bold text-slate-800 mt-2 leading-tight">ชื่อกิจกรรม</h3>
-        </div>
+        <div><span id="detail-dept-badge" class="px-3 py-1 rounded-full text-[10px] md:text-xs font-extrabold bg-indigo-100 text-indigo-800 tracking-wide">ฝ่าย -</span><h3 id="detail-title" class="text-lg md:text-xl font-bold text-slate-800 mt-2 leading-tight">ชื่อกิจกรรม</h3></div>
         <button onclick="closeModals()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl p-1 leading-none">✕</button>
       </div>
-
-      <!-- Modal Body (Scrollable) -->
       <div class="overflow-y-auto pr-2 space-y-4 flex-1">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs md:text-sm text-slate-600">
-          <p class="col-span-1 md:col-span-2 text-indigo-900 bg-indigo-50/80 p-3 rounded-xl border border-indigo-100">
-            <b data-i18n="detailHost">👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> 
-            <span id="detail-main-host" class="font-bold text-sm md:text-base text-indigo-700 block mt-1">-</span>
-          </p>
-          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b data-i18n="detailLocation">📍 สถานที่:</b> <span id="detail-location" class="block mt-1 font-medium text-slate-800">-</span></p>
-          <p class="col-span-1 md:col-span-2"><b data-i18n="detailOrganizer">🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 leading-relaxed">-</span></p>
-          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b data-i18n="detailStart">⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800 block mt-1">-</span></p>
-          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b data-i18n="detailEnd">⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800 block mt-1">-</span></p>
-          <p class="col-span-1 md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100"><b data-i18n="detailRemarks">📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700 block mt-1">-</span></p>
+          <p class="col-span-1 md:col-span-2 text-indigo-900 bg-indigo-50/80 p-3 rounded-xl border border-indigo-100"><b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-sm md:text-base text-indigo-700 block mt-1">-</span></p>
+          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>📍 สถานที่:</b> <span id="detail-location" class="block mt-1 font-medium text-slate-800">-</span></p>
+          <p class="col-span-1 md:col-span-2"><b>🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 leading-relaxed">-</span></p>
+          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800 block mt-1">-</span></p>
+          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800 block mt-1">-</span></p>
+          <p class="col-span-1 md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100"><b>📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700 block mt-1">-</span></p>
         </div>
-
         <div class="border-t border-slate-100 pt-3">
-          <h4 class="font-bold text-slate-800 text-sm mb-2" data-i18n="detailEqChecklist">🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:</h4>
+          <h4 class="font-bold text-slate-800 text-sm mb-2">🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:</h4>
           <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs md:text-sm space-y-2 border border-slate-100"></div>
         </div>
       </div>
-
-      <!-- Modal Footer (Responsive Buttons) -->
       <div class="flex flex-col md:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3 flex-shrink-0">
-        
-        <!-- Admin Buttons -->
         <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto order-2 md:order-1">
-          <button id="btn-edit-event" onclick="editEventFromModal()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl transition text-center justify-center items-center gap-1">
-            ✏️ <span data-i18n="btnEditEventAdmin">แก้ไขงาน</span>
-          </button>
-          <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition text-center justify-center items-center gap-1">
-            🗑️ <span data-i18n="btnCancelEventAdmin">ยกเลิกงาน</span>
-          </button>
+          <button id="btn-edit-event" onclick="editEventFromModal()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl transition justify-center items-center gap-1">✏️ แก้ไขงาน</button>
+          <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition justify-center items-center gap-1">🗑️ ยกเลิกงาน</button>
         </div>
-
-        <!-- Normal Buttons -->
         <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto order-1 md:order-2">
-          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow flex justify-center items-center gap-2 order-1 sm:order-2">
-            🖨️ <span data-i18n="btnPrintPDF">พิมพ์ใบงาน (PDF)</span>
-          </button>
-          <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-center order-2 sm:order-1" data-i18n="btnCloseModal">
-            ปิดหน้าต่าง
-          </button>
+          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (PDF)</button>
+          <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-center order-2 sm:order-1">ปิดหน้าต่าง</button>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- MODALS LOGIN/REGISTER -->
+  <!-- MODALS LOGIN/REGISTER (Responsive) -->
   <div id="modal-login" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-md space-y-4">
-      <h3 class="text-xl font-bold text-slate-800">🔐 <span data-i18n="modalLoginTitle">เข้าสู่ระบบ Admin</span></h3>
-      <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblUserEmail">Username / อีเมล</label><input type="text" id="login-user" class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></div>
-      <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblPass">Password</label><input type="password" id="login-pass" class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></div>
+      <h3 class="text-xl font-bold text-slate-800">🔐 เข้าสู่ระบบ Admin</h3>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Username / อีเมล</label><input type="text" id="login-user" class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">Password</label><input type="password" id="login-pass" class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"></div>
       <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-slate-100">
-        <button onclick="handleLogin()" class="w-full sm:w-auto px-6 py-3 text-sm font-bold bg-amber-400 text-slate-900 rounded-xl shadow order-1 sm:order-2" data-i18n="btnLoginConfirm">เข้าสู่ระบบ</button>
-        <button onclick="closeModals()" class="w-full sm:w-auto px-5 py-3 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1" data-i18n="btnCancelModal">ยกเลิก</button>
+        <button onclick="handleLogin()" class="w-full sm:w-auto px-6 py-3 text-sm font-bold bg-amber-400 text-slate-900 rounded-xl shadow order-1 sm:order-2">เข้าสู่ระบบ</button>
+        <button onclick="closeModals()" class="w-full sm:w-auto px-5 py-3 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1">ยกเลิก</button>
       </div>
     </div>
   </div>
 
   <div id="modal-register" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-md space-y-3 max-h-[90vh] overflow-y-auto">
-      <h3 class="text-xl font-bold text-slate-800 pb-2 border-b border-slate-100">📝 <span data-i18n="modalRegTitle">ลงทะเบียนบัญชี Admin</span></h3>
+      <h3 class="text-xl font-bold text-slate-800 pb-2 border-b border-slate-100">📝 ลงทะเบียนบัญชี Admin</h3>
       <div class="grid grid-cols-2 gap-3 pt-2">
-        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblEmpId">รหัสพนักงาน *</label><input type="text" id="reg-emp-id" placeholder="EMP-001" class="w-full p-3 border rounded-xl text-sm"></div>
-        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblFullName">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" placeholder="อ.วิชัย ใจดี" class="w-full p-3 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">รหัสพนักงาน *</label><input type="text" id="reg-emp-id" placeholder="EMP-001" class="w-full p-3 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อ-นามสกุล *</label><input type="text" id="reg-name" placeholder="อ.วิชัย ใจดี" class="w-full p-3 border rounded-xl text-sm"></div>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblNickname">ชื่อเล่น *</label><input type="text" id="reg-nickname" placeholder="ช่างชัย" class="w-full p-3 border rounded-xl text-sm"></div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblRegDept">ฝ่ายสังกัด *</label>
-          <select id="reg-dept" class="w-full p-3 border rounded-xl text-sm bg-slate-50">
-            <option value="IT" data-i18n="optIT">💻 ฝ่ายไอที (IT)</option>
-            <option value="AV" data-i18n="optAV">🔊 โสตทัศนูปกรณ์ (AV)</option>
-            <option value="MEDIA" data-i18n="optMEDIA">📷 ช่างภาพ/สื่อ (Media)</option>
-            <option value="FACILITY" data-i18n="optFACILITY">🏢 อาคารสถานที่</option>
-          </select>
-        </div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">ชื่อเล่น *</label><input type="text" id="reg-nickname" placeholder="ช่างชัย" class="w-full p-3 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">ฝ่ายสังกัด *</label><select id="reg-dept" class="w-full p-3 border rounded-xl text-sm bg-slate-50"><option value="IT">💻 ฝ่ายไอที (IT)</option><option value="AV">🔊 โสตทัศนูปกรณ์ (AV)</option><option value="MEDIA">📷 ช่างภาพ/สื่อ (Media)</option><option value="FACILITY">🏢 อาคารสถานที่</option></select></div>
       </div>
-      <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblSchoolEmail">อีเมลโรงเรียน (สำหรับ Mention) *</label><input type="email" id="reg-email" placeholder="vichai@denla.ac.th" class="w-full p-3 border rounded-xl text-sm"></div>
+      <div><label class="block text-xs font-medium text-slate-600 mb-1">อีเมลโรงเรียน (สำหรับ Mention) *</label><input type="email" id="reg-email" placeholder="vichai@denla.ac.th" class="w-full p-3 border rounded-xl text-sm"></div>
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblUser">Username *</label><input type="text" id="reg-user" placeholder="admin_vichai" class="w-full p-3 border rounded-xl text-sm"></div>
-        <div><label class="block text-xs font-medium text-slate-600 mb-1" data-i18n="lblPass">Password *</label><input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-3 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">Username *</label><input type="text" id="reg-user" placeholder="admin_vichai" class="w-full p-3 border rounded-xl text-sm"></div>
+        <div><label class="block text-xs font-medium text-slate-600 mb-1">Password *</label><input type="password" id="reg-pass" placeholder="••••••••" class="w-full p-3 border rounded-xl text-sm"></div>
       </div>
-      <div><label class="block text-xs font-bold text-indigo-700 mb-1" data-i18n="lblMasterKey">🔑 Master Key *</label><input type="password" id="reg-master-key" placeholder="DENLA2026" class="w-full p-3 border border-indigo-200 bg-indigo-50 rounded-xl text-sm"></div>
+      <div><label class="block text-xs font-bold text-indigo-700 mb-1">🔑 Master Key *</label><input type="password" id="reg-master-key" placeholder="DENLA2026" class="w-full p-3 border border-indigo-200 bg-indigo-50 rounded-xl text-sm"></div>
       <div class="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-slate-100">
-        <button onclick="handleRegister()" class="w-full sm:w-auto px-6 py-3 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow order-1 sm:order-2" data-i18n="btnRegConfirm">ยืนยันสมัคร Admin</button>
-        <button onclick="closeModals()" class="w-full sm:w-auto px-5 py-3 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1" data-i18n="btnCancelModal">ยกเลิก</button>
+        <button onclick="handleRegister()" class="w-full sm:w-auto px-6 py-3 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow order-1 sm:order-2">ยืนยันสมัคร Admin</button>
+        <button onclick="closeModals()" class="w-full sm:w-auto px-5 py-3 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl order-2 sm:order-1">ยกเลิก</button>
       </div>
     </div>
   </div>
+
+  <!-- PRINTABLE TEMPLATE -->
+  <div id="printable-area" class="hidden p-8 font-sans max-w-4xl mx-auto bg-white text-slate-900">
+    <div class="flex justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4">
+      <div class="flex items-center gap-4">
+        <img src="logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
+        <div><h1 class="text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1><p class="text-base font-bold text-slate-600">(Denla Kindergarten)</p></div>
+      </div>
+      <div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1 bg-slate-50 min-w-[220px]">
+        <div class="flex justify-between"><span class="font-bold text-slate-600">เลขที่เอกสาร :</span><span id="print-doc-id" class="font-mono font-bold text-indigo-900">-</span></div>
+        <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">วันที่พิมพ์ :</span><span id="print-now-date" class="font-medium">-</span></div>
+        <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">แบบฟอร์ม :</span><span class="font-medium">FM-AVS-001</span></div>
+      </div>
+    </div>
+    <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
+      <h2 class="text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
+      <p class="text-base font-extrabold text-indigo-800">งานกิจกรรม: <span id="print-title" class="underline decoration-indigo-300 decoration-2">-</span></p>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
+      <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span id="print-dept" class="font-bold text-indigo-900">-</span></p>
+      <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="print-main-host" class="font-bold text-indigo-900">-</span></p>
+      <p><b>สถานที่จัดงาน:</b> <span id="print-location" class="font-bold text-indigo-900">-</span></p>
+      <p><b>วันและเวลากิจกรรม:</b> <span id="print-datetime" class="font-bold text-indigo-900">-</span></p>
+      <p class="col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span id="print-remarks" class="text-slate-700">-</span></p>
+    </div>
+    <div class="mb-4">
+      <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
+      <table class="w-full border-collapse border border-slate-300 text-xs text-left">
+        <thead><tr class="bg-indigo-50 font-bold text-indigo-950"><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมระบบและสื่อ</th><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมสถานที่และบริการ</th><th class="border border-slate-300 p-2 w-1/3 text-center">การจัดสรรที่จอดรถ</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+              <p><b>IT:</b> <span id="print-staff-it-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-it-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
+              <p><b>โสตฯ:</b> <span id="print-staff-av-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-av-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p><hr class="border-slate-200">
+              <p><b>ช่างภาพ:</b> <span id="print-staff-media-count" class="font-bold text-indigo-900">0 คน</span></p><p id="print-staff-media-names" class="text-[11px] text-slate-600 pl-2 font-medium">-</p>
+            </td>
+            <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+              <p><b>ฝ่ายอาคาร:</b> <span id="print-staff-facility-count" class="font-bold">0 คน</span></p><p><b>ช่างอาคาร:</b> <span id="print-staff-tech-count" class="font-bold">0 คน</span></p>
+              <p><b>แม่บ้าน:</b> <span id="print-staff-housekeeper-count" class="font-bold">0 คน</span></p><p><b>รปภ.:</b> <span id="print-staff-security-count" class="font-bold">0 คน</span></p>
+            </td>
+            <td class="border border-slate-300 p-2.5 space-y-2 align-top">
+              <p><b>จำนวนที่จอดรถ:</b> <span id="print-parking-count" class="font-bold text-indigo-900">0 คัน</span></p>
+              <p><b>พื้นที่จอดรถ:</b> .....................................</p><p><b>ผู้ประสานงาน:</b> .....................................</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="mb-4">
+      <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน</h3>
+      <table class="w-full border-collapse border border-slate-300 text-xs text-left">
+        <thead><tr class="bg-indigo-900 text-white font-bold text-center"><th class="border border-slate-300 p-2 w-14">ตรวจเช็ก</th><th class="border border-slate-300 p-2">รายการอุปกรณ์ / ยี่ห้อรุ่น</th><th class="border border-slate-300 p-2 w-20">ฝ่ายดูแล</th><th class="border border-slate-300 p-2 w-28">สถานที่เก็บ</th><th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th><th class="border border-slate-300 p-2 w-24">หมายเหตุ</th></tr></thead>
+        <tbody id="print-equipment-table"></tbody>
+      </table>
+    </div>
+    <div class="mb-6 space-y-3">
+      <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">3. สถานะการจัดเตรียมและตรวจสอบ</h3>
+      <div class="grid grid-cols-3 gap-2 border border-slate-300 rounded-b-lg p-2.5 text-xs bg-slate-50">
+        <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>จัดเตรียมอุปกรณ์ครบถ้วน</span></label>
+        <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ทดสอบการใช้งานเรียบร้อย</span></label>
+        <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
+      </div>
+      <div class="grid grid-cols-3 gap-4 text-center text-xs pt-6 border-t border-slate-300 mt-6">
+        <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p><p>วันที่ ..... / ..... / .........</p></div>
+        <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p><p>วันที่ ..... / ..... / .........</p></div>
+        <div class="space-y-8"><p>ลงชื่อ ...........................................................</p><p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p><p>วันที่ ..... / ..... / .........</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_dXn7o5DyminCb_LbRGD51Q_ZEQ19ino';
+    const GOOGLE_CHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
+    const MASTER_KEY = 'DENLA2026';
+    const SESSION_DURATION_MINUTES = 60;
+
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let allEquipment = [], activeBorrowRecords = [], allAdmins = [], calendar = null, currentAdmin = null;
+    let selectedEventForPrint = null, pendingReturnRecord = null, currentFilteredEquipment = [], allEventsList = [];
+    let currentLang = localStorage.getItem('denla_app_lang') || 'th';
+    const DEFAULT_LOCATIONS = [];
+    let customLocations = JSON.parse(localStorage.getItem('denla_custom_locations') || '[]');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      populateDateAndPickerDropdowns();
+      renderLocationDropdown();
+      renderAdminLocationTags();
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 3);
+      document.getElementById('return-date').value = futureDate.toISOString().split('T')[0];
+
+      try { await fetchAllAdmins(); } catch (e) { console.error(e); }
+      try { await fetchAllEquipment(); } catch (e) { console.error(e); }
+      try { await loadActiveBorrows(); } catch (e) { console.error(e); }
+      
+      initCalendar();
+      checkAdminSession();
+      setupActivityListeners();
+      
+      setInterval(() => {
+        const now = new Date();
+        const clockEl = document.getElementById('display-board-live-clock');
+        if (clockEl) clockEl.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      }, 1000);
+    });
+
+    function changeLanguage(langKey) { currentLang = langKey; localStorage.setItem('denla_app_lang', langKey); location.reload(); }
+    
+    function renderLocationDropdown() {
+      const select = document.getElementById('event-location-select');
+      const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
+      let html = allLocs.map(loc => `<option value="${loc}">📍 ${loc}</option>`).join('');
+      html += `<option value="CUSTOM">✏️ สถานที่อื่นๆ (ระบุเอง...)</option>`;
+      select.innerHTML = html;
+      toggleCustomLocationInput();
+    }
+
+    function renderAdminLocationTags() {
+      const tagContainer = document.getElementById('admin-location-tags');
+      const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
+      if (allLocs.length === 0) { tagContainer.innerHTML = `<p class="text-slate-400 text-xs italic">ยังไม่มีสถานที่ในระบบ</p>`; return; }
+      tagContainer.innerHTML = allLocs.map(loc => `<span class="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700">📍 ${loc} <button onclick="deleteCustomLocation('${loc}')" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✕</button></span>`).join('');
+    }
+
+    function addNewLocation() {
+      const val = document.getElementById('admin-new-location').value.trim();
+      if (!val) { alert('กรุณากรอกชื่อสถานที่'); return; }
+      if ([...DEFAULT_LOCATIONS, ...customLocations].includes(val)) { alert('สถานที่นี้มีอยู่ในระบบแล้ว'); return; }
+      customLocations.push(val);
+      localStorage.setItem('denla_custom_locations', JSON.stringify(customLocations));
+      document.getElementById('admin-new-location').value = '';
+      renderLocationDropdown(); renderAdminLocationTags(); alert(`✅ เพิ่มสถานที่ "${val}" เรียบร้อย`);
+    }
+
+    function deleteCustomLocation(locName) {
+      if (!confirm(`ยืนยันลบสถานที่ "${locName}" ?`)) return;
+      customLocations = customLocations.filter(l => l !== locName);
+      localStorage.setItem('denla_custom_locations', JSON.stringify(customLocations));
+      renderLocationDropdown(); renderAdminLocationTags();
+    }
+
+    function toggleCustomLocationInput() {
+      const sel = document.getElementById('event-location-select');
+      const customInput = document.getElementById('event-location-custom');
+      customInput.classList.toggle('hidden', sel.value !== 'CUSTOM');
+      customInput.required = sel.value === 'CUSTOM';
+    }
+
+    function populateDateAndPickerDropdowns() {
+      const startSelect = document.getElementById('event-start-time'), endSelect = document.getElementById('event-end-time');
+      let timeOptions = '';
+      for (let hour = 0; hour < 24; hour++) {
+        for (let min = 0; min < 60; min += 5) {
+          const hh = String(hour).padStart(2, '0'), mm = String(min).padStart(2, '0');
+          timeOptions += `<option value="${hh}:${mm}">${hh}:${mm} น.</option>`;
+        }
+      }
+      startSelect.innerHTML = timeOptions; endSelect.innerHTML = timeOptions;
+      startSelect.value = '08:30'; endSelect.value = '16:30';
+
+      const now = new Date(), curDay = now.getDate(), curMonth = now.getMonth(), curYear = now.getFullYear();
+      const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      
+      ['start', 'end'].forEach(prefix => {
+        let dayHtml = ''; for (let d = 1; d <= 31; d++) { dayHtml += `<option value="${String(d).padStart(2, '0')}">${d}</option>`; }
+        let monthHtml = ''; THAI_MONTHS.forEach((mName, idx) => { monthHtml += `<option value="${String(idx + 1).padStart(2, '0')}">${mName}</option>`; });
+        let yearHtml = ''; for (let y = curYear - 1; y <= curYear + 5; y++) { yearHtml += `<option value="${y}">${y + 543} (${y})</option>`; }
+        
+        document.getElementById(`${prefix}-day`).innerHTML = dayHtml; document.getElementById(`${prefix}-day`).value = String(curDay).padStart(2, '0');
+        document.getElementById(`${prefix}-month`).innerHTML = monthHtml; document.getElementById(`${prefix}-month`).value = String(curMonth + 1).padStart(2, '0');
+        document.getElementById(`${prefix}-year`).innerHTML = yearHtml; document.getElementById(`${prefix}-year`).value = String(curYear);
+      });
+    }
+
+    function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
+    function openRegisterModal() { document.getElementById('modal-register').classList.remove('hidden'); }
+    function closeModals() {
+      document.getElementById('modal-login').classList.add('hidden'); document.getElementById('modal-register').classList.add('hidden');
+      document.getElementById('modal-event-detail').classList.add('hidden'); document.getElementById('modal-return-inspect').classList.add('hidden');
+    }
+
+    function checkAdminSession() {
+      const storedSession = localStorage.getItem('denla_admin_session');
+      if (storedSession) {
+        try {
+          const sessionData = JSON.parse(storedSession);
+          if (new Date().getTime() < sessionData.expiry) { currentAdmin = sessionData.admin; setAdminState(true, false); refreshAdminSession(); } 
+          else { logoutAdmin(true); }
+        } catch (e) { localStorage.removeItem('denla_admin_session'); }
+      }
+    }
+    function refreshAdminSession() {
+      if (!currentAdmin) return;
+      localStorage.setItem('denla_admin_session', JSON.stringify({ admin: currentAdmin, expiry: new Date().getTime() + (SESSION_DURATION_MINUTES * 60 * 1000) }));
+    }
+    function setupActivityListeners() {
+      ['click', 'mousemove', 'keydown', 'scroll'].forEach(evt => window.addEventListener(evt, () => { if (currentAdmin) refreshAdminSession(); }, { passive: true }));
+      setInterval(() => {
+        const storedSession = localStorage.getItem('denla_admin_session');
+        if (storedSession && new Date().getTime() > JSON.parse(storedSession).expiry) logoutAdmin(true);
+      }, 60000);
+    }
+
+    function adjustUtcToThaiDisplay(isoStr) {
+      if (!isoStr) return '00:00';
+      let str = String(isoStr), timePart = '';
+      if (str.includes('T')) timePart = str.split('T')[1].substring(0, 5);
+      else if (str.includes(' ')) timePart = str.split(' ')[1].substring(0, 5);
+      else return str.substring(0, 5);
+      if (str.includes('+00') || str.endsWith('Z')) { let hp = timePart.split(':'); return `${String((parseInt(hp[0], 10) + 7) % 24).padStart(2, '0')}:${hp[1]}`; }
+      return timePart;
+    }
+    function formatThaiDateTime(dateInput) {
+      if (!dateInput) return '-';
+      let str = String(dateInput), datePart = '', timePart = adjustUtcToThaiDisplay(dateInput);
+      if (str.includes('T')) datePart = str.split('T')[0]; else if (str.includes(' ')) datePart = str.split(' ')[0]; else datePart = str;
+      if (datePart.includes('-')) { let dp = datePart.split('-'); return `${parseInt(dp[2], 10)}/${parseInt(dp[1], 10)}/${parseInt(dp[0], 10) + 543} ${timePart ? timePart.replace(':', '.')+' น.' : ''}`; }
+      return str;
+    }
+    function formatLocalToISO(dateStr, timeStr) { return (!dateStr || !timeStr) ? null : `${dateStr}T${timeStr}:00+07:00`; }
+
+    function toggleBorrowTypeMode() {
+      const type = document.getElementById('borrow-type-select').value, boxReturnDate = document.getElementById('box-return-date'), btnSubmit = document.getElementById('btn-submit-borrow');
+      if (type === 'LONG_TERM') {
+        boxReturnDate.classList.add('hidden'); document.getElementById('return-date').required = false;
+        btnSubmit.innerHTML = `🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว`; btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
+      } else {
+        boxReturnDate.classList.remove('hidden'); document.getElementById('return-date').required = true;
+        btnSubmit.innerHTML = `🚀 ยืนยันการยืมอุปกรณ์`; btnSubmit.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition';
+      }
+    }
+
+    async function fetchAllAdmins() {
+      const { data, error } = await _supabase.from('admin_users').select('*').order('department');
+      if (!error) allAdmins = data || [];
+      const container = document.getElementById('tag-admin-list');
+      if (allAdmins.length === 0) { container.innerHTML = `<p class="text-slate-400 text-center py-1">ยังไม่มีรายชื่อ Admin</p>`; return; }
+      container.innerHTML = allAdmins.map(admin => `<label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition"><div class="flex items-center gap-1.5"><input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${admin.department || 'IT'}" class="rounded text-amber-600 focus:ring-0"><span class="font-medium text-slate-800">${admin.full_name}</span><span class="text-slate-500">(${admin.nickname || '-'})</span></div><span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${admin.department || 'IT'}</span></label>`).join('');
+    }
+
+    function selectAllTags(deptKey) { document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => { if (deptKey === 'ALL' || cb.dataset.dept === deptKey) cb.checked = true; }); }
+    function clearAllTags() { document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => cb.checked = false); ['num-housekeeper', 'num-technician', 'num-parking'].forEach(id => { const el = document.getElementById(id); if (el) el.value = 0; }); }
+
+    async function handleRegister() {
+      const empId = document.getElementById('reg-emp-id').value, name = document.getElementById('reg-name').value, nickname = document.getElementById('reg-nickname').value, email = document.getElementById('reg-email').value, dept = document.getElementById('reg-dept').value, user = document.getElementById('reg-user').value, pass = document.getElementById('reg-pass').value, key = document.getElementById('reg-master-key').value;
+      if (!empId || !name || !email || !user || !pass) { alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
+      if (key !== MASTER_KEY) { alert('❌ Master Key ไม่ถูกต้อง!'); return; }
+      const { error } = await _supabase.from('admin_users').insert([{ emp_id: empId, full_name: name, nickname: nickname, email: email, department: dept, username: user, password: pass }]);
+      if (error) { alert('Error: ' + error.message); return; }
+      alert(`🎉 ลงทะเบียน Admin เรียบร้อยแล้ว!`); closeModals(); await fetchAllAdmins();
+    }
+
+    async function handleLogin() {
+      const user = document.getElementById('login-user').value, pass = document.getElementById('login-pass').value;
+      if (user === 'admin' && pass === '1234') { currentAdmin = { full_name: 'Super Admin', nickname: 'Main Admin', department: 'ALL' }; setAdminState(true); return; }
+      const { data, error } = await _supabase.from('admin_users').select('*').or(`username.eq.${user},email.eq.${user}`).eq('password', pass).single();
+      if (error || !data) { alert('❌ Username/Email หรือ Password ไม่ถูกต้อง!'); return; }
+      currentAdmin = data; setAdminState(true);
+    }
+
+    function setAdminState(isLoggedIn, showNotify = true) {
+      if (isLoggedIn) {
+        refreshAdminSession();
+        document.getElementById('admin-banner').classList.remove('hidden');
+        document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name} (${currentAdmin.nickname || '-'})</b> [สังกัด: <b>${currentAdmin.department || 'IT'}</b>]`;
+        document.getElementById('btn-admin-login').classList.add('hidden'); document.getElementById('btn-admin-register').classList.add('hidden');
+        document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
+        if (showNotify) alert(`🎉 เข้าสู่ระบบเรียบร้อยแล้ว`);
+      } else {
+        localStorage.removeItem('denla_admin_session'); currentAdmin = null;
+        document.getElementById('admin-banner').classList.add('hidden');
+        document.getElementById('btn-admin-login').classList.remove('hidden'); document.getElementById('btn-admin-register').classList.remove('hidden');
+        document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden')); switchTab('borrow');
+      }
+      closeModals(); loadActiveBorrows(); renderInventoryTable(allEquipment);
+    }
+
+    function logoutAdmin(isAuto = false) { setAdminState(false, false); alert(isAuto ? '⌛ หมดเวลาเซสชัน ระบบได้ทำการออกจากระบบ Admin อัตโนมัติ' : '🔒 ออกจากระบบ Admin เรียบร้อย'); }
+
+    function switchTab(tabName) {
+      if ((tabName === 'inventory' || tabName === 'staff-summary') && !currentAdmin) { alert('🔒 หน้าเฉพาะสำหรับ Admin เท่านั้น'); return; }
+      ['borrow', 'event', 'display', 'staff-summary', 'inventory'].forEach(t => {
+        const sec = document.getElementById(`sec-${t}`); if (sec) sec.classList.add('hidden');
+        const btn = document.getElementById(`tab-${t}`); if (btn && t !== 'inventory' && t !== 'staff-summary') btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white';
+      });
+      const activeSec = document.getElementById(`sec-${tabName}`); if (activeSec) activeSec.classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabName}`); if (activeBtn && tabName !== 'inventory' && tabName !== 'staff-summary') activeBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold transition bg-white text-indigo-700 shadow';
+      
+      if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
+      if (tabName === 'display') renderDisplayBoardCards();
+      if (tabName === 'staff-summary') renderStaffWorkloadSummary();
+    }
+
+    function renderStaffWorkloadSummary() {
+      const tbody = document.getElementById('table-staff-workload');
+      const searchName = document.getElementById('staff-search-name')?.value.trim().toLowerCase() || '', searchDept = document.getElementById('staff-search-dept')?.value || 'ALL', startDate = document.getElementById('staff-search-start')?.value || '', endDate = document.getElementById('staff-search-end')?.value || '';
+      if (!allEventsList || allEventsList.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">ไม่พบข้อมูลคิวงานกิจกรรม</td></tr>`; return; }
+
+      let filtered = allEventsList.filter(ev => {
+        const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
+        if (startDate && evDateStr < startDate) return false;
+        if (endDate && evDateStr > endDate) return false;
+        if (searchDept !== 'ALL' && ev.department !== searchDept) return false;
+        if (searchName !== '') {
+          const matchHost = (ev.main_host || '').toLowerCase().includes(searchName), matchOrganizer = (ev.organizer || '').toLowerCase().includes(searchName);
+          if (!matchHost && !matchOrganizer) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">ไม่พบภาระงานของทีมงานตามเงื่อนไขที่ค้นหา</td></tr>`; return; }
+      tbody.innerHTML = filtered.map(ev => `<tr class="hover:bg-slate-800/60 transition"><td class="p-2.5 font-bold text-white">${ev.event_title}</td><td class="p-2.5"><span class="bg-indigo-950 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded font-bold">${ev.department || 'ALL'}</span></td><td class="p-2.5 text-amber-300 font-medium">${ev.main_host || '-'}</td><td class="p-2.5 text-emerald-300 font-medium">${ev.organizer || '-'}</td><td class="p-2.5">${formatThaiDateTime(ev.start_time)}</td><td class="p-2.5 text-sky-300">${ev.location || '-'}</td></tr>`).join('');
+    }
+
+    async function renderDisplayBoardCards() {
+      const container = document.getElementById('display-board-cards'), countDisplay = document.getElementById('display-board-total-count'), footerUpdateDisplay = document.getElementById('display-footer-last-update');
+      const now = new Date(), todayIsoStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      if (footerUpdateDisplay) footerUpdateDisplay.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+      const { data, error } = await _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
+      if (error || !data || data.length === 0) { if (countDisplay) countDisplay.textContent = '0'; container.innerHTML = `<p class="text-slate-400 text-center py-12 text-lg">วันนี้ไม่มีคิวงานกิจกรรมสาธารณะ</p>`; return; }
+
+      const displayEvents = data.filter(ev => {
+        const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
+        const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
+        return isShown && (evDateStr === todayIsoStr);
+      });
+
+      if (countDisplay) countDisplay.textContent = displayEvents.length;
+      if (displayEvents.length === 0) { container.innerHTML = `<p class="text-slate-400 text-center py-12 text-lg">วันนี้ไม่มีรายการกิจกรรมสาธารณะสำหรับแสดงผล</p>`; return; }
+
+      const nowMs = now.getTime();
+      displayEvents.sort((a, b) => {
+        const aStart = new Date(a.start_time).getTime(), aEnd = new Date(a.end_time).getTime(), bStart = new Date(b.start_time).getTime(), bEnd = new Date(b.end_time).getTime();
+        const getPriority = (s, e) => { if (nowMs >= s && nowMs <= e) return 1; if (nowMs < s) return 2; return 3; };
+        const pA = getPriority(aStart, aEnd), pB = getPriority(bStart, bEnd);
+        if (pA !== pB) return pA - pB; return aStart - bStart;
+      });
+
+      const deptColors = { 'AV': { bg: 'bg-rose-500' }, 'IT': { bg: 'bg-sky-500' }, 'MEDIA': { bg: 'bg-emerald-500' }, 'FACILITY': { bg: 'bg-amber-500' }, 'ALL': { bg: 'bg-purple-600' } };
+
+      container.innerHTML = displayEvents.map((ev, index) => {
+        const startMs = new Date(ev.start_time).getTime(), endMs = new Date(ev.end_time).getTime(), seqNum = String(index + 1).padStart(2, '0');
+        let statusObj = { text: 'รอเริ่ม', dot: 'bg-slate-300', badge: 'bg-slate-100 text-slate-500 border-slate-200' };
+        if (nowMs >= startMs && nowMs <= endMs) { statusObj = { text: 'กำลังดำเนินการ', dot: 'bg-amber-500', badge: 'bg-amber-50 text-amber-600 border-amber-200 animate-pulse' }; } 
+        else if (nowMs > endMs) { statusObj = { text: 'เสร็จสิ้นแล้ว', dot: 'bg-emerald-500', badge: 'bg-emerald-50 text-emerald-600 border-emerald-200' }; }
+
+        const cTheme = deptColors[ev.department] || deptColors['ALL'];
+        return `
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 flex items-stretch overflow-hidden transition-all ${nowMs > endMs ? 'opacity-60 grayscale-[20%]' : 'hover:shadow-md'}">
+            <div class="w-3.5 ${cTheme.bg}"></div>
+            <div class="flex flex-1 p-5 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-0 items-center">
+              <div class="col-span-3 flex flex-col justify-center">
+                <span class="${cTheme.bg} text-white text-[11px] px-2 py-0.5 rounded flex items-center justify-center w-max mb-1 font-bold tracking-wider">${seqNum}</span>
+                <div class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-none">${adjustUtcToThaiDisplay(ev.start_time)}–${adjustUtcToThaiDisplay(ev.end_time)}</div>
+              </div>
+              <div class="col-span-5 flex flex-col justify-center lg:border-l border-slate-200 lg:pl-6">
+                <span class="${cTheme.bg} text-white text-[10px] px-2.5 py-0.5 rounded-full w-max mb-1.5 font-bold tracking-widest uppercase shadow-sm">${ev.department || 'ALL'}</span>
+                <div class="text-base md:text-lg font-bold text-slate-800 leading-snug truncate pr-2">${ev.event_title}</div>
+              </div>
+              <div class="col-span-2 flex flex-col justify-center lg:border-l border-slate-200 lg:pl-6 space-y-2 text-xs md:text-sm font-semibold text-slate-700">
+                <div class="flex items-center gap-2"><span class="text-rose-500 text-base">📍</span> <span class="truncate">${ev.location || '-'}</span></div>
+                <div class="flex items-center gap-2"><span class="text-indigo-600 text-base">👤</span> <span class="truncate">${ev.main_host || '-'}</span></div>
+              </div>
+              <div class="col-span-2 flex lg:justify-end items-center lg:border-l border-slate-200 lg:pl-6 pt-2 lg:pt-0">
+                <span class="px-4 py-1.5 rounded-full border ${statusObj.badge} text-xs md:text-sm font-extrabold flex items-center gap-2 shadow-sm whitespace-nowrap"><span class="w-2.5 h-2.5 rounded-full ${statusObj.dot}"></span>${statusObj.text}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function fetchAllEquipment() {
+      const select = document.getElementById('borrow-asset-select');
+      try {
+        select.innerHTML = '<option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>';
+        const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
+        if (error) { console.error('Supabase Error (equipment):', error); select.innerHTML = `<option value="">❌ ข้อผิดพลาด: ไม่สามารถดึงข้อมูลได้</option>`; return; }
+        allEquipment = data || []; renderEquipmentDropdown(); renderInventoryTable(allEquipment); renderEventEquipmentAccordion();
+      } catch (err) { console.error('JS Error (equipment):', err); select.innerHTML = `<option value="">❌ ระบบขัดข้อง: ไม่สามารถเชื่อมต่อฐานข้อมูลได้</option>`; }
+    }
+
+    function renderEventEquipmentAccordion() {
+      const container = document.getElementById('event-equipment-accordion'), depts = { 'AV': '🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)', 'IT': '💻 ฝ่ายไอที (IT)', 'MEDIA': '📷 ฝ่ายช่างภาพ/สื่อ (Media)', 'FACILITY': '🏢 ฝ่ายอาคารสถานที่ (Facility)' }, eventAssets = allEquipment.filter(i => (i.usage_type || 'BOTH') === 'EVENT' || (i.usage_type || 'BOTH') === 'BOTH');
+      let html = '';
+      Object.keys(depts).forEach(deptKey => {
+        const items = eventAssets.filter(i => (i.department || 'IT') === deptKey);
+        if (items.length > 0) {
+          html += `<details class="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden"><summary class="font-bold text-slate-700 p-2.5 bg-slate-100 cursor-pointer hover:bg-indigo-50 flex justify-between items-center"><span>${depts[deptKey]} (${items.length} รายการ)</span><span class="text-slate-400 text-xs">▼</span></summary><div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">`;
+          items.forEach(item => {
+            const isUnav = (item.status === 'UNAVAILABLE'), brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '', statusLabel = isUnav ? ` <span class="text-rose-500 font-bold">[🔴 ไม่พร้อมใช้งาน]</span>` : '';
+            html += `<label class="flex items-center gap-1.5 ${isUnav ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}"><input type="checkbox" name="event-eq-item" value="${item.id}" ${isUnav ? 'disabled' : ''} class="rounded text-indigo-600 focus:ring-0"><span>[${item.asset_label}] ${item.name} ${brandStr}${statusLabel}</span></label>`;
+          });
+          html += `</div></details>`;
+        }
+      });
+      container.innerHTML = html || `<p class="text-slate-400 text-center">ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ</p>`;
+    }
+
+    function renderEquipmentDropdown() {
+      const deptFilter = document.getElementById('borrow-dept-filter').value, select = document.getElementById('borrow-asset-select');
+      select.innerHTML = `<option value="">-- เลือกอุปกรณ์ --</option>`;
+      let filtered = allEquipment.filter(item => {
+        if (item.status === 'UNAVAILABLE') return false;
+        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = totalQty - borrowedCount;
+        return availableQty > 0 && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH');
+      });
+      if (deptFilter !== 'ALL') filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
+      filtered.forEach(item => {
+        const availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+        select.insertAdjacentHTML('beforeend', `<option value="${item.id}">[${item.asset_label}] ${item.name} (ว่าง ${availableQty}/${item.quantity || 1}) (${item.department || 'IT'})</option>`);
+      });
+    }
+
+    function showEquipmentPreview(id) {
+      const item = allEquipment.find(i => i.id == id), preview = document.getElementById('equipment-preview');
+      if (!item) { preview.classList.add('hidden'); return; }
+      const availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+      document.getElementById('prev-name').textContent = `${item.name} ${item.brand && item.brand !== 'undefined' ? item.brand : ''}`;
+      document.getElementById('prev-label').textContent = item.asset_label; document.getElementById('prev-dept').textContent = item.department || 'IT';
+      document.getElementById('prev-location').textContent = item.location || '-'; document.getElementById('prev-stock').textContent = `${availableQty} / ${item.quantity || 1} ชิ้น`;
+      preview.classList.remove('hidden');
+    }
+
+    async function handleEquipmentSave(e) {
+      e.preventDefault(); if (!currentAdmin) return;
+      const rawId = document.getElementById('eq-id').value;
+      const payload = { asset_label: document.getElementById('eq-label').value, name: document.getElementById('eq-name').value, quantity: parseInt(document.getElementById('eq-quantity').value || 1, 10), department: document.getElementById('eq-dept').value, usage_type: document.getElementById('eq-usage-type').value, status: document.getElementById('eq-status').value, brand: document.getElementById('eq-brand').value || '', serial_number: document.getElementById('eq-serial').value || '', location: document.getElementById('eq-location').value || '' };
+      const { error } = rawId && rawId !== '' ? await _supabase.from('equipment').update(payload).eq('id', parseInt(rawId, 10)) : await _supabase.from('equipment').insert([payload]);
+      if (error) { alert('Error: ' + error.message); return; }
+      alert('✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!'); resetEquipmentForm(); await fetchAllEquipment();
+    }
+
+    function editEquipment(id) {
+      const item = allEquipment.find(i => i.id == id); if (!item) return;
+      document.getElementById('form-equipment-title').innerHTML = `✏️ [Admin Zone] แก้ไขรายการอุปกรณ์ (ID: ${item.id})`;
+      document.getElementById('btn-save-equipment').innerHTML = `💾 ยืนยันการอัปเดตข้อมูล`; document.getElementById('btn-save-equipment').className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
+      document.getElementById('eq-id').value = item.id; document.getElementById('eq-label').value = item.asset_label || ''; document.getElementById('eq-name').value = item.name || '';
+      document.getElementById('eq-quantity').value = item.quantity || 1; document.getElementById('eq-dept').value = item.department || 'IT'; document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
+      document.getElementById('eq-status').value = item.status || 'AVAILABLE'; document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : ''; document.getElementById('eq-serial').value = item.serial_number || ''; document.getElementById('eq-location').value = item.location || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteEquipment(id, name) {
+      if (!confirm(`⚠️ ยืนยันลบ: ${name} ?`)) return;
+      await _supabase.from('equipment').delete().eq('id', id); alert('✅ ลบอุปกรณ์เรียบร้อย!'); await fetchAllEquipment();
+    }
+
+    function resetEquipmentForm() {
+      document.getElementById('form-equipment').reset(); document.getElementById('eq-id').value = ''; document.getElementById('eq-quantity').value = 1; document.getElementById('eq-status').value = 'AVAILABLE';
+      document.getElementById('form-equipment-title').innerHTML = `🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่`; document.getElementById('btn-save-equipment').innerHTML = `💾 บันทึกข้อมูลอุปกรณ์`;
+      document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
+    }
+
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', locale: 'th', eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+        buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
+        events: fetchCalendarEvents, eventClick: function(info) { openEventDetailModal(info.event); }
+      });
+      calendar.render();
+    }
+
+    async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
+      const { data, error } = await _supabase.from('event_queue').select('*');
+      if (error) { failureCallback(error); return; }
+      allEventsList = data || []; const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
+      const filterStaff = document.getElementById('calendar-filter-staff')?.value.trim().toLowerCase() || '', filterDept = document.getElementById('calendar-filter-dept')?.value || 'ALL';
+
+      let filteredData = (data || []).filter(ev => {
+        if (filterDept !== 'ALL' && ev.department !== filterDept) return false;
+        if (filterStaff !== '') { const matchHost = (ev.main_host || '').toLowerCase().includes(filterStaff), matchOrganizer = (ev.organizer || '').toLowerCase().includes(filterStaff); if (!matchHost && !matchOrganizer) return false; }
+        return true;
+      });
+
+      const events = filteredData.map(ev => {
+        let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
+        return {
+          id: ev.id, title: `${adjustUtcToThaiDisplay(ev.start_time)} [${ev.department || 'ALL'}] ${ev.event_title}`, start: datePart, end: datePart, backgroundColor: deptColors[ev.department] || '#6366f1', borderColor: deptColors[ev.department] || '#6366f1',
+          extendedProps: { eventId: ev.id, rawTitle: ev.event_title, dept: ev.department || 'ALL', mainHost: ev.main_host || '-', location: ev.location, organizer: ev.organizer, details: ev.details, remarks: ev.remarks, rawStart: ev.start_time, rawEnd: ev.end_time }
+        };
+      });
+      successCallback(events);
+    }
+
+    function openEventDetailModal(eventObj) {
+      const props = eventObj.extendedProps;
+      selectedEventForPrint = { eventId: props.eventId, title: props.rawTitle, dept: props.dept, mainHost: props.mainHost, location: props.location, organizer: props.organizer, start: formatThaiDateTime(props.rawStart || eventObj.start), end: formatThaiDateTime(props.rawEnd || eventObj.end), rawStart: props.rawStart, rawEnd: props.rawEnd, details: props.details, remarks: props.remarks };
+      document.getElementById('detail-dept-badge').textContent = `ฝ่าย: ${props.dept}`; document.getElementById('detail-title').textContent = props.rawTitle; document.getElementById('detail-main-host').textContent = props.mainHost; document.getElementById('detail-location').textContent = props.location; document.getElementById('detail-organizer').textContent = props.organizer || '-';
+      document.getElementById('detail-start').textContent = selectedEventForPrint.start; document.getElementById('detail-end').textContent = selectedEventForPrint.end; document.getElementById('detail-remarks').textContent = props.remarks || '-';
+
+      let eqHtml = '';
+      if (props.details && props.details.includes('EQ_IDS:')) {
+        const ids = props.details.split('EQ_IDS:')[1].split('|')[0].split(',');
+        ids.forEach(id => { const item = allEquipment.find(i => i.id == id.trim()); if (item) { eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400">เก็บ: ${item.location || '-'}</span></div>`; } });
+      } else eqHtml = `<p class="text-slate-600">${props.details || '-'}</p>`;
+      document.getElementById('detail-equipment-list').innerHTML = eqHtml;
+
+      document.getElementById('btn-edit-event').classList.toggle('hidden', !currentAdmin); document.getElementById('btn-cancel-event').classList.toggle('hidden', !currentAdmin);
+      document.getElementById('modal-event-detail').classList.remove('hidden');
+    }
+
+    function printEventReport() {
+      if (!selectedEventForPrint) return;
+      const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+      document.getElementById('print-doc-id').textContent = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
+      document.getElementById('print-now-date').textContent = new Date().toLocaleDateString('th-TH'); document.getElementById('print-title').textContent = selectedEventForPrint.title;
+      document.getElementById('print-dept').textContent = selectedEventForPrint.dept; document.getElementById('print-main-host').textContent = selectedEventForPrint.mainHost;
+      document.getElementById('print-location').textContent = selectedEventForPrint.location; document.getElementById('print-datetime').textContent = `${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}`; document.getElementById('print-remarks').textContent = selectedEventForPrint.remarks || '-';
+
+      const orgStr = selectedEventForPrint.organizer || '', getDeptStaffNames = (deptKey) => orgStr ? orgStr.split(', ').filter(m => m.includes(`[${deptKey}]`)).map(m => m.split(' [')[0]) : [];
+      const itStaffs = getDeptStaffNames('IT'), avStaffs = getDeptStaffNames('AV'), mediaStaffs = getDeptStaffNames('MEDIA'), facStaffs = getDeptStaffNames('FACILITY');
+      document.getElementById('print-staff-it-count').textContent = `${itStaffs.length} คน`; document.getElementById('print-staff-it-names').textContent = itStaffs.join(', ') || '-';
+      document.getElementById('print-staff-av-count').textContent = `${avStaffs.length} คน`; document.getElementById('print-staff-av-names').textContent = avStaffs.join(', ') || '-';
+      document.getElementById('print-staff-media-count').textContent = `${mediaStaffs.length} คน`; document.getElementById('print-staff-media-names').textContent = mediaStaffs.join(', ') || '-';
+
+      let nHousekeeper = 0, nTech = 0, nSec = 0, nPark = 0;
+      if (orgStr.includes('แม่บ้าน')) { let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/); if (m) nHousekeeper = m[1]; }
+      if (orgStr.includes('ช่างอาคาร')) { let m = orgStr.match(/ช่างอาคาร\s*(\d+)\s*คน/); if (m) nTech = m[1]; }
+      if (orgStr.includes('รปภ.')) { let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/); if (m) nSec = m[1]; }
+      if (orgStr.includes('ช่องจอดรถ')) { let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/); if (m) nPark = m[1]; }
+
+      document.getElementById('print-staff-facility-count').textContent = `${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}`;
+      document.getElementById('print-staff-tech-count').textContent = `${nTech} คน`; document.getElementById('print-staff-housekeeper-count').textContent = `${nHousekeeper} คน`;
+      document.getElementById('print-staff-security-count').textContent = `${nSec} คน`; document.getElementById('print-parking-count').textContent = `${nPark} คัน`;
+
+      let tableHtml = '';
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
+        const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
+        ids.forEach(id => { const item = allEquipment.find(i => i.id == id.trim()); if (item) { tableHtml += `<tr class="hover:bg-slate-50"><td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td><td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''}</td><td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td><td class="border border-slate-300 p-2">${item.location || '-'}</td><td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td><td class="border border-slate-300 p-2 text-slate-400"></td></tr>`; } });
+      } else { tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`; }
+      document.getElementById('print-equipment-table').innerHTML = tableHtml;
+
+      const printArea = document.getElementById('printable-area'); printArea.classList.remove('hidden'); window.print(); printArea.classList.add('hidden');
+    }
+
+    async function handleBorrowSubmit(e) {
+      e.preventDefault();
+      const equipmentId = document.getElementById('borrow-asset-select').value, borrowType = document.getElementById('borrow-type-select').value, borrowerName = document.getElementById('borrower-name').value, dept = document.getElementById('borrower-dept').value, returnDate = document.getElementById('return-date').value, note = document.getElementById('borrow-note').value;
+      if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
+      const item = allEquipment.find(i => i.id == equipmentId), availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+      if (availableQty <= 0) { alert('❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว'); return; }
+
+      await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note }]);
+      sendGoogleChatNotification({ title: `${borrowType === 'LONG_TERM' ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`} [ฝ่าย ${item.department || 'IT'}]`, details: [`<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`, `<b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`, `<b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`, `<b>ผู้รับมอบ/ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`, `<b>กำหนดคืน:</b> ${borrowType === 'LONG_TERM' ? 'Long-term (No Due Date)' : returnDate}`, `<b>วัตถุประสงค์/หมายเหตุ:</b> ${note || '-'}`] });
+      
+      alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
+      document.getElementById('form-borrow').reset(); toggleBorrowTypeMode(); await fetchAllEquipment(); await loadActiveBorrows();
+    }
+
+    async function loadActiveBorrows() {
+      const tbody = document.getElementById('table-active-borrows');
+      try {
+        const statusFilter = document.getElementById('filter-borrow-status').value, startDate = document.getElementById('filter-start-date').value, endDate = document.getElementById('filter-end-date').value;
+        let query = _supabase.from('borrow_records').select('*, equipment(*)').order('borrow_date', { ascending: false });
+        if (statusFilter === 'SHORT_TERM_BORROWED') { query = query.eq('status', 'BORROWED').eq('borrow_type', 'SHORT_TERM'); } 
+        else if (statusFilter === 'LONG_TERM_BORROWED') { query = query.eq('status', 'BORROWED').eq('borrow_type', 'LONG_TERM'); } 
+        else if (statusFilter === 'RETURNED') { query = query.eq('status', 'RETURNED'); }
+        if (startDate) query = query.gte('borrow_date', `${startDate}T00:00:00`);
+        if (endDate) query = query.lte('borrow_date', `${endDate}T23:59:59`);
+
+        const { data, error } = await query;
+        if (error) { console.error("Supabase Error:", error); tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ข้อผิดพลาด: ตรวจสอบการตั้งค่าฐานข้อมูล (ตาราง borrow_records)</td></tr>`; return; }
+        activeBorrowRecords = data || [];
+        if (activeBorrowRecords.length === 0) { tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">ไม่พบรายการยืม-คืนตามเงื่อนไขที่ค้นหา</td></tr>`; return; }
+
+        tbody.innerHTML = activeBorrowRecords.map(record => {
+          const isLongTerm = (record.borrow_type === 'LONG_TERM'), isReturned = (record.status === 'RETURNED');
+          const typeBadge = isLongTerm ? `<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ส่งมอบระยะยาว</span>` : `<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ยืมรายวัน</span>`;
+          const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">ไม่มีกำหนดคืน</span>` : new Date(record.expected_return_date).toLocaleDateString('th-TH');
+          let returnStatusCell = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ครอบครองอยู่</span>`;
+          if (isReturned) {
+            const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ชำรุดเล็กน้อย)` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ชำรุดหนัก/สูญหาย)` : ` (🟢 ปกติ)`;
+            returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 คืนแล้ว ${new Date(record.actual_return_date).toLocaleDateString('th-TH')}${conditionText}</span>`;
+          }
+          return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td><td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td><td class="p-3">${typeBadge}</td><td class="p-3">${record.borrower_name}</td><td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td><td class="p-3 text-amber-600 font-medium">${returnDisplay}</td><td class="p-3">${returnStatusCell}</td><td class="p-3 text-center">${!isReturned ? (currentAdmin ? `<button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-200">↩️ ตรวจรับคืนโดย Admin</button>` : `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`) : `<span class="text-xs text-slate-400">ทำรายการแล้ว</span>`}</td></tr>`;
+        }).join('');
+      } catch (err) { tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ระบบทำงานผิดพลาดในการดึงข้อมูลยืมคืน</td></tr>`; }
+    }
+
+    function clearBorrowFilters() { document.getElementById('filter-borrow-status').value = 'SHORT_TERM_BORROWED'; document.getElementById('filter-start-date').value = ''; document.getElementById('filter-end-date').value = ''; loadActiveBorrows(); }
+    
+    function exportBorrowToExcel() {
+      if (!activeBorrowRecords || activeBorrowRecords.length === 0) { alert('❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel'); return; }
+      const exportData = activeBorrowRecords.map(item => ({ 'Asset Label': item.equipment?.asset_label || '-', 'Equipment Name': item.equipment?.name || '-', 'Department': item.equipment?.department || 'IT', 'Issuance Type': item.borrow_type === 'LONG_TERM' ? 'Long-term' : 'Daily', 'Borrower/Assignee': item.borrower_name, 'Date Issued': new Date(item.borrow_date).toLocaleDateString('th-TH'), 'Due Date': item.borrow_type === 'LONG_TERM' ? 'No Due Date' : new Date(item.expected_return_date).toLocaleDateString('th-TH'), 'Status': item.status === 'RETURNED' ? 'Returned' : 'Occupied', 'Actual Return Date': item.actual_return_date ? new Date(item.actual_return_date).toLocaleDateString('th-TH') : '-', 'Return Condition': item.return_condition === 'GOOD' ? 'Good' : item.return_condition === 'MINOR_DAMAGE' ? 'Minor Damage' : item.return_condition === 'DAMAGED_LOST' ? 'Damaged/Lost' : '-', 'Remarks': item.note || '-' }));
+      const worksheet = XLSX.utils.json_to_sheet(exportData), workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Borrow_Records"); XLSX.writeFile(workbook, `Denla_Borrow_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    async function exportEventsToExcel() {
+      const startDate = document.getElementById('excel-event-start').value, endDate = document.getElementById('excel-event-end').value;
+      let query = _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
+      if (startDate) query = query.gte('start_time', `${startDate}T00:00:00`); if (endDate) query = query.lte('start_time', `${endDate}T23:59:59`);
+      const { data, error } = await query;
+      if (error || !data || data.length === 0) { alert('❌ ไม่พบคิวงานกิจกรรมในช่วงวันที่เลือกสำหรับส่งออก Excel'); return; }
+      const exportData = data.map(ev => {
+        let eqListNames = [];
+        if (ev.details && ev.details.includes('EQ_IDS:')) { ev.details.split('EQ_IDS:')[1].split('|')[0].split(',').forEach(id => { const item = allEquipment.find(i => i.id == id.trim()); if (item) eqListNames.push(`[${item.asset_label}] ${item.name}`); }); }
+        return { 'Queue ID': ev.id, 'Department': ev.department || 'ALL', 'Event Title': ev.event_title, 'Event Host': ev.main_host || '-', 'Location': ev.location, 'Start Time': formatThaiDateTime(ev.start_time), 'End Time': formatThaiDateTime(ev.end_time), 'Tagged Members': ev.organizer || '-', 'Prepared Equipment': eqListNames.join(', ') || '-', 'Remarks': ev.remarks || '-' };
+      });
+      const worksheet = XLSX.utils.json_to_sheet(exportData), workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Event_Queue"); XLSX.writeFile(workbook, `Denla_Events_Report_${startDate&&endDate ? startDate+'_to_'+endDate : 'All'}.xlsx`);
+    }
+
+    function exportInventoryToExcel() {
+      if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) { alert('❌ ไม่พบข้อมูลคลังอุปกรณ์สำหรับส่งออก Excel'); return; }
+      const exportData = currentFilteredEquipment.map(item => {
+        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = (item.status === 'UNAVAILABLE') ? 0 : (totalQty - borrowedCount);
+        return { 'Asset Label': item.asset_label || '-', 'Equipment Name': item.name || '-', 'Department': item.department || 'IT', 'Usage Category': (item.usage_type === 'EVENT') ? 'Event Queue Only' : (item.usage_type === 'BORROW') ? 'Daily Borrow Only' : 'Both Event & Borrow', 'Total Quantity': totalQty, 'Available Quantity': availableQty, 'Brand/Model': (item.brand && item.brand !== 'undefined') ? item.brand : '-', 'Serial Number': item.serial_number || '-', 'Storage Location': item.location || '-', 'Stock Status': (item.status === 'UNAVAILABLE') ? 'Unavailable / Under Repair' : (availableQty <= 0) ? 'Out of Stock' : 'Available' };
+      });
+      const worksheet = XLSX.utils.json_to_sheet(exportData), workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Equipment_Inventory"); XLSX.writeFile(workbook, `Denla_Equipment_Inventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function openReturnInspectionModal(recordId) {
+      if (!currentAdmin) { alert('🔒 Admin Only'); return; }
+      const record = activeBorrowRecords.find(r => r.id === recordId); if (!record) return;
+      pendingReturnRecord = record; document.getElementById('inspect-equipment-name').textContent = `[${record.equipment?.asset_label}] ${record.equipment?.name}`;
+      document.getElementById('inspect-condition').value = 'GOOD'; document.getElementById('inspect-remark').value = ''; document.getElementById('modal-return-inspect').classList.remove('hidden');
+    }
+
+    async function confirmReturnWithInspection() {
+      if (!pendingReturnRecord) return;
+      const condition = document.getElementById('inspect-condition').value, remark = document.getElementById('inspect-remark').value;
+      await _supabase.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString(), return_condition: condition, return_remark: remark }).eq('id', pendingReturnRecord.id);
+      if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') { await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', pendingReturnRecord.equipment_id); alert('⚠️ รับคืนเรียบร้อย! อุปกรณ์นี้ถูกปรับสถานะเป็น "🔴 ไม่พร้อมใช้งาน/ส่งซ่อม" อัตโนมัติ'); } 
+      else { alert('✅ ตรวจรับคืนอุปกรณ์เรียบร้อยแล้ว'); }
+      closeModals(); pendingReturnRecord = null; await fetchAllEquipment(); await loadActiveBorrows();
+    }
+
+    function renderInventoryTable(items) {
+      currentFilteredEquipment = items || []; const tbody = document.getElementById('table-inventory');
+      tbody.innerHTML = items.map(item => {
+        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = totalQty - borrowedCount;
+        const usageBadge = (item.usage_type === 'EVENT') ? `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 กิจกรรม</span>` : (item.usage_type === 'BORROW') ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ยืม-คืน</span>` : `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ทั้งคู่</span>`;
+        let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 พร้อมใช้งาน (${availableQty}/${totalQty})</span>`;
+        if (item.status === 'UNAVAILABLE') { stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ไม่พร้อมใช้งาน/ส่งซ่อม</span>`; } 
+        else if (availableQty <= 0) { stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟡 ถูกยืมหมดแล้ว (0/${totalQty})</span>`; } 
+        else if (availableQty < totalQty) { stockBadge = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">🟢 คงเหลือ ${availableQty}/${totalQty}</span>`; }
+        return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${item.asset_label}</span></td><td class="p-3 font-medium text-slate-800">${item.name}</td><td class="p-3 text-center font-bold text-slate-700">${totalQty}</td><td class="p-3 text-center font-bold text-emerald-600">${item.status === 'UNAVAILABLE' ? 0 : availableQty}</td><td class="p-3">${usageBadge}</td><td class="p-3"><span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">${item.department || 'IT'}</span></td><td class="p-3">${(item.brand && item.brand !== 'undefined') ? item.brand : ''} ${item.model || ''}</td><td class="p-3">${item.location || '-'}</td><td class="p-3">${stockBadge}</td><td class="p-3 text-center admin-col ${currentAdmin ? '' : 'hidden'}"><button onclick="editEquipment(${item.id})" class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-lg mr-1">✏️ แก้ไข</button><button onclick="deleteEquipment(${item.id}, '${item.name}')" class="text-xs bg-red-100 text-red-700 font-medium px-2 py-1 rounded-lg">🗑️ ลบ</button></td></tr>`;
+      }).join('');
+    }
+
+    function filterInventory() {
+      const q = document.getElementById('search-inventory').value.toLowerCase(), typeFilter = document.getElementById('inventory-type-filter').value;
+      let filtered = allEquipment.filter(i => i.name.toLowerCase().includes(q) || i.asset_label.toLowerCase().includes(q));
+      if (typeFilter !== 'ALL') filtered = filtered.filter(i => (i.usage_type || 'BOTH') === typeFilter || (i.usage_type || 'BOTH') === 'BOTH');
+      renderInventoryTable(filtered);
+    }
+
+    async function sendGoogleChatNotification({ title, details }) {
+      if (!GOOGLE_CHAT_WEBHOOK_URL) return;
+      try { await fetch(GOOGLE_CHAT_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cardsV2: [{ cardId: 'notificationCard', card: { header: { title: title, subtitle: 'ระบบแจ้งเตือน IT, AV, Media & Facility เด่นหล้า' }, sections: [{ widgets: [{ textParagraph: { text: details.join('<br>') } }] }] } }] }) }); } catch (err) { console.error('Chat err:', err); }
+    }
+
+    function toggleScanner() {
+      const readerDiv = document.getElementById('reader');
+      if (readerDiv.classList.contains('hidden')) {
+        readerDiv.classList.remove('hidden');
+        const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        scanner.render((decodedText) => {
+          const item = allEquipment.find(i => i.asset_label.toLowerCase() === decodedText.toLowerCase());
+          if (item) { document.getElementById('borrow-asset-select').value = item.id; showEquipmentPreview(item.id); alert(`✅ เจออุปกรณ์: ${item.name}`); toggleScanner(); }
+        });
+      } else { readerDiv.classList.add('hidden'); }
+    }
+
+    async function handleEventSubmit(e) {
+      e.preventDefault();
+      const rawEventId = document.getElementById('event-id').value, dept = document.getElementById('event-dept-select').value, title = document.getElementById('event-title').value, mainHost = document.getElementById('event-main-host').value;
+      const locationSel = document.getElementById('event-location-select').value, locationCustom = document.getElementById('event-location-custom').value, location = (locationSel === 'CUSTOM') ? locationCustom : locationSel;
+      const startDateStr = `${document.getElementById('start-year').value}-${document.getElementById('start-month').value}-${document.getElementById('start-day').value}`, startTime = document.getElementById('event-start-time').value;
+      const endDateStr = `${document.getElementById('end-year').value}-${document.getElementById('end-month').value}-${document.getElementById('end-day').value}`, endTime = document.getElementById('event-end-time').value;
+      const remarks = document.getElementById('event-remarks').value, showDisplay = document.getElementById('chk-show-display')?.checked;
+      
+      const nHousekeeper = parseInt(document.getElementById('num-housekeeper').value || 0, 10), nTechnician = parseInt(document.getElementById('num-technician').value || 0, 10), nParking = parseInt(document.getElementById('num-parking').value || 0, 10);
+      const selectedAdmins = Array.from(document.querySelectorAll('input[name="tag-admin-item"]:checked')).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
+      let tagDisplayList = selectedAdmins.map(a => `${a.full_name} (${a.nickname || '-'}) [${a.department}]`), reqStaffList = [];
+      if (nHousekeeper > 0) reqStaffList.push(`🧹 แม่บ้าน ${nHousekeeper} คน`); if (nTechnician > 0) reqStaffList.push(`🛠️ ช่างอาคาร ${nTechnician} คน`); if (nParking > 0) reqStaffList.push(`🚗 ช่องจอดรถ ${nParking} คัน`);
+      if (reqStaffList.length > 0) { tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`); }
+
+      const isoStart = formatLocalToISO(startDateStr, startTime), isoEnd = formatLocalToISO(endDateStr, endTime), newStartMs = new Date(isoStart).getTime(), newEndMs = new Date(isoEnd).getTime();
+      if (newEndMs <= newStartMs) { alert('⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!'); return; }
+
+      const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
+      if (!fetchErr && existingEvents) {
+        for (const ev of existingEvents) {
+          if (rawEventId && parseInt(rawEventId, 10) === ev.id) continue;
+          if ((newStartMs < new Date(ev.end_time).getTime()) && (newEndMs > new Date(ev.start_time).getTime())) {
+            if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) { alert(`⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); return; }
+            if (selectedAdmins.length > 0 && ev.organizer) {
+              for (const admin of selectedAdmins) { if (ev.organizer.includes(admin.full_name)) { alert(`⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากทีมงาน ${admin.full_name} (${admin.nickname || '-'}) ถูกแท็กในงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); return; } }
+            }
+          }
+        }
+      }
+
+      let chatMentionStr = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`).join(', ') || '-';
+      const facilityAdmins = allAdmins.filter(a => a.department === 'FACILITY');
+      if ((reqStaffList.length > 0 || dept === 'FACILITY') && facilityAdmins.length > 0) {
+        chatMentionStr += `<br>🏢 <font color="#d97706"><b>[เรียนฝ่ายอาคารสถานที่]:</b> ${facilityAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`).join(', ')}${reqStaffList.length > 0 ? ` (ขอสนับสนุน: ${reqStaffList.join(', ')})` : ''}</font>`;
+      }
+
+      const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked'), selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value), selectedEqNames = Array.from(checkedBoxes).map(cb => { const item = allEquipment.find(i => i.id == cb.value); return item ? `[${item.asset_label}] ${item.name}` : ''; });
+      const payload = { department: dept, event_title: title, main_host: mainHost, location: location, start_time: isoStart, end_time: isoEnd, event_date: startDateStr, organizer: tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก', details: `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}`, remarks: remarks };
+
+      const { error } = rawEventId && rawEventId !== '' ? await _supabase.from('event_queue').update(payload).eq('id', parseInt(rawEventId, 10)) : await _supabase.from('event_queue').insert([payload]);
+      if (error) { alert('Error: ' + error.message); return; }
+
+      sendGoogleChatNotification({ title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`, details: [`<b>ชื่อกิจกรรม:</b> ${title}`, `<b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> ${mainHost}`, `<b>📍 สถานที่จัดงาน:</b> <font color="#0284c7"><b>${location}</b></font>`, `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`, `<b>เวลาเสร็จงาน:</b> ${formatThaiDateTime(isoEnd)}`, `<b>🏷️ ทีมงานรับผิดชอบปฏิบัติงาน:</b><br>${chatMentionStr}`, `<b>📝 หมายเหตุ:</b> ${remarks || '-'}`, `<b>🛠️ อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`] });
+      alert(rawEventId ? '✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!' : '✅ บันทึกคิวงานเรียบร้อย!'); resetEventForm(); if (calendar) calendar.refetchEvents();
+    }
+
+    function editEventFromModal() {
+      if (!currentAdmin || !selectedEventForPrint) return;
+      document.getElementById('event-id').value = selectedEventForPrint.eventId; document.getElementById('event-dept-select').value = selectedEventForPrint.dept || 'IT'; document.getElementById('event-title').value = selectedEventForPrint.title || ''; document.getElementById('event-main-host').value = selectedEventForPrint.mainHost || '';
+      
+      const loc = selectedEventForPrint.location || '', locSel = document.getElementById('event-location-select');
+      let foundOption = false; for (let opt of locSel.options) { if (opt.value === loc) { locSel.value = loc; foundOption = true; break; } }
+      if (!foundOption) { locSel.value = 'CUSTOM'; document.getElementById('event-location-custom').value = loc; } toggleCustomLocationInput();
+
+      const chkDisplay = document.getElementById('chk-show-display'); if (chkDisplay) { chkDisplay.checked = !selectedEventForPrint.details?.includes('HIDE_DISPLAY:true'); }
+      
+      if (selectedEventForPrint.rawStart) { const dStart = new Date(selectedEventForPrint.rawStart); document.getElementById('start-year').value = String(dStart.getFullYear()); document.getElementById('start-month').value = String(dStart.getMonth() + 1).padStart(2, '0'); document.getElementById('start-day').value = String(dStart.getDate()).padStart(2, '0'); document.getElementById('event-start-time').value = `${String(dStart.getHours()).padStart(2,'0')}:${String(Math.floor(dStart.getMinutes() / 5) * 5).padStart(2,'0')}`; }
+      if (selectedEventForPrint.rawEnd) { const dEnd = new Date(selectedEventForPrint.rawEnd); document.getElementById('end-year').value = String(dEnd.getFullYear()); document.getElementById('end-month').value = String(dEnd.getMonth() + 1).padStart(2, '0'); document.getElementById('end-day').value = String(dEnd.getDate()).padStart(2, '0'); document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(Math.floor(dEnd.getMinutes() / 5) * 5).padStart(2,'0')}`; }
+
+      document.getElementById('event-remarks').value = selectedEventForPrint.remarks || ''; clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) { selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',').forEach(id => { const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`); if (cb) cb.checked = true; }); }
+
+      document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] แก้ไขคิวงาน (ID: ${selectedEventForPrint.eventId})`; document.getElementById('btn-submit-event').innerHTML = `💾 ยืนยันการอัปเดตคิวงาน`; document.getElementById('btn-submit-event').className = 'w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition'; document.getElementById('btn-cancel-edit-event').classList.remove('hidden');
+      closeModals(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetEventForm() {
+      document.getElementById('form-event').reset(); document.getElementById('event-id').value = '';
+      const now = new Date(), curDay = String(now.getDate()).padStart(2, '0'), curMonth = String(now.getMonth() + 1).padStart(2, '0'), curYear = String(now.getFullYear());
+      ['start', 'end'].forEach(prefix => { document.getElementById(`${prefix}-day`).value = curDay; document.getElementById(`${prefix}-month`).value = curMonth; document.getElementById(`${prefix}-year`).value = curYear; });
+      document.getElementById('event-start-time').value = '08:30'; document.getElementById('event-end-time').value = '16:30';
+      toggleCustomLocationInput(); clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      document.getElementById('form-event-title').innerHTML = `➕ ลงคิวงาน / กิจกรรมใหม่`; document.getElementById('btn-submit-event').innerHTML = `📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน`; document.getElementById('btn-submit-event').className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition'; document.getElementById('btn-cancel-edit-event').classList.add('hidden');
+    }
+
+    async function cancelEvent() {
+      if (!currentAdmin || !selectedEventForPrint) return;
+      if (!confirm(`⚠️ ยืนยันยกเลิกคิวงานกิจกรรม: "${selectedEventForPrint.title}" ?`)) return;
+      const { error } = await _supabase.from('event_queue').delete().eq('id', selectedEventForPrint.eventId);
+      if (error) { alert('Error: ' + error.message); return; }
+      sendGoogleChatNotification({ title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`, details: [`<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`, `<b>ผู้จัดงานเดิม:</b> ${selectedEventForPrint.mainHost}`, `<b>สถานที่:</b> ${selectedEventForPrint.location}`, `<b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.nickname || '-'}) [ฝ่าย ${currentAdmin.department || 'IT'}]`] });
+      alert('✅ ยกเลิกคิวงานกิจกรรมเรียบร้อยแล้ว'); closeModals(); if (calendar) calendar.refetchEvents();
+    }
+  </script>
+</body>
+</html>
