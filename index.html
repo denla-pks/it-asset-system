@@ -124,8 +124,8 @@
               <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div id="box-return-date">
-              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน (สำหรับรายวันเลือกได้แค่วันนี้) *</label>
-              <!-- ล็อกปฏิทินยืมรายวันด้วย JS -->
+              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
+              <!-- ปลดล็อกให้เลือกวันไหนก็ได้ แต่ห้ามเลือกอดีต -->
               <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
             </div>
             <div>
@@ -402,7 +402,7 @@
     </section>
   </main>
 
-  <!-- ==================== TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) รูปแบบใหม่ แยกออกมา ==================== -->
+  <!-- ==================== TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) รูปแบบใหม่ แยกหน้าจอ ==================== -->
   <section id="sec-display" class="hidden min-h-screen bg-slate-50 p-2 md:p-6 relative">
     
     <!-- แถบ Header เฉพาะของหน้าจอแสดงผล -->
@@ -410,8 +410,9 @@
       <div class="flex items-center gap-4">
         <img src="logo.png" class="h-10 w-10 md:h-14 md:w-14 bg-white rounded-full p-1 shadow-inner" onerror="this.style.display='none'">
         <div>
-          <h1 class="text-lg md:text-2xl font-bold tracking-tight">ระบบจัดการอุปกรณ์ IT & คิวงาน</h1>
-          <p class="text-[10px] md:text-xs text-indigo-200">Denla IT, AV, Media & Facility Management</p>
+          <!-- เปลี่ยนหัวข้อตามที่ผู้ใช้ต้องการ และจะถูกอัปเดตด้วย JS เป็น ตารางกิจกรรมวันที่... -->
+          <h1 id="display-dynamic-header-title" class="text-lg md:text-2xl font-bold tracking-tight text-amber-400">ตารางกิจกรรมประจำวัน</h1>
+          <p class="text-[10px] md:text-xs text-indigo-200">Denla Kindergarten Event Schedule</p>
         </div>
       </div>
       <div class="flex items-center gap-3 md:gap-5 font-bold">
@@ -427,7 +428,6 @@
 
     <!-- เนื้อหาหลัก จอแสดงผล -->
     <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl mt-6 p-6 md:p-10 border border-slate-200 relative overflow-hidden">
-      <!-- Background pattern (Optional) -->
       <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-50/40 to-transparent pointer-events-none"></div>
 
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 relative z-10 gap-4">
@@ -468,7 +468,7 @@
     <div class="max-w-6xl mx-auto mt-4 px-4 flex justify-between items-center text-xs md:text-sm font-bold text-slate-500">
       <div class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow"></span> ระบบออนไลน์</div>
       <div class="flex items-center gap-2 text-amber-600 hidden md:flex">
-        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 
+        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="animation-duration: 3s;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 
         ข้อมูลกิจกรรมอัปเดตอัตโนมัติ
       </div>
       <div>อัปเดตล่าสุด <span id="display-footer-last-update" class="font-mono">--:-- น.</span></div>
@@ -504,17 +504,17 @@
   <div id="modal-event-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-5 md:p-6 rounded-3xl shadow-2xl w-full max-w-2xl space-y-4 max-h-[90vh] flex flex-col">
       <div class="flex justify-between items-start border-b border-slate-100 pb-3 flex-shrink-0">
-        <div><span id="detail-dept-badge" class="px-3 py-1 rounded-full text-[10px] md:text-xs font-extrabold bg-indigo-100 text-indigo-800 tracking-wide">ฝ่าย -</span><h3 id="detail-title" class="text-lg md:text-xl font-bold text-slate-800 mt-2 leading-tight break-words">ชื่อกิจกรรม</h3></div>
+        <div><span id="detail-dept-badge" class="px-3 py-1 rounded-full text-[10px] md:text-xs font-extrabold bg-indigo-100 text-indigo-800 tracking-wide">ฝ่าย -</span><h3 id="detail-title" class="text-lg md:text-xl font-bold text-slate-800 mt-2 leading-tight break-words whitespace-normal">ชื่อกิจกรรม</h3></div>
         <button onclick="closeModals()" class="text-slate-400 hover:text-slate-600 font-bold text-2xl p-1 leading-none">✕</button>
       </div>
       <div class="overflow-y-auto pr-2 space-y-4 flex-1">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs md:text-sm text-slate-600">
-          <p class="col-span-1 md:col-span-2 text-indigo-900 bg-indigo-50/80 p-3 rounded-xl border border-indigo-100"><b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-sm md:text-base text-indigo-700 block mt-1 break-words">-</span></p>
-          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>📍 สถานที่:</b> <span id="detail-location" class="block mt-1 font-medium text-slate-800 break-words">-</span></p>
-          <p class="col-span-1 md:col-span-2"><b>🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 leading-relaxed break-words">-</span></p>
+          <p class="col-span-1 md:col-span-2 text-indigo-900 bg-indigo-50/80 p-3 rounded-xl border border-indigo-100"><b>👤 ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span id="detail-main-host" class="font-bold text-sm md:text-base text-indigo-700 block mt-1 break-words whitespace-normal">-</span></p>
+          <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>📍 สถานที่:</b> <span id="detail-location" class="block mt-1 font-medium text-slate-800 break-words whitespace-normal">-</span></p>
+          <p class="col-span-1 md:col-span-2"><b>🏷️ ทีมงานปฏิบัติงาน (Tagged):</b> <span id="detail-organizer" class="text-indigo-600 font-semibold block mt-1 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 leading-relaxed break-words whitespace-normal">-</span></p>
           <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>⏰ เวลาเริ่ม:</b> <span id="detail-start" class="font-bold text-slate-800 block mt-1">-</span></p>
           <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800 block mt-1">-</span></p>
-          <p class="col-span-1 md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100"><b>📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700 block mt-1 break-words">-</span></p>
+          <p class="col-span-1 md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100"><b>📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700 block mt-1 break-words whitespace-normal">-</span></p>
         </div>
         <div class="border-t border-slate-100 pt-3">
           <h4 class="font-bold text-slate-800 text-sm mb-2">🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:</h4>
@@ -527,7 +527,7 @@
           <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition justify-center items-center gap-1">🗑️ ยกเลิกงาน</button>
         </div>
         <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto order-1 md:order-2">
-          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (PDF)</button>
+          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (เปิดหน้าใหม่)</button>
           <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-center order-2 sm:order-1">ปิดหน้าต่าง</button>
         </div>
       </div>
@@ -598,7 +598,6 @@
       checkAdminSession();
       setupActivityListeners();
       
-      // อัปเดตนาฬิกา & วันที่
       setInterval(() => {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
@@ -608,9 +607,16 @@
         if (clockEl) clockEl.textContent = `${hh}:${mm}`;
 
         const dateEl = document.getElementById('display-header-date');
-        if (dateEl && dateEl.textContent === 'วัน...') {
-          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-          dateEl.textContent = now.toLocaleDateString('th-TH', options);
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = now.toLocaleDateString('th-TH', options);
+
+        if (dateEl && dateEl.textContent !== dateStr) {
+          dateEl.textContent = dateStr;
+        }
+
+        const dynTitle = document.getElementById('display-dynamic-header-title');
+        if (dynTitle && dynTitle.textContent !== `ตารางกิจกรรม ${dateStr}`) {
+          dynTitle.textContent = `ตารางกิจกรรม ${dateStr}`;
         }
       }, 1000);
 
@@ -732,14 +738,13 @@
     }
     function formatLocalToISO(dateStr, timeStr) { return (!dateStr || !timeStr) ? null : `${dateStr}T${timeStr}:00+07:00`; }
 
-    // ==================== ระบบล็อกปฏิทินยืมรายวัน ====================
+    // ==================== ระบบล็อกปฏิทินยืมรายวัน (แก้ไขใหม่) ====================
     function toggleBorrowTypeMode() {
       const type = document.getElementById('borrow-type-select').value;
       const boxReturnDate = document.getElementById('box-return-date');
       const btnSubmit = document.getElementById('btn-submit-borrow');
       const returnDateInput = document.getElementById('return-date');
 
-      // วันที่ปัจจุบัน (Local Timezone ป้องกันการเลื่อนเวลา UTC)
       const today = new Date();
       const localTodayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
@@ -747,18 +752,21 @@
         boxReturnDate.classList.add('hidden'); 
         returnDateInput.required = false;
         
-        btnSubmit.innerHTML = `🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว`; 
+        btnSubmit.innerHTML = `🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat`; 
         btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
       } else {
         boxReturnDate.classList.remove('hidden'); 
         returnDateInput.required = true;
         
-        // ล็อกให้เลือกได้แค่วันนี้วันเดียวเท่านั้น
-        returnDateInput.value = localTodayStr;
+        // ปลดล็อกให้เลือกวันไหนก็ได้ แต่ห้ามย้อนหลังอดีต
         returnDateInput.min = localTodayStr;
-        returnDateInput.max = localTodayStr;
+        returnDateInput.removeAttribute('max');
         
-        btnSubmit.innerHTML = `🚀 ยืนยันการยืมอุปกรณ์`; 
+        if (!returnDateInput.value || returnDateInput.value < localTodayStr) {
+            returnDateInput.value = localTodayStr;
+        }
+        
+        btnSubmit.innerHTML = `🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat`; 
         btnSubmit.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition';
       }
     }
@@ -814,7 +822,7 @@
     function switchTab(tabName) {
       if ((tabName === 'inventory' || tabName === 'staff-summary') && !currentAdmin) { alert('🔒 หน้าเฉพาะสำหรับ Admin เท่านั้น'); return; }
       
-      // ถ้ากดไปหน้าแสดงกิจกรรม (Display Board) ให้ซ่อน Header เว็บไซต์
+      // ซ่อน Header ของระบบหลัก เมื่อเปิดหน้าจอ Display
       if (tabName === 'display') {
         document.getElementById('main-header').classList.add('hidden');
         document.getElementById('main-container').classList.add('hidden');
@@ -823,7 +831,6 @@
         return;
       }
 
-      // แสดง Header เว็บไซต์ตามปกติสำหรับหน้าอื่นๆ
       document.getElementById('main-header').classList.remove('hidden');
       document.getElementById('main-container').classList.remove('hidden');
       document.getElementById('sec-display').classList.add('hidden');
@@ -866,7 +873,7 @@
       if (footerUpdateDisplay) footerUpdateDisplay.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
       const { data, error } = await _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
-      if (error || !data || data.length === 0) { if (countDisplay) countDisplay.textContent = '0'; container.innerHTML = `<p class="text-slate-400 text-center py-12 text-lg font-bold">วันนี้ไม่มีคิวงานกิจกรรมสาธารณะ</p>`; return; }
+      if (error || !data || data.length === 0) { if (countDisplay) countDisplay.textContent = '0'; document.getElementById('display-count-badge').textContent = '0'; container.innerHTML = `<p class="text-slate-400 text-center py-12 text-lg font-bold">วันนี้ไม่มีคิวงานกิจกรรมสาธารณะ</p>`; return; }
 
       const displayEvents = data.filter(ev => {
         const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
@@ -876,6 +883,7 @@
 
       if (countDisplay) countDisplay.textContent = displayEvents.length;
       document.getElementById('display-total-count').textContent = displayEvents.length;
+      document.getElementById('display-count-badge').textContent = displayEvents.length;
 
       if (displayEvents.length === 0) { container.innerHTML = `<p class="text-slate-400 text-center py-12 text-lg font-bold">วันนี้ไม่มีรายการกิจกรรมสาธารณะสำหรับแสดงผล</p>`; return; }
 
@@ -890,11 +898,11 @@
       });
 
       const deptThemes = { 
-        'AV': 'bg-rose-600', 
+        'AV': 'bg-rose-500', 
         'IT': 'bg-sky-600', 
-        'MEDIA': 'bg-emerald-600', 
+        'MEDIA': 'bg-emerald-500', 
         'FACILITY': 'bg-amber-500 text-slate-900', 
-        'ALL': 'bg-indigo-700' 
+        'ALL': 'bg-indigo-500' 
       };
 
       container.innerHTML = displayEvents.map((ev, index) => {
@@ -918,14 +926,14 @@
             </div>
             
             <div class="flex-1 flex flex-col md:flex-row md:items-center p-4 gap-4">
-              <div class="flex-1">
+              <div class="flex-1 min-w-0">
                  <span class="${cTheme} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-2 inline-block ${cTheme.includes('text-slate-900') ? '' : 'text-white'}">${ev.department || 'ALL'}</span>
-                 <h3 class="text-lg md:text-xl font-bold text-slate-800 leading-tight">${ev.event_title}</h3>
+                 <h3 class="text-lg md:text-xl font-bold text-slate-800 leading-tight break-words whitespace-normal break-all">${ev.event_title}</h3>
               </div>
               
               <div class="md:w-64 space-y-1 md:space-y-2 text-xs md:text-sm font-medium text-slate-600 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-4">
-                 <div class="flex items-start gap-2"><span class="text-rose-500 text-base leading-none">📍</span> <span class="leading-tight">${ev.location || '-'}</span></div>
-                 <div class="flex items-start gap-2"><span class="text-indigo-500 text-base leading-none">👤</span> <span class="leading-tight">${ev.main_host || '-'}</span></div>
+                 <div class="flex items-start gap-2 min-w-0"><span class="text-rose-500 text-base leading-none shrink-0">📍</span> <span class="leading-tight break-words whitespace-normal">${ev.location || '-'}</span></div>
+                 <div class="flex items-start gap-2 min-w-0"><span class="text-indigo-500 text-base leading-none shrink-0">👤</span> <span class="leading-tight break-words whitespace-normal">${ev.main_host || '-'}</span></div>
               </div>
               
               <div class="md:w-40 flex md:justify-end items-center shrink-0 pt-2 md:pt-0">
@@ -960,7 +968,7 @@
           html += `<details class="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden"><summary class="font-bold text-slate-700 p-2.5 bg-slate-100 cursor-pointer hover:bg-indigo-50 flex justify-between items-center"><span>${depts[deptKey]} (${items.length} รายการ)</span><span class="text-slate-400 text-xs">▼</span></summary><div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">`;
           items.forEach(item => {
             const isUnav = (item.status === 'UNAVAILABLE'), brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '', statusLabel = isUnav ? ` <span class="text-rose-500 font-bold">[🔴 ไม่พร้อมใช้งาน]</span>` : '';
-            html += `<label class="flex items-center gap-1.5 ${isUnav ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}"><input type="checkbox" name="event-eq-item" value="${item.id}" ${isUnav ? 'disabled' : ''} class="rounded text-indigo-600 focus:ring-0"><span>[${item.asset_label}] ${item.name} ${brandStr}${statusLabel}</span></label>`;
+            html += `<label class="flex items-center gap-1.5 ${isUnav ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}"><input type="checkbox" name="event-eq-item" value="${item.id}" ${isUnav ? 'disabled' : ''} class="rounded text-indigo-600 focus:ring-0"><span class="break-words whitespace-normal">[${item.asset_label}] ${item.name} ${brandStr}${statusLabel}</span></label>`;
           });
           html += `</div></details>`;
         }
@@ -1074,7 +1082,7 @@
         ids.forEach(id => { 
           const item = allEquipment.find(i => i.id == id.trim()); 
           if (item) { 
-            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1"><span class="break-words"><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400 pl-2 shrink-0">เก็บ: ${item.location || '-'}</span></div>`; 
+            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1.5"><span class="break-words whitespace-normal pr-2"><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400 shrink-0">เก็บ: ${item.location || '-'}</span></div>`; 
           } 
         });
       } else eqHtml = `<p class="text-slate-600 break-words">${props.details || '-'}</p>`;
@@ -1084,7 +1092,9 @@
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
-    // ==================== ระบบเปิดหน้าต่าง PDF พิมพ์แยกหน้าสมบูรณ์ 100% ====================
+    // ==========================================
+    // ฟังก์ชันพิมพ์ใบงานแบบใหม่ (เปิดแท็บใหม่) - แก้ไขสำหรับมือถือ 100%
+    // ==========================================
     function printEventReport() {
       if (!selectedEventForPrint) return;
       
@@ -1120,7 +1130,7 @@
       // สร้างหน้าต่างใหม่สำหรับการปริ้นต์ (แก้ปัญหา Mobile Block)
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        alert('⚠️ เบราว์เซอร์ของคุณบล็อกหน้าต่าง Pop-up \nกรุณาอนุญาต (Allow Pop-ups) ให้เว็บไซต์นี้เพื่อทำการพิมพ์ใบงาน');
+        alert('⚠️ เบราว์เซอร์บล็อกการเปิดแท็บใหม่ \nกรุณาอนุญาต (Allow Pop-ups) ให้เว็บไซต์นี้เพื่อทำการพิมพ์ใบงาน');
         return;
       }
 
@@ -1145,10 +1155,11 @@
         </head>
         <body class="text-slate-900 pb-12">
           
+          <!-- แถบเมนูด้านบน (ไม่ถูกพิมพ์) -->
           <div class="no-print bg-indigo-800 text-white p-4 sticky top-0 z-50 shadow-md">
             <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
               <div class="text-center sm:text-left">
-                <h2 class="text-lg md:text-xl font-bold">ตัวอย่างก่อนพิมพ์ (Print Preview)</h2>
+                <h2 class="text-lg md:text-xl font-bold">หน้าใบงานกิจกรรมและตรวจเช็กอุปกรณ์ (Print Preview)</h2>
                 <p class="text-xs text-indigo-200">ตรวจสอบความถูกต้องก่อนกดพิมพ์</p>
               </div>
               <div class="flex gap-2 w-full sm:w-auto">
@@ -1160,6 +1171,7 @@
             </div>
           </div>
 
+          <!-- หน้ากระดาษใบงาน -->
           <div class="print-container max-w-4xl mx-auto bg-white p-6 md:p-12 mt-6 shadow-xl border border-slate-200 rounded-lg">
             
             <div class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4 gap-4">
@@ -1182,8 +1194,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
               <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.dept}</span></p>
               <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.mainHost}</span></p>
-              <p><b>สถานที่จัดงาน:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.location}</span></p>
-              <p><b>วันและเวลากิจกรรม:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}</span></p>
+              <p class="md:col-span-2"><b>สถานที่จัดงาน:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.location}</span></p>
+              <p class="md:col-span-2"><b>วันและเวลากิจกรรม:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}</span></p>
               <p class="md:col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span class="text-slate-700">${selectedEventForPrint.remarks || '-'}</span></p>
             </div>
 
