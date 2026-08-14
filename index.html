@@ -124,8 +124,7 @@
               <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div id="box-return-date">
-              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
-              <!-- ปลดล็อกให้เลือกวันไหนก็ได้ แต่ห้ามเลือกอดีต -->
+              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน (สำหรับรายวันเลือกได้แค่วันนี้) *</label>
               <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
             </div>
             <div>
@@ -406,20 +405,32 @@
   <section id="sec-display" class="hidden min-h-screen bg-slate-50 p-2 md:p-6 relative">
     
     <!-- แถบ Header เฉพาะของหน้าจอแสดงผล -->
-    <div class="bg-[#1e1b4b] text-white px-4 py-4 md:px-8 flex flex-col md:flex-row justify-between items-center border-b-[4px] border-amber-500 rounded-2xl shadow-lg gap-4">
+    <div class="bg-[#1e1b4b] text-white px-4 py-4 md:px-8 flex flex-col md:flex-row justify-between items-center border-b-[4px] border-amber-500 rounded-2xl shadow-lg gap-4 z-20 relative">
       <div class="flex items-center gap-4">
         <img src="logo.png" class="h-10 w-10 md:h-14 md:w-14 bg-white rounded-full p-1 shadow-inner" onerror="this.style.display='none'">
-        <div>
-          <!-- เปลี่ยนหัวข้อตามที่ผู้ใช้ต้องการ และจะถูกอัปเดตด้วย JS เป็น ตารางกิจกรรมวันที่... -->
-          <h1 id="display-dynamic-header-title" class="text-lg md:text-2xl font-bold tracking-tight text-amber-400">ตารางกิจกรรมประจำวัน</h1>
-          <p class="text-[10px] md:text-xs text-indigo-200">Denla Kindergarten Event Schedule</p>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+          <div>
+            <h1 id="display-dynamic-header-title" class="text-lg md:text-2xl font-bold tracking-tight text-amber-400">ตารางกิจกรรมประจำวัน</h1>
+            <p class="text-[10px] md:text-xs text-indigo-200">Denla Kindergarten Event Schedule</p>
+          </div>
+          <!-- ป้ายจำนวนกิจกรรม ถูกย้ายมาบน Header -->
+          <span class="bg-indigo-600 text-white text-xs md:text-sm font-bold px-3 py-1 rounded-full shadow-sm w-max border border-indigo-500"><span id="display-count-badge">0</span> กิจกรรม</span>
         </div>
       </div>
+      
       <div class="flex items-center gap-3 md:gap-5 font-bold">
-        <div class="hidden md:flex items-center gap-2 border border-indigo-400/50 rounded-full px-4 py-1.5 bg-indigo-900/50 shadow-inner">
-          <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> 
-          <span id="display-header-date" class="text-sm">วัน...</span>
+        
+        <!-- กล่องแสดงจำนวนที่เสร็จสิ้น ถูกย้ายมาบน Header -->
+        <div class="bg-white/10 border border-white/20 rounded-xl px-4 py-2 flex items-center gap-3 shadow-inner backdrop-blur-sm hidden md:flex">
+          <div class="bg-emerald-500 text-white p-1.5 rounded-full shadow-sm">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <div class="text-left leading-tight">
+            <p class="text-emerald-400 font-black text-sm md:text-base">เสร็จสิ้น <span id="display-completed-count">0</span></p>
+            <p class="text-indigo-200 text-[10px] md:text-xs font-semibold">จากทั้งหมด <span id="display-total-count">0</span> กิจกรรม</p>
+          </div>
         </div>
+
         <div id="display-header-clock" class="text-3xl md:text-4xl font-black tracking-wider text-amber-400 drop-shadow-md">00:00</div>
         <div class="border border-indigo-400 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-xs md:text-sm bg-indigo-900/50">TH</div>
         <button onclick="switchTab('borrow')" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-full transition shadow flex items-center gap-1">✕ ปิด</button>
@@ -427,39 +438,25 @@
     </div>
 
     <!-- เนื้อหาหลัก จอแสดงผล -->
-    <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl mt-6 p-6 md:p-10 border border-slate-200 relative overflow-hidden">
+    <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl mt-6 p-6 md:p-8 border border-slate-200 relative overflow-hidden">
       <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-50/40 to-transparent pointer-events-none"></div>
 
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 relative z-10 gap-4">
-        <div>
-          <p class="text-amber-500 font-extrabold text-xs tracking-widest uppercase mb-1 drop-shadow-sm">Today's Schedule</p>
-          <h2 class="text-3xl md:text-4xl font-black text-indigo-950 flex flex-wrap items-center gap-3">
-            ตารางคิวงานกิจกรรมประจำวัน
-          </h2>
-          <p class="text-slate-500 font-semibold mt-3 flex items-center gap-3">
-            Denla Kindergarten Event Schedule 
-            <span class="bg-indigo-700 text-white text-xs px-3 py-1 rounded-full shadow-sm"><span id="display-count-badge">0</span> กิจกรรม</span>
-          </p>
-        </div>
-        
-        <div class="bg-white border border-slate-200 shadow-md rounded-2xl p-4 flex items-center gap-4 w-full md:w-auto">
-          <div class="bg-emerald-500 text-white p-2.5 rounded-full shadow-inner">
-            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-          </div>
-          <div>
-            <p class="text-emerald-600 font-black text-2xl md:text-3xl leading-none">เสร็จสิ้น <span id="display-completed-count">0</span></p>
-            <p class="text-slate-500 text-xs font-semibold mt-1">จากทั้งหมด <span id="display-total-count">0</span> กิจกรรม</p>
-          </div>
-        </div>
+      <!-- คำอธิบายสีสถานะ -->
+      <div class="flex justify-end items-center mb-2 relative z-10">
+         <div class="flex items-center gap-4 font-bold text-xs md:text-sm text-slate-600 bg-slate-50 px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></span> เสร็จสิ้นแล้ว</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 shadow-sm animate-pulse"></span> กำลังดำเนินการ</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-300 shadow-sm"></span> รอเริ่ม</span>
+         </div>
       </div>
 
-      <div class="relative flex py-5 items-center z-10 mb-2">
+      <div class="relative flex pb-5 items-center z-10">
         <div class="flex-grow border-t border-indigo-100"></div>
-        <span class="flex-shrink-0 mx-4 text-indigo-600 font-black tracking-widest px-4 py-1 bg-indigo-50 rounded-full border border-indigo-100">วันนี้</span>
+        <span class="flex-shrink-0 mx-4 text-indigo-600 font-black tracking-widest px-4 py-1 bg-indigo-50 rounded-full border border-indigo-100 text-sm">วันนี้</span>
         <div class="flex-grow border-t border-indigo-100"></div>
       </div>
 
-      <div id="display-board-cards" class="space-y-5 relative z-10 min-h-[400px]">
+      <div id="display-board-cards" class="space-y-4 relative z-10 min-h-[400px]">
         <p class="text-slate-400 text-center py-12 text-lg font-bold">กำลังโหลดข้อมูลกิจกรรมสาธารณะ...</p>
       </div>
     </div>
@@ -468,7 +465,7 @@
     <div class="max-w-6xl mx-auto mt-4 px-4 flex justify-between items-center text-xs md:text-sm font-bold text-slate-500">
       <div class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow"></span> ระบบออนไลน์</div>
       <div class="flex items-center gap-2 text-amber-600 hidden md:flex">
-        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="animation-duration: 3s;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 
+        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> 
         ข้อมูลกิจกรรมอัปเดตอัตโนมัติ
       </div>
       <div>อัปเดตล่าสุด <span id="display-footer-last-update" class="font-mono">--:-- น.</span></div>
@@ -598,6 +595,7 @@
       checkAdminSession();
       setupActivityListeners();
       
+      // อัปเดตนาฬิกา & วันที่
       setInterval(() => {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
@@ -606,13 +604,8 @@
         const clockEl = document.getElementById('display-header-clock');
         if (clockEl) clockEl.textContent = `${hh}:${mm}`;
 
-        const dateEl = document.getElementById('display-header-date');
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const dateStr = now.toLocaleDateString('th-TH', options);
-
-        if (dateEl && dateEl.textContent !== dateStr) {
-          dateEl.textContent = dateStr;
-        }
 
         const dynTitle = document.getElementById('display-dynamic-header-title');
         if (dynTitle && dynTitle.textContent !== `ตารางกิจกรรม ${dateStr}`) {
@@ -898,11 +891,11 @@
       });
 
       const deptThemes = { 
-        'AV': 'bg-rose-500', 
+        'AV': 'bg-rose-600', 
         'IT': 'bg-sky-600', 
-        'MEDIA': 'bg-emerald-500', 
+        'MEDIA': 'bg-emerald-600', 
         'FACILITY': 'bg-amber-500 text-slate-900', 
-        'ALL': 'bg-indigo-500' 
+        'ALL': 'bg-indigo-700' 
       };
 
       container.innerHTML = displayEvents.map((ev, index) => {
@@ -1082,7 +1075,7 @@
         ids.forEach(id => { 
           const item = allEquipment.find(i => i.id == id.trim()); 
           if (item) { 
-            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1.5"><span class="break-words whitespace-normal pr-2"><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400 shrink-0">เก็บ: ${item.location || '-'}</span></div>`; 
+            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1.5"><span class="break-words whitespace-normal pr-2"><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400 pl-2 shrink-0">เก็บ: ${item.location || '-'}</span></div>`; 
           } 
         });
       } else eqHtml = `<p class="text-slate-600 break-words">${props.details || '-'}</p>`;
