@@ -124,7 +124,7 @@
               <input type="text" id="borrower-dept" placeholder="เช่น วิชาการ / ประถม" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div id="box-return-date">
-              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน *</label>
+              <label class="block text-sm font-medium text-slate-600 mb-1">กำหนดส่งคืน (สามารถเลือกวันล่วงหน้าได้) *</label>
               <input type="date" id="return-date" required class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition">
             </div>
             <div>
@@ -600,7 +600,7 @@
     let displayEventsData = [];
     let displayCurrentPage = 1;
     const displayItemsPerPage = 5;
-    const DISPLAY_TICK_RATE = 12; // เปลี่ยนหน้าทุกๆ 12 วินาที
+    const DISPLAY_TICK_RATE = 12; 
     let displayCountdown = DISPLAY_TICK_RATE;
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -616,7 +616,6 @@
       checkAdminSession();
       setupActivityListeners();
       
-      // อัปเดตนาฬิกา & วันที่ และจัดการ Auto-Pagination ของหน้า Display Board
       setInterval(async () => {
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, '0');
@@ -633,7 +632,6 @@
           dynTitle.textContent = `ตารางกิจกรรม วัน${dateStr}`;
         }
 
-        // --- ระบบ Pagiantion (หน้าจอ Display) ---
         const secDisplay = document.getElementById('sec-display');
         if (secDisplay && !secDisplay.classList.contains('hidden')) {
             displayCountdown--;
@@ -644,7 +642,6 @@
                 const totalPages = Math.ceil(displayEventsData.length / displayItemsPerPage);
                 displayCurrentPage++;
                 
-                // ถ้ารันจบทุกหน้าแล้ว ให้วนกลับหน้า 1 และแอบดึงข้อมูลใหม่เผื่อมีคิวงานอัปเดต
                 if (displayCurrentPage > totalPages) {
                     displayCurrentPage = 1;
                     await fetchDisplayDataQuietly();
@@ -658,7 +655,7 @@
         }
       }, 1000);
 
-      toggleBorrowTypeMode(); // จัดการล็อกวันที่ยืมรายวันตอนเริ่มต้น
+      toggleBorrowTypeMode(); 
     });
 
     function changeLanguage(langKey) { currentLang = langKey; localStorage.setItem('denla_app_lang', langKey); location.reload(); }
@@ -758,24 +755,32 @@
       }, 60000);
     }
 
+    // ฟังก์ชันคำนวณเวลาและวันที่ให้ตรงกับ Timezone ท้องถิ่น (แก้บั๊กวันที่ย้อนหลัง)
     function adjustUtcToThaiDisplay(isoStr) {
       if (!isoStr) return '00:00';
-      let str = String(isoStr), timePart = '';
-      if (str.includes('T')) timePart = str.split('T')[1].substring(0, 5);
-      else if (str.includes(' ')) timePart = str.split(' ')[1].substring(0, 5);
-      else return str.substring(0, 5);
-      if (str.includes('+00') || str.endsWith('Z')) { let hp = timePart.split(':'); return `${String((parseInt(hp[0], 10) + 7) % 24).padStart(2, '0')}:${hp[1]}`; }
-      return timePart;
+      const d = new Date(isoStr);
+      if (!isNaN(d.getTime())) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      return String(isoStr).substring(0, 5);
     }
     function formatThaiDateTime(dateInput) {
       if (!dateInput) return '-';
-      let str = String(dateInput), datePart = '', timePart = adjustUtcToThaiDisplay(dateInput);
-      if (str.includes('T')) datePart = str.split('T')[0]; else if (str.includes(' ')) datePart = str.split(' ')[0]; else datePart = str;
-      if (datePart.includes('-')) { let dp = datePart.split('-'); return `${parseInt(dp[2], 10)}/${parseInt(dp[1], 10)}/${parseInt(dp[0], 10) + 543} ${timePart ? timePart.replace(':', '.')+' น.' : ''}`; }
-      return str;
+      const d = new Date(dateInput);
+      if (!isNaN(d.getTime())) {
+        const yearDisplay = currentLang === 'en' ? d.getFullYear() : d.getFullYear() + 543;
+        const timeDisplay = `${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')}${currentLang==='en'?'':' น.'}`;
+        return `${d.getDate()}/${d.getMonth() + 1}/${yearDisplay} ${timeDisplay}`;
+      }
+      return String(dateInput);
+    }
+    function getLocalDateString(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      if (!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return String(isoStr).substring(0, 10);
     }
     function formatLocalToISO(dateStr, timeStr) { return (!dateStr || !timeStr) ? null : `${dateStr}T${timeStr}:00+07:00`; }
 
+    // ==================== ระบบล็อกปฏิทินยืมรายวัน (ให้เลือกได้เฉพาะปัจจุบันและอนาคต) ====================
     function toggleBorrowTypeMode() {
       const type = document.getElementById('borrow-type-select').value;
       const boxReturnDate = document.getElementById('box-return-date');
@@ -788,15 +793,18 @@
       if (type === 'LONG_TERM') {
         boxReturnDate.classList.add('hidden'); 
         returnDateInput.required = false;
+        
         btnSubmit.innerHTML = `🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat`; 
         btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
       } else {
         boxReturnDate.classList.remove('hidden'); 
         returnDateInput.required = true;
         
-        // ปลดล็อกให้เลือกวันไหนก็ได้ แต่ห้ามย้อนหลังอดีต
+        // ปลดล็อกให้เลือกวันไหนก็ได้ในอนาคต แต่ห้ามย้อนหลังอดีต
         returnDateInput.min = localTodayStr;
         returnDateInput.removeAttribute('max');
+        returnDateInput.removeAttribute('readonly');
+        returnDateInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
         
         if (!returnDateInput.value || returnDateInput.value < localTodayStr) {
             returnDateInput.value = localTodayStr;
@@ -858,6 +866,7 @@
     async function switchTab(tabName) {
       if ((tabName === 'inventory' || tabName === 'staff-summary') && !currentAdmin) { alert('🔒 หน้าเฉพาะสำหรับ Admin เท่านั้น'); return; }
       
+      // ซ่อน Header ของระบบหลัก เมื่อเปิดหน้าจอ Display
       if (tabName === 'display') {
         document.getElementById('main-header').classList.add('hidden');
         document.getElementById('main-container').classList.add('hidden');
@@ -891,7 +900,7 @@
       if (!allEventsList || allEventsList.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">ไม่พบข้อมูลคิวงานกิจกรรม</td></tr>`; return; }
 
       let filtered = allEventsList.filter(ev => {
-        const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
+        const evDateStr = ev.start_time ? getLocalDateString(ev.start_time) : ev.event_date;
         if (startDate && evDateStr < startDate) return false;
         if (endDate && evDateStr > endDate) return false;
         if (searchDept !== 'ALL' && ev.department !== searchDept) return false;
@@ -908,19 +917,18 @@
 
     // ==================== ระบบดึงข้อมูลและ Pagination ของ Display Board ====================
     async function fetchDisplayDataQuietly() {
-      const now = new Date();
-      const todayIsoStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const todayIsoStr = getLocalDateString(new Date().toISOString());
 
       const { data, error } = await _supabase.from('event_queue').select('*').order('start_time', { ascending: true });
       if (error || !data) { displayEventsData = []; return; }
 
       const filteredEvents = data.filter(ev => {
         const isShown = !ev.details || !ev.details.includes('HIDE_DISPLAY:true');
-        const evDateStr = ev.start_time ? String(ev.start_time).substring(0, 10) : ev.event_date;
+        const evDateStr = ev.start_time ? getLocalDateString(ev.start_time) : ev.event_date;
         return isShown && (evDateStr === todayIsoStr);
       });
 
-      const nowMs = now.getTime();
+      const nowMs = new Date().getTime();
       filteredEvents.sort((a, b) => {
         const aStart = new Date(a.start_time).getTime(), aEnd = new Date(a.end_time).getTime(), bStart = new Date(b.start_time).getTime(), bEnd = new Date(b.end_time).getTime();
         const getPriority = (s, e) => { if (nowMs >= s && nowMs <= e) return 1; if (nowMs < s) return 2; return 3; };
@@ -1128,7 +1136,7 @@
       });
 
       const events = filteredData.map(ev => {
-        let datePart = ev.start_time ? String(ev.start_time).substring(0, 10) : (ev.event_date || new Date().toISOString().substring(0,10));
+        let datePart = ev.start_time ? getLocalDateString(ev.start_time) : (ev.event_date || getLocalDateString(new Date().toISOString()));
         return {
           id: ev.id, title: `${adjustUtcToThaiDisplay(ev.start_time)} [${ev.department || 'ALL'}] ${ev.event_title}`, start: datePart, end: datePart, backgroundColor: deptColors[ev.department] || '#6366f1', borderColor: deptColors[ev.department] || '#6366f1',
           extendedProps: { eventId: ev.id, rawTitle: ev.event_title, dept: ev.department || 'ALL', mainHost: ev.main_host || '-', location: ev.location, organizer: ev.organizer, details: ev.details, remarks: ev.remarks, rawStart: ev.start_time, rawEnd: ev.end_time }
@@ -1165,6 +1173,9 @@
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
+    // ==========================================
+    // ฟังก์ชันพิมพ์ใบงานแบบใหม่ (เปิดแท็บใหม่) 
+    // ==========================================
     function printEventReport() {
       if (!selectedEventForPrint) return;
       
