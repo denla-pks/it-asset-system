@@ -230,7 +230,7 @@
                 <div class="pt-1"><select id="event-end-time" required class="w-full p-2 border border-indigo-200 rounded-xl text-xs bg-white font-bold text-indigo-900"></select></div>
               </div>
 
-              <!-- ================== ระบบกำหนดการย่อย (Agenda) แบบใหม่ ================== -->
+              <!-- ================== ระบบกำหนดการย่อย (Agenda) ================== -->
               <div class="pt-3 border-t border-slate-200 mt-3">
                 <label class="block text-xs font-bold text-indigo-900 mb-2">📋 กำหนดการย่อย / Agenda (ถ้ามี):</label>
                 <div class="flex flex-col md:flex-row gap-2 items-start text-xs">
@@ -428,7 +428,7 @@
     </section>
   </main>
 
-  <!-- ==================== TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) รูปแบบใหม่ แยกหน้าจอ ==================== -->
+  <!-- ==================== TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) ==================== -->
   <section id="sec-display" class="hidden min-h-screen bg-slate-50 flex flex-col">
     
     <!-- แถบ Header สีน้ำเงินเข้มขอบทอง -->
@@ -546,7 +546,7 @@
         <!-- แถบกำหนดการย่อย (AGENDA) ในหน้า Modal -->
         <div id="detail-agenda-container" class="border-t border-slate-100 pt-3 hidden">
           <h4 class="font-bold text-slate-800 text-sm mb-2">📋 กำหนดการย่อย / Agenda:</h4>
-          <div id="detail-agenda-list" class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs md:text-sm"></div>
+          <div id="detail-agenda-list" class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 text-xs md:text-sm"></div>
         </div>
 
         <div class="border-t border-slate-100 pt-3">
@@ -857,6 +857,7 @@
         boxReturnDate.classList.remove('hidden'); 
         returnDateInput.required = true;
         
+        // ปลดล็อกให้เลือกวันไหนก็ได้ในอนาคต แต่ห้ามย้อนหลังอดีต
         returnDateInput.min = localTodayStr;
         returnDateInput.removeAttribute('max');
         returnDateInput.removeAttribute('readonly');
@@ -1052,33 +1053,79 @@
         }
 
         const cTheme = deptThemes[ev.department] || deptThemes['ALL'];
+        const isFinished = nowMs > evEndMs;
+
+        // ==================== เพิ่มส่วนเรนเดอร์ Agenda สำหรับการ์ด ====================
+        let agendaTableHtml = '';
+        if (ev.details && ev.details.includes('AGENDA:')) {
+          try {
+            const agendaStr = ev.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+            const agendaList = JSON.parse(agendaStr);
+            if (agendaList.length > 0) {
+              const rows = agendaList.map(a => `
+                <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition">
+                  <td class="p-2 md:p-3 w-24 md:w-32 font-bold text-indigo-800 align-top text-center">${a.time}</td>
+                  <td class="p-2 md:p-3 align-top leading-relaxed text-slate-700">${a.desc.replace(/\n/g, '<br>')}</td>
+                </tr>
+              `).join('');
+
+              agendaTableHtml = `
+                <div class="border-t border-slate-100 bg-slate-50/50 p-4 md:p-5">
+                  <div class="border border-indigo-100 rounded-xl overflow-hidden shadow-sm bg-white">
+                    <div class="bg-indigo-800 text-white px-4 py-2.5 text-sm font-bold flex items-center gap-2">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                      กำหนดการย่อย / Agenda
+                    </div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-slate-100/80 text-slate-600 border-b border-slate-200">
+                          <tr>
+                            <th class="p-2 md:p-3 text-center w-24 md:w-32">เวลา</th>
+                            <th class="p-2 md:p-3">รายละเอียดกิจกรรม</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${rows}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+          } catch(e) {}
+        }
 
         return `
-          <div class="bg-white rounded-xl border border-slate-100 flex items-stretch overflow-hidden shadow-sm relative transition-all ${nowMs > evEndMs ? 'opacity-70 grayscale-[20%]' : ''}">
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mb-4 transition-all ${isFinished ? 'opacity-70 grayscale-[20%]' : 'hover:shadow-md'} relative">
             ${isActive ? '<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-400 z-10"></div>' : ''}
             
-            <div class="${cTheme} text-white w-28 md:w-44 flex flex-col justify-center items-center py-4 px-2 relative shrink-0 ${isActive ? 'pl-3' : ''}">
-               <div class="absolute top-2 left-2 border border-white/40 text-white/90 text-[10px] md:text-xs px-1.5 rounded font-bold">${seqNum}</div>
-               <div class="text-xl md:text-[2rem] font-black tracking-tight leading-none">${adjustUtcToThaiDisplay(ev.start_time)}–${adjustUtcToThaiDisplay(ev.end_time)}</div>
+            <div class="flex flex-col md:flex-row items-stretch">
+                <div class="${cTheme} text-white w-28 md:w-44 flex flex-col justify-center items-center py-4 px-2 shrink-0 ${isActive ? 'pl-3' : ''}">
+                   <div class="absolute top-2 left-2 border border-white/40 text-white/90 text-[10px] md:text-xs px-1.5 rounded font-bold">${seqNum}</div>
+                   <div class="text-xl md:text-[2rem] font-black tracking-tight leading-none">${adjustUtcToThaiDisplay(ev.start_time)}–${adjustUtcToThaiDisplay(ev.end_time)}</div>
+                </div>
+                
+                <div class="flex-1 flex flex-col md:flex-row md:items-center p-3 md:p-5 gap-3 md:gap-4 border-r border-slate-100">
+                  <div class="flex-1 min-w-0">
+                     <span class="${cTheme} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1.5 inline-block text-white shadow-sm">${ev.department || 'ALL'}</span>
+                     <h3 class="text-base md:text-xl font-bold text-slate-800 leading-snug break-words whitespace-normal break-all">${ev.event_title}</h3>
+                  </div>
+                  
+                  <div class="md:w-[300px] space-y-1.5 text-xs md:text-sm font-medium text-slate-600 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-2 md:pt-0 md:pl-4">
+                     <div class="flex items-start gap-2 min-w-0"><span class="text-rose-500 text-base leading-none shrink-0">📍</span> <span class="leading-tight break-words whitespace-normal">${ev.location || '-'}</span></div>
+                     <div class="flex items-start gap-2 min-w-0"><span class="text-indigo-700 text-base leading-none shrink-0">👤</span> <span class="leading-tight break-words whitespace-normal">${ev.main_host || '-'}</span></div>
+                  </div>
+                </div>
+
+                <div class="w-32 md:w-48 bg-slate-50/50 flex justify-center items-center shrink-0 p-3">
+                   <span class="px-3 md:px-5 py-2 rounded-full border ${statusObj.badge} text-[11px] md:text-sm font-bold flex items-center gap-2 w-max">
+                     <span class="w-2.5 h-2.5 rounded-full ${statusObj.dot} ${isActive ? 'animate-pulse' : ''}"></span>${statusObj.text}
+                   </span>
+                </div>
             </div>
             
-            <div class="flex-1 flex flex-col md:flex-row md:items-center p-3 md:p-5 gap-3 md:gap-4 border-r border-slate-100">
-              <div class="flex-1 min-w-0">
-                 <span class="${cTheme} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mb-1.5 inline-block text-white shadow-sm">${ev.department || 'ALL'}</span>
-                 <h3 class="text-base md:text-xl font-bold text-slate-800 leading-snug break-words whitespace-normal break-all">${ev.event_title}</h3>
-              </div>
-              
-              <div class="md:w-[300px] space-y-1.5 text-xs md:text-sm font-medium text-slate-600 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-2 md:pt-0 md:pl-4">
-                 <div class="flex items-start gap-2 min-w-0"><span class="text-rose-500 text-base leading-none shrink-0">📍</span> <span class="leading-tight break-words whitespace-normal">${ev.location || '-'}</span></div>
-                 <div class="flex items-start gap-2 min-w-0"><span class="text-indigo-700 text-base leading-none shrink-0">👤</span> <span class="leading-tight break-words whitespace-normal">${ev.main_host || '-'}</span></div>
-              </div>
-            </div>
-
-            <div class="w-32 md:w-48 bg-slate-50/50 flex justify-center items-center shrink-0 p-3">
-               <span class="px-3 md:px-5 py-2 rounded-full border ${statusObj.badge} text-[11px] md:text-sm font-bold flex items-center gap-2 w-max">
-                 <span class="w-2.5 h-2.5 rounded-full ${statusObj.dot} ${isActive ? 'animate-pulse' : ''}"></span>${statusObj.text}
-               </span>
-            </div>
+            ${agendaTableHtml}
           </div>
         `;
       }).join('');
@@ -1218,7 +1265,7 @@
           const agendaStr = props.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
           const agendaList = JSON.parse(agendaStr);
           if (agendaList.length > 0) {
-            agendaHtml = '<table class="w-full text-left"><tbody>' + agendaList.map(a => `<tr><td class="w-16 md:w-20 p-1.5 font-bold text-indigo-700 align-top">${a.time}</td><td class="p-1.5 border-l border-indigo-200 pl-3 leading-tight">${a.desc.replace(/\n/g, '<br>')}</td></tr>`).join('') + '</tbody></table>';
+            agendaHtml = '<table class="w-full text-left"><tbody>' + agendaList.map(a => `<tr><td class="w-16 md:w-24 p-1.5 font-bold text-indigo-700 align-top">${a.time}</td><td class="p-1.5 border-l border-indigo-200 pl-3 leading-tight">${a.desc.replace(/\n/g, '<br>')}</td></tr>`).join('') + '</tbody></table>';
           }
         } catch(e) {}
       }
@@ -1253,9 +1300,6 @@
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
-    // ==========================================
-    // ฟังก์ชันพิมพ์ใบงานแบบใหม่ (เปิดแท็บใหม่) 
-    // ==========================================
     function printEventReport() {
       if (!selectedEventForPrint) return;
       
@@ -1669,7 +1713,6 @@
 
       const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked'), selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value), selectedEqNames = Array.from(checkedBoxes).map(cb => { const item = allEquipment.find(i => i.id == cb.value); return item ? `[${item.asset_label}] ${item.name}` : ''; });
       
-      // แปลงข้อมูล Agenda ลง Payload ป้องกันตัวอักษรขีดคร่อม ( | ) ทำระบบรวน
       const agendaStr = JSON.stringify(currentAgenda).replace(/\|/g, '&#124;');
       const detailsStr = `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}|AGENDA:${agendaStr}`;
 
@@ -1708,10 +1751,8 @@
 
       document.getElementById('event-remarks').value = selectedEventForPrint.remarks || ''; clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
       
-      // ดึงข้อมูลอุปกรณ์
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) { selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',').forEach(id => { const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`); if (cb) cb.checked = true; }); }
 
-      // ดึงข้อมูล Agenda 
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('AGENDA:')) {
         try {
           const agendaStr = selectedEventForPrint.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
