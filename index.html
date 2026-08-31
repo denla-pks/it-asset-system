@@ -191,7 +191,7 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อกิจกรรม / งาน *</label>
-              <input type="text" id="event-title" required placeholder="เช่น ถ่ายทำวิดีโอวันแม่" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
+              <input type="text" id="event-title" required placeholder="เช่น โครงการสายใยบ้าน-โรงเรียน" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none">
             </div>
             <div class="p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
               <label class="block text-xs font-bold text-indigo-900 mb-1">👤 ผู้จัดงาน / ผู้รับผิดชอบหลักงานนี้ *</label>
@@ -208,6 +208,7 @@
                 <span>📺 แสดงคิวงานนี้บนหน้าจอ Display Board สาธารณะ</span>
               </label>
             </div>
+            
             <div class="space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
               <p class="text-xs font-bold text-indigo-900 border-b border-slate-200 pb-1">⏰ กำหนดวันและเวลา (ระบบ 24 ชม. - ทีละ 5 นาที):</p>
               <div class="space-y-1">
@@ -228,7 +229,33 @@
                 </div>
                 <div class="pt-1"><select id="event-end-time" required class="w-full p-2 border border-indigo-200 rounded-xl text-xs bg-white font-bold text-indigo-900"></select></div>
               </div>
+
+              <!-- ================== ระบบกำหนดการย่อย (Agenda) แบบใหม่ ================== -->
+              <div class="pt-3 border-t border-slate-200 mt-3">
+                <label class="block text-xs font-bold text-indigo-900 mb-2">📋 กำหนดการย่อย / Agenda (ถ้ามี):</label>
+                <div class="flex flex-col md:flex-row gap-2 items-start text-xs">
+                  <input type="text" id="agenda-time" placeholder="เช่น 08.30 - 08.50 น." class="p-2.5 border border-slate-200 rounded-lg outline-none w-full md:w-36 font-bold text-indigo-700 bg-white">
+                  <textarea id="agenda-desc" rows="2" placeholder="รายละเอียด... (กด Enter เพื่อขึ้นบรรทัดใหม่ได้)" class="p-2.5 border border-slate-200 rounded-lg outline-none flex-1 w-full bg-white"></textarea>
+                  <button type="button" onclick="addAgendaItem()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg font-bold transition shadow-sm whitespace-nowrap w-full md:w-auto h-full">+ เพิ่มลงตาราง</button>
+                </div>
+                <div class="overflow-hidden border border-indigo-100 rounded-lg bg-white mt-2">
+                  <table class="w-full text-left text-[11px] md:text-xs">
+                    <thead class="bg-indigo-100/50 text-indigo-800">
+                      <tr>
+                        <th class="p-2 w-24 md:w-32 border-b border-indigo-100">ช่วงเวลา</th>
+                        <th class="p-2 border-b border-indigo-100">รายละเอียดกิจกรรม</th>
+                        <th class="p-2 w-12 text-center border-b border-indigo-100">ลบ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="agenda-table-body" class="divide-y divide-slate-50">
+                      <tr><td colspan="3" class="p-3 text-center text-slate-400">ยังไม่มีกำหนดการย่อย</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- =================================================================== -->
             </div>
+
             <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2">
               <label class="block text-xs font-bold text-amber-900">🏢 ขอสนับสนุนกำลังคน/ที่จอดรถ ฝ่ายอาคารสถานที่:</label>
               <div class="grid grid-cols-3 gap-2 text-xs">
@@ -401,30 +428,24 @@
     </section>
   </main>
 
-  <!-- ==================== TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) โฉมใหม่ ==================== -->
+  <!-- ==================== TAB 3: จอแสดงกิจกรรมสาธารณะ (DISPLAY BOARD) รูปแบบใหม่ แยกหน้าจอ ==================== -->
   <section id="sec-display" class="hidden min-h-screen bg-slate-50 flex flex-col">
     
     <!-- แถบ Header สีน้ำเงินเข้มขอบทอง -->
-    <div class="bg-[#0f113a] text-white px-4 md:px-8 py-4 flex flex-col md:flex-row justify-between items-center border-b-[4px] border-amber-500 shadow-xl gap-4 shrink-0">
-      
-      <!-- ส่วนโลโก้และชื่อตาราง -->
+    <div class="bg-[#0f113a] text-white px-4 md:px-8 py-4 flex flex-col md:flex-row justify-between items-center border-b-[4px] border-amber-500 shadow-xl gap-4 shrink-0 z-20 relative">
       <div class="flex items-center gap-4">
         <img src="logo.png" class="h-12 w-12 md:h-14 md:w-14 bg-white rounded-full p-1 shadow-inner" onerror="this.style.display='none'">
         <div class="flex flex-col">
-          <h1 id="display-dynamic-header-title" class="text-xl md:text-2xl font-black tracking-wide text-amber-400 drop-shadow-md">ตารางกิจกรรม วัน...</h1>
-          <div class="flex items-center gap-3 mt-1">
-            <p class="text-xs md:text-sm text-indigo-100 font-medium tracking-wide">Denla Kindergarten Event Schedule</p>
-            <span class="bg-indigo-600 text-white text-[10px] md:text-xs font-bold px-3 py-0.5 rounded-full shadow-sm border border-indigo-500">
-              <span id="display-count-badge">0</span> กิจกรรม
-            </span>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 id="display-dynamic-header-title" class="text-xl md:text-2xl font-black tracking-wide text-amber-400 drop-shadow-md">ตารางกิจกรรม วัน...</h1>
+            <span class="bg-indigo-600 text-white text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-sm border border-indigo-500 whitespace-nowrap"><span id="display-count-badge">0</span> กิจกรรม</span>
           </div>
+          <p class="text-xs md:text-sm text-indigo-100 font-medium tracking-wide mt-1">Denla Kindergarten Event Schedule</p>
         </div>
       </div>
       
-      <!-- ส่วนบอกจำนวนเสร็จสิ้น นาฬิกา และปุ่มปิด -->
       <div class="flex items-center gap-5 md:gap-8 font-bold">
-        
-        <div class="border border-indigo-400/30 rounded-full px-5 py-2 flex items-center gap-3 shadow-inner bg-indigo-900/40">
+        <div class="border border-indigo-400/30 rounded-full px-5 py-2 flex items-center gap-3 shadow-inner bg-indigo-900/40 hidden md:flex">
           <div class="bg-emerald-500 text-white p-1 rounded-full shadow-sm">
             <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
           </div>
@@ -432,11 +453,8 @@
             เสร็จสิ้น <span id="display-header-completed" class="text-amber-400 font-black ml-1">0</span> <span class="text-indigo-300 mx-1">/</span> <span id="display-header-total">0</span>
           </div>
         </div>
-
         <div id="display-header-clock" class="text-4xl md:text-5xl font-black tracking-widest text-amber-400 drop-shadow-lg tabular-nums">00:00</div>
-        
         <div class="border border-indigo-400 rounded-full w-9 h-9 md:w-11 md:h-11 flex items-center justify-center text-xs md:text-sm bg-indigo-900/50 shadow-inner">TH</div>
-        
         <button onclick="switchTab('borrow')" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded-full transition shadow flex items-center gap-1 text-slate-300">✕ ปิด</button>
       </div>
     </div>
@@ -446,7 +464,6 @@
       
       <!-- Action Bar (แถบสถานะและการเปลี่ยนหน้า) -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 px-5 py-3 flex flex-wrap justify-between items-center text-sm font-bold text-slate-600 gap-4">
-         
          <div class="flex items-center gap-2 text-indigo-900">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
             <span>กำลังแสดงรายการ <span id="disp-show-range" class="text-indigo-700 font-black mx-1">0-0</span> จาก <span id="disp-show-total">0</span></span>
@@ -471,13 +488,11 @@
          </div>
       </div>
 
-      <!-- คอนเทนเนอร์ใส่ตารางกิจกรรม -->
       <div id="display-board-cards" class="flex-1 flex flex-col gap-3 min-h-[400px]">
         <p class="text-slate-400 text-center py-12 text-lg font-bold">กำลังโหลดข้อมูล...</p>
       </div>
     </div>
 
-    <!-- Footer แจ้งสถานะ -->
     <div class="bg-[#0f113a] text-indigo-100 px-6 py-3 flex justify-between items-center text-xs md:text-sm font-medium shrink-0">
       <div class="flex items-center gap-2"><span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow"></span> ระบบออนไลน์</div>
       <div class="text-indigo-400/50 hidden md:block">|</div>
@@ -527,6 +542,13 @@
           <p class="bg-slate-50 p-3 rounded-xl border border-slate-100"><b>⏰ เวลาสิ้นสุด:</b> <span id="detail-end" class="font-bold text-slate-800 block mt-1">-</span></p>
           <p class="col-span-1 md:col-span-2 bg-amber-50 p-3 rounded-xl border border-amber-100"><b>📝 หมายเหตุ:</b> <span id="detail-remarks" class="text-slate-700 block mt-1 break-words whitespace-normal">-</span></p>
         </div>
+
+        <!-- แถบกำหนดการย่อย (AGENDA) ในหน้า Modal -->
+        <div id="detail-agenda-container" class="border-t border-slate-100 pt-3 hidden">
+          <h4 class="font-bold text-slate-800 text-sm mb-2">📋 กำหนดการย่อย / Agenda:</h4>
+          <div id="detail-agenda-list" class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs md:text-sm"></div>
+        </div>
+
         <div class="border-t border-slate-100 pt-3">
           <h4 class="font-bold text-slate-800 text-sm mb-2">🛠️ รายการอุปกรณ์จัดเตรียม & Checklist:</h4>
           <div id="detail-equipment-list" class="bg-slate-50 p-3 rounded-xl text-xs md:text-sm space-y-2 border border-slate-100"></div>
@@ -538,7 +560,7 @@
           <button id="btn-cancel-event" onclick="cancelEvent()" class="admin-col hidden w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-bold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition justify-center items-center gap-1">🗑️ ยกเลิกงาน</button>
         </div>
         <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto order-1 md:order-2">
-          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (เปิดหน้าใหม่)</button>
+          <button onclick="printEventReport()" class="w-full sm:w-auto px-5 py-3 md:py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow justify-center items-center gap-2 order-1 sm:order-2">🖨️ พิมพ์ใบงาน (เปิดแท็บใหม่)</button>
           <button onclick="closeModals()" class="w-full sm:w-auto px-4 py-3 md:py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl text-center order-2 sm:order-1">ปิดหน้าต่าง</button>
         </div>
       </div>
@@ -592,11 +614,11 @@
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let allEquipment = [], activeBorrowRecords = [], allAdmins = [], calendar = null, currentAdmin = null;
     let selectedEventForPrint = null, pendingReturnRecord = null, currentFilteredEquipment = [], allEventsList = [];
+    let currentAgenda = []; // ตัวแปรสำหรับเก็บข้อมูลกำหนดการย่อย
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
     const DEFAULT_LOCATIONS = [];
     let customLocations = JSON.parse(localStorage.getItem('denla_custom_locations') || '[]');
 
-    // ตัวแปรสำหรับระบบเปลี่ยนหน้าอัตโนมัติ (Display Board)
     let displayEventsData = [];
     let displayCurrentPage = 1;
     const displayItemsPerPage = 5;
@@ -656,7 +678,44 @@
       }, 1000);
 
       toggleBorrowTypeMode(); 
+      renderAgendaTable();
     });
+
+    // ==================== ระบบกำหนดการย่อย (AGENDA) ====================
+    function addAgendaItem() {
+      const timeInput = document.getElementById('agenda-time');
+      const descInput = document.getElementById('agenda-desc');
+      const time = timeInput.value.trim();
+      const desc = descInput.value.trim();
+      
+      if (!time || !desc) { alert('กรุณาระบุเวลาและรายละเอียดกิจกรรมย่อยให้ครบถ้วน'); return; }
+      
+      currentAgenda.push({ time, desc });
+      
+      timeInput.value = '';
+      descInput.value = '';
+      renderAgendaTable();
+    }
+
+    function removeAgendaItem(index) {
+      currentAgenda.splice(index, 1);
+      renderAgendaTable();
+    }
+
+    function renderAgendaTable() {
+      const tbody = document.getElementById('agenda-table-body');
+      if (currentAgenda.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-400">ยังไม่มีกำหนดการย่อย</td></tr>';
+        return;
+      }
+      tbody.innerHTML = currentAgenda.map((item, idx) => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-bold text-indigo-700 border-b border-indigo-50 align-top">${item.time}</td>
+          <td class="p-2 border-b border-indigo-50 leading-relaxed">${item.desc.replace(/\n/g, '<br>')}</td>
+          <td class="p-2 text-center border-b border-indigo-50 align-top"><button type="button" onclick="removeAgendaItem(${idx})" class="text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded">✕</button></td>
+        </tr>
+      `).join('');
+    }
 
     function changeLanguage(langKey) { currentLang = langKey; localStorage.setItem('denla_app_lang', langKey); location.reload(); }
     
@@ -755,7 +814,6 @@
       }, 60000);
     }
 
-    // ฟังก์ชันคำนวณเวลาและวันที่ให้ตรงกับ Timezone ท้องถิ่น (แก้บั๊กวันที่ย้อนหลัง)
     function adjustUtcToThaiDisplay(isoStr) {
       if (!isoStr) return '00:00';
       const d = new Date(isoStr);
@@ -780,7 +838,6 @@
     }
     function formatLocalToISO(dateStr, timeStr) { return (!dateStr || !timeStr) ? null : `${dateStr}T${timeStr}:00+07:00`; }
 
-    // ==================== ระบบล็อกปฏิทินยืมรายวัน (ให้เลือกได้เฉพาะปัจจุบันและอนาคต) ====================
     function toggleBorrowTypeMode() {
       const type = document.getElementById('borrow-type-select').value;
       const boxReturnDate = document.getElementById('box-return-date');
@@ -800,7 +857,6 @@
         boxReturnDate.classList.remove('hidden'); 
         returnDateInput.required = true;
         
-        // ปลดล็อกให้เลือกวันไหนก็ได้ในอนาคต แต่ห้ามย้อนหลังอดีต
         returnDateInput.min = localTodayStr;
         returnDateInput.removeAttribute('max');
         returnDateInput.removeAttribute('readonly');
@@ -862,11 +918,9 @@
 
     function logoutAdmin(isAuto = false) { setAdminState(false, false); alert(isAuto ? '⌛ หมดเวลาเซสชัน ระบบได้ทำการออกจากระบบ Admin อัตโนมัติ' : '🔒 ออกจากระบบ Admin เรียบร้อย'); }
 
-    // ==================== สลับแท็บแยกหน้า Display Board ให้สวยงาม ====================
     async function switchTab(tabName) {
       if ((tabName === 'inventory' || tabName === 'staff-summary') && !currentAdmin) { alert('🔒 หน้าเฉพาะสำหรับ Admin เท่านั้น'); return; }
       
-      // ซ่อน Header ของระบบหลัก เมื่อเปิดหน้าจอ Display
       if (tabName === 'display') {
         document.getElementById('main-header').classList.add('hidden');
         document.getElementById('main-container').classList.add('hidden');
@@ -915,7 +969,6 @@
       tbody.innerHTML = filtered.map(ev => `<tr class="hover:bg-slate-800/60 transition"><td class="p-2.5 font-bold text-white">${ev.event_title}</td><td class="p-2.5"><span class="bg-indigo-950 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded font-bold">${ev.department || 'ALL'}</span></td><td class="p-2.5 text-amber-300 font-medium">${ev.main_host || '-'}</td><td class="p-2.5 text-emerald-300 font-medium">${ev.organizer || '-'}</td><td class="p-2.5">${formatThaiDateTime(ev.start_time)}</td><td class="p-2.5 text-sky-300">${ev.location || '-'}</td></tr>`).join('');
     }
 
-    // ==================== ระบบดึงข้อมูลและ Pagination ของ Display Board ====================
     async function fetchDisplayDataQuietly() {
       const todayIsoStr = getLocalDateString(new Date().toISOString());
 
@@ -943,6 +996,7 @@
       const total = displayEventsData.length;
       document.getElementById('display-header-total').textContent = total;
       document.getElementById('disp-show-total').textContent = total;
+      document.getElementById('display-count-badge').textContent = total;
 
       const nowMs = new Date().getTime();
       let completed = 0;
@@ -1157,16 +1211,42 @@
       document.getElementById('detail-end').textContent = selectedEventForPrint.end; 
       document.getElementById('detail-remarks').textContent = props.remarks || '-';
 
+      // แปลงข้อมูล Agenda สำหรับแสดงในหน้าต่างย่อย (Modal)
+      let agendaHtml = '';
+      if (props.details && props.details.includes('AGENDA:')) {
+        try {
+          const agendaStr = props.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+          const agendaList = JSON.parse(agendaStr);
+          if (agendaList.length > 0) {
+            agendaHtml = '<table class="w-full text-left"><tbody>' + agendaList.map(a => `<tr><td class="w-16 md:w-20 p-1.5 font-bold text-indigo-700 align-top">${a.time}</td><td class="p-1.5 border-l border-indigo-200 pl-3 leading-tight">${a.desc.replace(/\n/g, '<br>')}</td></tr>`).join('') + '</tbody></table>';
+          }
+        } catch(e) {}
+      }
+      
+      const agendaContainer = document.getElementById('detail-agenda-container');
+      if (agendaHtml) {
+        agendaContainer.classList.remove('hidden');
+        document.getElementById('detail-agenda-list').innerHTML = agendaHtml;
+      } else {
+        agendaContainer.classList.add('hidden');
+      }
+
+      // แปลงข้อมูลรายการอุปกรณ์
       let eqHtml = '';
       if (props.details && props.details.includes('EQ_IDS:')) {
         const ids = props.details.split('EQ_IDS:')[1].split('|')[0].split(',');
+        let hasEq = false;
         ids.forEach(id => { 
           const item = allEquipment.find(i => i.id == id.trim()); 
           if (item) { 
+            hasEq = true;
             eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1.5"><span class="break-words whitespace-normal pr-2"><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400 pl-2 shrink-0">เก็บ: ${item.location || '-'}</span></div>`; 
           } 
         });
-      } else eqHtml = `<p class="text-slate-600 break-words">${props.details || '-'}</p>`;
+        if(!hasEq) eqHtml = `<p class="text-slate-600 break-words">ไม่มีรายการอุปกรณ์</p>`;
+      } else {
+        eqHtml = `<p class="text-slate-600 break-words">ไม่มีรายการอุปกรณ์</p>`;
+      }
       document.getElementById('detail-equipment-list').innerHTML = eqHtml;
 
       document.getElementById('btn-edit-event').classList.toggle('hidden', !currentAdmin); document.getElementById('btn-cancel-event').classList.toggle('hidden', !currentAdmin);
@@ -1194,18 +1274,45 @@
       if (orgStr.includes('รปภ.')) { let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/); if (m) nSec = m[1]; }
       if (orgStr.includes('ช่องจอดรถ')) { let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/); if (m) nPark = m[1]; }
 
+      // จัดทำ HTML สำหรับส่วนของ Agenda สำหรับ Print
+      let agendaPrintHtml = '';
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('AGENDA:')) {
+        try {
+          const agendaStr = selectedEventForPrint.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+          const agendaList = JSON.parse(agendaStr);
+          if (agendaList.length > 0) {
+            agendaPrintHtml = `
+              <div class="mb-4">
+                <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">📋 กำหนดการย่อย / Agenda</h3>
+                <table class="w-full border-collapse border border-slate-300 text-[11px] md:text-xs text-left">
+                  <thead class="bg-slate-50">
+                     <tr><th class="border border-slate-300 p-2 w-28 text-center">เวลา</th><th class="border border-slate-300 p-2">รายละเอียดกิจกรรม</th></tr>
+                  </thead>
+                  <tbody>
+                    ${agendaList.map(a => `<tr><td class="border border-slate-300 p-2 font-bold text-indigo-900 align-top text-center">${a.time}</td><td class="border border-slate-300 p-2 leading-relaxed whitespace-pre-wrap">${a.desc.replace(/\n/g, '<br>')}</td></tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+        } catch(e) {}
+      }
+
       let tableHtml = '';
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
         const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
+        let hasItem = false;
         ids.forEach(id => { 
           const item = allEquipment.find(i => i.id == id.trim()); 
           if (item) { 
+            hasItem = true;
             const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
             tableHtml += `<tr class="hover:bg-slate-50"><td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td><td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${brandStr}</td><td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td><td class="border border-slate-300 p-2">${item.location || '-'}</td><td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td><td class="border border-slate-300 p-2 text-slate-400"></td></tr>`; 
           } 
         });
+        if(!hasItem) tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">ไม่มีรายการอุปกรณ์</td></tr>`;
       } else { 
-        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">${selectedEventForPrint.details || '-'}</td></tr>`; 
+        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">ไม่มีรายการอุปกรณ์</td></tr>`; 
       }
 
       const printWindow = window.open('', '_blank');
@@ -1235,10 +1342,11 @@
         </head>
         <body class="text-slate-900 pb-12">
           
+          <!-- แถบเมนูด้านบน (ไม่ถูกพิมพ์) -->
           <div class="no-print bg-indigo-800 text-white p-4 sticky top-0 z-50 shadow-md">
             <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
               <div class="text-center sm:text-left">
-                <h2 class="text-lg md:text-xl font-bold">หน้าใบงานกิจกรรมและตรวจเช็กอุปกรณ์ (Print Preview)</h2>
+                <h2 class="text-lg md:text-xl font-bold">หน้าใบงานกิจกรรม (Print Preview)</h2>
                 <p class="text-xs text-indigo-200">ตรวจสอบความถูกต้องก่อนกดพิมพ์</p>
               </div>
               <div class="flex gap-2 w-full sm:w-auto">
@@ -1250,6 +1358,7 @@
             </div>
           </div>
 
+          <!-- หน้ากระดาษใบงาน -->
           <div class="print-container max-w-4xl mx-auto bg-white p-6 md:p-12 mt-6 shadow-xl border border-slate-200 rounded-lg">
             
             <div class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4 gap-4">
@@ -1276,6 +1385,8 @@
               <p class="md:col-span-2"><b>วันและเวลากิจกรรม:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}</span></p>
               <p class="md:col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span class="text-slate-700">${selectedEventForPrint.remarks || '-'}</span></p>
             </div>
+
+            ${agendaPrintHtml}
 
             <div class="mb-4">
               <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
@@ -1403,11 +1514,11 @@
         tbody.innerHTML = activeBorrowRecords.map(record => {
           const isLongTerm = (record.borrow_type === 'LONG_TERM'), isReturned = (record.status === 'RETURNED');
           const typeBadge = isLongTerm ? `<span class="bg-purple-100 text-purple-800 text-[11px] px-2 py-0.5 rounded-full font-bold">🏢 ส่งมอบระยะยาว</span>` : `<span class="bg-blue-100 text-blue-800 text-[11px] px-2 py-0.5 rounded-full font-bold">📱 ยืมรายวัน</span>`;
-          const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">ไม่มีกำหนดคืน</span>` : new Date(record.expected_return_date).toLocaleDateString('th-TH');
+          const returnDisplay = isLongTerm ? `<span class="text-slate-400 italic">ไม่มีกำหนดคืน</span>` : formatThaiDateTime(record.expected_return_date).substring(0, 10);
           let returnStatusCell = `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🟡 ครอบครองอยู่</span>`;
           if (isReturned) {
             const conditionText = (record.return_condition === 'MINOR_DAMAGE') ? ` (🟡 ชำรุดเล็กน้อย)` : (record.return_condition === 'DAMAGED_LOST') ? ` (🔴 ชำรุดหนัก/สูญหาย)` : ` (🟢 ปกติ)`;
-            returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 คืนแล้ว ${new Date(record.actual_return_date).toLocaleDateString('th-TH')}${conditionText}</span>`;
+            returnStatusCell = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">🟢 คืนแล้ว ${formatThaiDateTime(record.actual_return_date).substring(0, 10)}${conditionText}</span>`;
           }
 
           let actionCell = `<span class="text-xs text-slate-400">ทำรายการแล้ว</span>`;
@@ -1416,7 +1527,7 @@
               actionCell = `<div class="flex flex-col xl:flex-row justify-center items-center gap-1"><button onclick="openReturnInspectionModal(${record.id})" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-emerald-200 whitespace-nowrap w-full xl:w-auto">↩️ ตรวจรับคืน</button><button onclick="cancelBorrowRecord(${record.id})" class="bg-rose-100 text-rose-700 px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-rose-200 whitespace-nowrap w-full xl:w-auto">🗑️ ยกเลิก</button></div>`;
             } else { actionCell = `<span class="text-xs text-slate-400 italic">🔒 เฉพาะ Admin</span>`; }
           }
-          return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td><td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td><td class="p-3">${typeBadge}</td><td class="p-3">${record.borrower_name}</td><td class="p-3">${new Date(record.borrow_date).toLocaleDateString('th-TH')}</td><td class="p-3 text-amber-600 font-medium">${returnDisplay}</td><td class="p-3">${returnStatusCell}</td><td class="p-3 text-center">${actionCell}</td></tr>`;
+          return `<tr class="hover:bg-slate-50 transition"><td class="p-3"><span class="bg-slate-100 text-slate-800 px-2 py-1 rounded font-mono text-xs font-bold">${record.equipment?.asset_label || '-'}</span></td><td class="p-3 font-medium text-slate-800">${record.equipment?.name || '-'}</td><td class="p-3">${typeBadge}</td><td class="p-3">${record.borrower_name}</td><td class="p-3">${formatThaiDateTime(record.borrow_date).substring(0, 10)}</td><td class="p-3 text-amber-600 font-medium">${returnDisplay}</td><td class="p-3">${returnStatusCell}</td><td class="p-3 text-center">${actionCell}</td></tr>`;
         }).join('');
       } catch (err) { tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-500 font-bold">❌ ระบบทำงานผิดพลาดในการดึงข้อมูลยืมคืน</td></tr>`; }
     }
@@ -1433,7 +1544,7 @@
     
     function exportBorrowToExcel() {
       if (!activeBorrowRecords || activeBorrowRecords.length === 0) { alert('❌ ไม่พบข้อมูลการยืม-คืน สำหรับส่งออก Excel'); return; }
-      const exportData = activeBorrowRecords.map(item => ({ 'Asset Label': item.equipment?.asset_label || '-', 'Equipment Name': item.equipment?.name || '-', 'Department': item.equipment?.department || 'IT', 'Issuance Type': item.borrow_type === 'LONG_TERM' ? 'Long-term' : 'Daily', 'Borrower/Assignee': item.borrower_name, 'Date Issued': new Date(item.borrow_date).toLocaleDateString('th-TH'), 'Due Date': item.borrow_type === 'LONG_TERM' ? 'No Due Date' : new Date(item.expected_return_date).toLocaleDateString('th-TH'), 'Status': item.status === 'RETURNED' ? 'Returned' : 'Occupied', 'Actual Return Date': item.actual_return_date ? new Date(item.actual_return_date).toLocaleDateString('th-TH') : '-', 'Return Condition': item.return_condition === 'GOOD' ? 'Good' : item.return_condition === 'MINOR_DAMAGE' ? 'Minor Damage' : item.return_condition === 'DAMAGED_LOST' ? 'Damaged/Lost' : '-', 'Remarks': item.note || '-' }));
+      const exportData = activeBorrowRecords.map(item => ({ 'Asset Label': item.equipment?.asset_label || '-', 'Equipment Name': item.equipment?.name || '-', 'Department': item.equipment?.department || 'IT', 'Issuance Type': item.borrow_type === 'LONG_TERM' ? 'Long-term' : 'Daily', 'Borrower/Assignee': item.borrower_name, 'Date Issued': formatThaiDateTime(item.borrow_date).substring(0, 10), 'Due Date': item.borrow_type === 'LONG_TERM' ? 'No Due Date' : formatThaiDateTime(item.expected_return_date).substring(0, 10), 'Status': item.status === 'RETURNED' ? 'Returned' : 'Occupied', 'Actual Return Date': item.actual_return_date ? formatThaiDateTime(item.actual_return_date).substring(0, 10) : '-', 'Return Condition': item.return_condition === 'GOOD' ? 'Good' : item.return_condition === 'MINOR_DAMAGE' ? 'Minor Damage' : item.return_condition === 'DAMAGED_LOST' ? 'Damaged/Lost' : '-', 'Remarks': item.note || '-' }));
       const worksheet = XLSX.utils.json_to_sheet(exportData), workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Borrow_Records"); XLSX.writeFile(workbook, `Denla_Borrow_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
 
@@ -1557,7 +1668,12 @@
       }
 
       const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked'), selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value), selectedEqNames = Array.from(checkedBoxes).map(cb => { const item = allEquipment.find(i => i.id == cb.value); return item ? `[${item.asset_label}] ${item.name}` : ''; });
-      const payload = { department: dept, event_title: title, main_host: mainHost, location: location, start_time: isoStart, end_time: isoEnd, event_date: startDateStr, organizer: tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก', details: `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}`, remarks: remarks };
+      
+      // แปลงข้อมูล Agenda ลง Payload ป้องกันตัวอักษรขีดคร่อม ( | ) ทำระบบรวน
+      const agendaStr = JSON.stringify(currentAgenda).replace(/\|/g, '&#124;');
+      const detailsStr = `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}|AGENDA:${agendaStr}`;
+
+      const payload = { department: dept, event_title: title, main_host: mainHost, location: location, start_time: isoStart, end_time: isoEnd, event_date: startDateStr, organizer: tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก', details: detailsStr, remarks: remarks };
 
       const { error } = rawEventId && rawEventId !== '' ? await _supabase.from('event_queue').update(payload).eq('id', parseInt(rawEventId, 10)) : await _supabase.from('event_queue').insert([payload]);
       
@@ -1591,7 +1707,20 @@
       if (selectedEventForPrint.rawEnd) { const dEnd = new Date(selectedEventForPrint.rawEnd); document.getElementById('end-year').value = String(dEnd.getFullYear()); document.getElementById('end-month').value = String(dEnd.getMonth() + 1).padStart(2, '0'); document.getElementById('end-day').value = String(dEnd.getDate()).padStart(2, '0'); document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(Math.floor(dEnd.getMinutes() / 5) * 5).padStart(2,'0')}`; }
 
       document.getElementById('event-remarks').value = selectedEventForPrint.remarks || ''; clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      
+      // ดึงข้อมูลอุปกรณ์
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) { selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',').forEach(id => { const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`); if (cb) cb.checked = true; }); }
+
+      // ดึงข้อมูล Agenda 
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('AGENDA:')) {
+        try {
+          const agendaStr = selectedEventForPrint.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+          currentAgenda = JSON.parse(agendaStr);
+        } catch(e) { currentAgenda = []; }
+      } else {
+        currentAgenda = [];
+      }
+      renderAgendaTable();
 
       document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] แก้ไขคิวงาน (ID: ${selectedEventForPrint.eventId})`; document.getElementById('btn-submit-event').innerHTML = `💾 ยืนยันการอัปเดตคิวงาน`; document.getElementById('btn-submit-event').className = 'w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition'; document.getElementById('btn-cancel-edit-event').classList.remove('hidden');
       closeModals(); window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1603,6 +1732,10 @@
       ['start', 'end'].forEach(prefix => { document.getElementById(`${prefix}-day`).value = curDay; document.getElementById(`${prefix}-month`).value = curMonth; document.getElementById(`${prefix}-year`).value = curYear; });
       document.getElementById('event-start-time').value = '08:30'; document.getElementById('event-end-time').value = '16:30';
       toggleCustomLocationInput(); clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      
+      currentAgenda = [];
+      renderAgendaTable();
+
       document.getElementById('form-event-title').innerHTML = `➕ ลงคิวงาน / กิจกรรมใหม่`; document.getElementById('btn-submit-event').innerHTML = `📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน`; document.getElementById('btn-submit-event').className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition'; document.getElementById('btn-cancel-edit-event').classList.add('hidden');
     }
 
