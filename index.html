@@ -626,12 +626,11 @@
 
   <script>
     // ==========================================
-    // กำหนด URL ของ Supabase (ผู้ใช้ต้องใส่เอง)
+    // กำหนด URL ของ Supabase (เอามาวางตรงนี้)
     // ==========================================
     const SUPABASE_URL = 'https://hfslkxzkuewrkbdfdqem.supabase.co';
     const SUPABASE_ANON_KEY = 'hfslkxzkuewrkbdfdqem';
     
-    // ==================== Webhook URLs แยก 2 ระบบ ====================
     const WEBHOOK_BORROW = 'https://chat.googleapis.com/v1/spaces/AAQACLPDNV8/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=rnTDh_tNJ88rwsDmIck6AIOYpAu3OuAwTlJvAIB2w_U';
     const WEBHOOK_EVENT = 'https://chat.googleapis.com/v1/spaces/AAQAj41HweE/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=lHWLkXEuB9WCtFTLmOJuwou7SnrkFsn5Zvv0pW4LR3M';
     
@@ -716,7 +715,6 @@
       allAdmins = data || [];
       const tbody = document.getElementById('table-permissions');
       
-      // ดึงไปใส่ในแท็กทีมงาน (หน้าฟอร์มสร้างคิว)
       const container = document.getElementById('tag-admin-list');
       if (allAdmins.length === 0) { 
           container.innerHTML = `<p class="text-slate-400 text-center py-1">ยังไม่มีรายชื่อ Admin</p>`; 
@@ -730,7 +728,7 @@
 
       if (tbody) {
           tbody.innerHTML = allAdmins.map(user => {
-              if (user.username === 'admin') return ''; // ซ่อน Super Admin หลักไม่ให้แก้ไขสิทธิ์
+              if (user.username === 'admin') return ''; 
               
               const rawDept = user.department || 'IT';
               const cleanDept = rawDept.includes('|') ? rawDept.split('|')[0] : rawDept;
@@ -773,6 +771,193 @@
         loadAdminPermissions();
     }
 
+    function addAgendaItem() {
+      const timeInput = document.getElementById('agenda-time');
+      const descInput = document.getElementById('agenda-desc');
+      const time = timeInput.value.trim();
+      const desc = descInput.value.trim();
+      if (!time || !desc) { alert('กรุณาระบุเวลาและรายละเอียดกิจกรรมย่อยให้ครบถ้วน'); return; }
+      currentAgenda.push({ time, desc });
+      timeInput.value = '';
+      descInput.value = '';
+      renderAgendaTable();
+    }
+
+    function removeAgendaItem(index) {
+      currentAgenda.splice(index, 1);
+      renderAgendaTable();
+    }
+
+    function renderAgendaTable() {
+      const tbody = document.getElementById('agenda-table-body');
+      if (currentAgenda.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-400">ยังไม่มีกำหนดการย่อย</td></tr>';
+        return;
+      }
+      tbody.innerHTML = currentAgenda.map((item, idx) => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-2 font-bold text-indigo-700 border-b border-indigo-50 align-top">${item.time}</td>
+          <td class="p-2 border-b border-indigo-50 leading-relaxed">${item.desc.replace(/\n/g, '<br>')}</td>
+          <td class="p-2 text-center border-b border-indigo-50 align-top"><button type="button" onclick="removeAgendaItem(${idx})" class="text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded">✕</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function changeLanguage(langKey) { currentLang = langKey; localStorage.setItem('denla_app_lang', langKey); location.reload(); }
+    
+    function renderLocationDropdown() {
+      const select = document.getElementById('event-location-select');
+      const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
+      let html = allLocs.map(loc => `<option value="${loc}">📍 ${loc}</option>`).join('');
+      html += `<option value="CUSTOM">✏️ สถานที่อื่นๆ (ระบุเอง...)</option>`;
+      select.innerHTML = html;
+      toggleCustomLocationInput();
+    }
+
+    function renderAdminLocationTags() {
+      const tagContainer = document.getElementById('admin-location-tags');
+      const allLocs = [...DEFAULT_LOCATIONS, ...customLocations];
+      if (allLocs.length === 0) { tagContainer.innerHTML = `<p class="text-slate-400 text-xs italic">ยังไม่มีสถานที่ในระบบ</p>`; return; }
+      tagContainer.innerHTML = allLocs.map(loc => `<span class="inline-flex items-center gap-1 bg-slate-800 text-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700">📍 ${loc} <button onclick="deleteCustomLocation('${loc}')" class="text-rose-400 hover:text-rose-300 font-bold ml-1">✕</button></span>`).join('');
+    }
+
+    function addNewLocation() {
+      const val = document.getElementById('admin-new-location').value.trim();
+      if (!val) { alert('กรุณากรอกชื่อสถานที่'); return; }
+      if ([...DEFAULT_LOCATIONS, ...customLocations].includes(val)) { alert('สถานที่นี้มีอยู่ในระบบแล้ว'); return; }
+      customLocations.push(val);
+      localStorage.setItem('denla_custom_locations', JSON.stringify(customLocations));
+      document.getElementById('admin-new-location').value = '';
+      renderLocationDropdown(); renderAdminLocationTags(); alert(`✅ เพิ่มสถานที่ "${val}" เรียบร้อย`);
+    }
+
+    function deleteCustomLocation(locName) {
+      if (!confirm(`ยืนยันลบสถานที่ "${locName}" ?`)) return;
+      customLocations = customLocations.filter(l => l !== locName);
+      localStorage.setItem('denla_custom_locations', JSON.stringify(customLocations));
+      renderLocationDropdown(); renderAdminLocationTags();
+    }
+
+    function toggleCustomLocationInput() {
+      const sel = document.getElementById('event-location-select');
+      const customInput = document.getElementById('event-location-custom');
+      customInput.classList.toggle('hidden', sel.value !== 'CUSTOM');
+      customInput.required = sel.value === 'CUSTOM';
+    }
+
+    function populateDateAndPickerDropdowns() {
+      const startSelect = document.getElementById('event-start-time'), endSelect = document.getElementById('event-end-time');
+      let timeOptions = '';
+      for (let hour = 0; hour < 24; hour++) {
+        for (let min = 0; min < 60; min += 5) {
+          const hh = String(hour).padStart(2, '0'), mm = String(min).padStart(2, '0');
+          timeOptions += `<option value="${hh}:${mm}">${hh}:${mm} น.</option>`;
+        }
+      }
+      startSelect.innerHTML = timeOptions; endSelect.innerHTML = timeOptions;
+      startSelect.value = '08:30'; endSelect.value = '16:30';
+
+      const now = new Date(), curDay = now.getDate(), curMonth = now.getMonth(), curYear = now.getFullYear();
+      const THAI_MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรดฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      
+      ['start', 'end'].forEach(prefix => {
+        let dayHtml = ''; for (let d = 1; d <= 31; d++) { dayHtml += `<option value="${String(d).padStart(2, '0')}">${d}</option>`; }
+        let monthHtml = ''; THAI_MONTHS.forEach((mName, idx) => { monthHtml += `<option value="${String(idx + 1).padStart(2, '0')}">${mName}</option>`; });
+        let yearHtml = ''; for (let y = curYear - 1; y <= curYear + 5; y++) { yearHtml += `<option value="${y}">${y + 543} (${y})</option>`; }
+        
+        document.getElementById(`${prefix}-day`).innerHTML = dayHtml; document.getElementById(`${prefix}-day`).value = String(curDay).padStart(2, '0');
+        document.getElementById(`${prefix}-month`).innerHTML = monthHtml; document.getElementById(`${prefix}-month`).value = String(curMonth + 1).padStart(2, '0');
+        document.getElementById(`${prefix}-year`).innerHTML = yearHtml; document.getElementById(`${prefix}-year`).value = String(curYear);
+      });
+    }
+
+    function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
+    function openRegisterModal() { document.getElementById('modal-register').classList.remove('hidden'); }
+    function closeModals() {
+      document.getElementById('modal-login').classList.add('hidden'); document.getElementById('modal-register').classList.add('hidden');
+      document.getElementById('modal-event-detail').classList.add('hidden'); document.getElementById('modal-return-inspect').classList.add('hidden');
+    }
+
+    function checkAdminSession() {
+      const storedSession = localStorage.getItem('denla_admin_session');
+      if (storedSession) {
+        try {
+          const sessionData = JSON.parse(storedSession);
+          if (new Date().getTime() < sessionData.expiry) { currentAdmin = sessionData.admin; setAdminState(true, false); refreshAdminSession(); } 
+          else { logoutAdmin(true); }
+        } catch (e) { localStorage.removeItem('denla_admin_session'); setAdminState(false, false); }
+      } else {
+        // หากไม่มีเซสชันเลย ให้แสดงแท็บคนทั่วไป (แก้หน้าจอขาว)
+        setAdminState(false, false);
+      }
+    }
+
+    function refreshAdminSession() {
+      if (!currentAdmin) return;
+      localStorage.setItem('denla_admin_session', JSON.stringify({ admin: currentAdmin, expiry: new Date().getTime() + (SESSION_DURATION_MINUTES * 60 * 1000) }));
+    }
+
+    function setupActivityListeners() {
+      ['click', 'mousemove', 'keydown', 'scroll'].forEach(evt => window.addEventListener(evt, () => { if (currentAdmin) refreshAdminSession(); }, { passive: true }));
+      setInterval(() => {
+        const storedSession = localStorage.getItem('denla_admin_session');
+        if (storedSession && new Date().getTime() > JSON.parse(storedSession).expiry) logoutAdmin(true);
+      }, 60000);
+    }
+
+    function adjustUtcToThaiDisplay(isoStr) {
+      if (!isoStr) return '00:00';
+      const d = new Date(isoStr);
+      if (!isNaN(d.getTime())) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      return String(isoStr).substring(0, 5);
+    }
+    function formatThaiDateTime(dateInput) {
+      if (!dateInput) return '-';
+      const d = new Date(dateInput);
+      if (!isNaN(d.getTime())) {
+        const yearDisplay = currentLang === 'en' ? d.getFullYear() : d.getFullYear() + 543;
+        const timeDisplay = `${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')}${currentLang==='en'?'':' น.'}`;
+        return `${d.getDate()}/${d.getMonth() + 1}/${yearDisplay} ${timeDisplay}`;
+      }
+      return String(dateInput);
+    }
+    function getLocalDateString(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      if (!isNaN(d.getTime())) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      return String(isoStr).substring(0, 10);
+    }
+    function formatLocalToISO(dateStr, timeStr) { return (!dateStr || !timeStr) ? null : `${dateStr}T${timeStr}:00+07:00`; }
+
+    function toggleBorrowTypeMode() {
+      const type = document.getElementById('borrow-type-select').value;
+      const boxReturnDate = document.getElementById('box-return-date');
+      const btnSubmit = document.getElementById('btn-submit-borrow');
+      const returnDateInput = document.getElementById('return-date');
+
+      const today = new Date();
+      const localTodayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+      if (type === 'LONG_TERM') {
+        boxReturnDate.classList.add('hidden'); 
+        returnDateInput.required = false;
+        btnSubmit.innerHTML = `🏢 ยืนยันการส่งมอบอุปกรณ์ระยะยาว & แจ้งเตือน Google Chat`; 
+        btnSubmit.className = 'w-full bg-indigo-800 hover:bg-indigo-900 text-white font-medium py-3 rounded-xl shadow-md transition';
+      } else {
+        boxReturnDate.classList.remove('hidden'); 
+        returnDateInput.required = true;
+        returnDateInput.min = localTodayStr;
+        returnDateInput.removeAttribute('max');
+        returnDateInput.removeAttribute('readonly');
+        returnDateInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
+        if (!returnDateInput.value || returnDateInput.value < localTodayStr) {
+            returnDateInput.value = localTodayStr;
+        }
+        btnSubmit.innerHTML = `🚀 ยืนยันการยืมอุปกรณ์ & แจ้งเตือน Google Chat`; 
+        btnSubmit.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-md transition';
+      }
+    }
+
     async function handleRegister() {
       const empId = document.getElementById('reg-emp-id').value;
       const name = document.getElementById('reg-name').value;
@@ -786,7 +971,6 @@
       if (!empId || !name || !email || !user || !pass) { alert('กรุณากรอกข้อมูลให้ครบถ้วน'); return; }
       if (key !== MASTER_KEY) { alert('❌ Master Key ไม่ถูกต้อง!'); return; }
 
-      // บังคับให้ได้สิทธิ์พื้นฐานแค่ 3 หน้า
       const defaultMenus = "borrow,event,display";
       const combinedDept = `${deptSelect}|${defaultMenus}`;
 
@@ -801,7 +985,7 @@
       const user = document.getElementById('login-user').value, pass = document.getElementById('login-pass').value;
       
       if (user === 'admin' && pass === '1234') { 
-          currentAdmin = { full_name: 'Super Admin', nickname: 'Main Admin', department: 'ALL|borrow,event,display,staff-summary,inventory', username: 'admin' }; 
+          currentAdmin = { full_name: 'Super Admin', nickname: 'Main Admin', department: 'ALL|borrow,event,display,staff-summary,inventory,permissions', username: 'admin' }; 
           setAdminState(true); 
           return; 
       }
@@ -825,7 +1009,7 @@
             allowedMenus = ['borrow', 'event', 'display', 'staff-summary', 'inventory', 'permissions'];
         } else if (rawDept.includes('|')) {
             allowedMenus = rawDept.split('|')[1].split(',');
-            if (cleanDept === 'ALL') allowedMenus.push('permissions'); // ถ้าอยู่แผนก ALL ให้เห็นจัดการสิทธิ์ด้วย
+            if (cleanDept === 'ALL') allowedMenus.push('permissions');
         } else {
             allowedMenus = ['borrow', 'event', 'display'];
         }
@@ -852,6 +1036,8 @@
 
         if (!allowedMenus.includes('borrow')) {
             switchTab(allowedMenus[0] || 'display');
+        } else {
+            switchTab('borrow');
         }
 
         if (showNotify) alert(`🎉 เข้าสู่ระบบเรียบร้อยแล้ว`);
@@ -860,12 +1046,13 @@
         document.getElementById('admin-banner').classList.add('hidden');
         document.getElementById('btn-admin-login').classList.remove('hidden'); document.getElementById('btn-admin-register').classList.remove('hidden');
         
+        // เมื่อไม่ได้ล็อกอิน ให้คนทั่วไปเห็น 3 เมนูพื้นฐาน
         document.getElementById('tab-borrow').classList.remove('hidden');
         document.getElementById('tab-event').classList.remove('hidden');
         document.getElementById('tab-display').classList.remove('hidden');
+        
         document.getElementById('tab-staff-summary').classList.add('hidden');
         document.getElementById('tab-inventory').classList.add('hidden');
-        
         document.querySelectorAll('.super-admin-col').forEach(el => el.classList.add('hidden')); 
         
         switchTab('borrow');
@@ -914,7 +1101,7 @@
       
       if (tabName === 'event' && calendar) setTimeout(() => calendar.render(), 100);
       if (tabName === 'staff-summary') renderStaffWorkloadSummary();
-      if (tabName === 'permissions') loadAdminPermissions(); // โหลดข้อมูลใหม่ทุกครั้งที่กดเข้าแท็บ
+      if (tabName === 'permissions') loadAdminPermissions(); 
     }
 
     function renderStaffWorkloadSummary() {
@@ -1081,21 +1268,588 @@
       }).join('');
     }
 
-    // ฟังก์ชันอื่นๆ ยังคงเดิม
-    function addAgendaItem() {
-      const timeInput = document.getElementById('agenda-time');
-      const descInput = document.getElementById('agenda-desc');
-      const time = timeInput.value.trim();
-      const desc = descInput.value.trim();
-      if (!time || !desc) { alert('กรุณาระบุเวลาและรายละเอียดกิจกรรมย่อยให้ครบถ้วน'); return; }
-      currentAgenda.push({ time, desc });
-      timeInput.value = ''; descInput.value = ''; renderAgendaTable();
+    async function fetchAllEquipment() {
+      const select = document.getElementById('borrow-asset-select');
+      try {
+        select.innerHTML = '<option value="">-- กำลังโหลดรายการอุปกรณ์... --</option>';
+        const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
+        if (error) { console.error('Supabase Error (equipment):', error); select.innerHTML = `<option value="">❌ ข้อผิดพลาด: ไม่สามารถดึงข้อมูลได้</option>`; return; }
+        allEquipment = data || []; renderEquipmentDropdown(); renderInventoryTable(allEquipment); renderEventEquipmentAccordion();
+      } catch (err) { console.error('JS Error (equipment):', err); select.innerHTML = `<option value="">❌ ระบบขัดข้อง: ไม่สามารถเชื่อมต่อฐานข้อมูลได้</option>`; }
     }
-    function removeAgendaItem(index) { currentAgenda.splice(index, 1); renderAgendaTable(); }
-    function renderAgendaTable() {
-      const tbody = document.getElementById('agenda-table-body');
-      if (currentAgenda.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-400">ยังไม่มีกำหนดการย่อย</td></tr>'; return; }
-      tbody.innerHTML = currentAgenda.map((item, idx) => `<tr class="hover:bg-slate-50 transition"><td class="p-2 font-bold text-indigo-700 border-b border-indigo-50 align-top">${item.time}</td><td class="p-2 border-b border-indigo-50 leading-relaxed">${item.desc.replace(/\n/g, '<br>')}</td><td class="p-2 text-center border-b border-indigo-50 align-top"><button type="button" onclick="removeAgendaItem(${idx})" class="text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded">✕</button></td></tr>`).join('');
+
+    function renderEventEquipmentAccordion() {
+      const container = document.getElementById('event-equipment-accordion'), depts = { 'AV': '🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)', 'IT': '💻 ฝ่ายไอที (IT)', 'MEDIA': '📷 ฝ่ายช่างภาพ/สื่อ (Media)', 'FACILITY': '🏢 ฝ่ายอาคารสถานที่ (Facility)' }, eventAssets = allEquipment.filter(i => (i.usage_type || 'BOTH') === 'EVENT' || (i.usage_type || 'BOTH') === 'BOTH');
+      let html = '';
+      Object.keys(depts).forEach(deptKey => {
+        const items = eventAssets.filter(i => (i.department || 'IT') === deptKey);
+        if (items.length > 0) {
+          html += `<details class="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden"><summary class="font-bold text-slate-700 p-2.5 bg-slate-100 cursor-pointer hover:bg-indigo-50 flex justify-between items-center"><span>${depts[deptKey]} (${items.length} รายการ)</span><span class="text-slate-400 text-xs">▼</span></summary><div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-3 bg-white border-t border-slate-200">`;
+          items.forEach(item => {
+            const isUnav = (item.status === 'UNAVAILABLE'), brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '', statusLabel = isUnav ? ` <span class="text-rose-500 font-bold">[🔴 ไม่พร้อมใช้งาน]</span>` : '';
+            html += `<label class="flex items-center gap-1.5 ${isUnav ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:text-indigo-600'}"><input type="checkbox" name="event-eq-item" value="${item.id}" ${isUnav ? 'disabled' : ''} class="rounded text-indigo-600 focus:ring-0"><span class="break-words whitespace-normal">[${item.asset_label}] ${item.name} ${brandStr}${statusLabel}</span></label>`;
+          });
+          html += `</div></details>`;
+        }
+      });
+      container.innerHTML = html || `<p class="text-slate-400 text-center">ยังไม่มีอุปกรณ์สำหรับจัดงานในระบบ</p>`;
+    }
+
+    function renderEquipmentDropdown() {
+      const deptFilter = document.getElementById('borrow-dept-filter').value, select = document.getElementById('borrow-asset-select');
+      select.innerHTML = `<option value="">-- เลือกอุปกรณ์ --</option>`;
+      let filtered = allEquipment.filter(item => {
+        if (item.status === 'UNAVAILABLE') return false;
+        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = totalQty - borrowedCount;
+        return availableQty > 0 && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH');
+      });
+      if (deptFilter !== 'ALL') filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
+      filtered.forEach(item => {
+        const availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+        select.insertAdjacentHTML('beforeend', `<option value="${item.id}">[${item.asset_label}] ${item.name} (ว่าง ${availableQty}/${item.quantity || 1}) (${item.department || 'IT'})</option>`);
+      });
+    }
+
+    function showEquipmentPreview(id) {
+      const item = allEquipment.find(i => i.id == id), preview = document.getElementById('equipment-preview');
+      if (!item) { preview.classList.add('hidden'); return; }
+      const availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+      document.getElementById('prev-name').textContent = `${item.name} ${item.brand && item.brand !== 'undefined' ? item.brand : ''}`;
+      document.getElementById('prev-label').textContent = item.asset_label; document.getElementById('prev-dept').textContent = item.department || 'IT';
+      document.getElementById('prev-location').textContent = item.location || '-'; document.getElementById('prev-stock').textContent = `${availableQty} / ${item.quantity || 1} ชิ้น`;
+      preview.classList.remove('hidden');
+    }
+
+    async function handleEquipmentSave(e) {
+      e.preventDefault(); if (!currentAdmin) return;
+      const rawId = document.getElementById('eq-id').value;
+      const payload = { asset_label: document.getElementById('eq-label').value, name: document.getElementById('eq-name').value, quantity: parseInt(document.getElementById('eq-quantity').value || 1, 10), department: document.getElementById('eq-dept').value, usage_type: document.getElementById('eq-usage-type').value, status: document.getElementById('eq-status').value, brand: document.getElementById('eq-brand').value || '', serial_number: document.getElementById('eq-serial').value || '', location: document.getElementById('eq-location').value || '' };
+      const { error } = rawId && rawId !== '' ? await _supabase.from('equipment').update(payload).eq('id', parseInt(rawId, 10)) : await _supabase.from('equipment').insert([payload]);
+      if (error) { alert('Error: ' + error.message); return; }
+      alert('✅ บันทึกข้อมูลอุปกรณ์เรียบร้อยแล้ว!'); resetEquipmentForm(); await fetchAllEquipment();
+    }
+
+    function editEquipment(id) {
+      const item = allEquipment.find(i => i.id == id); if (!item) return;
+      document.getElementById('form-equipment-title').innerHTML = `✏️ [Admin Zone] แก้ไขรายการอุปกรณ์ (ID: ${item.id})`;
+      document.getElementById('btn-save-equipment').innerHTML = `💾 ยืนยันการอัปเดตข้อมูล`; document.getElementById('btn-save-equipment').className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
+      document.getElementById('eq-id').value = item.id; document.getElementById('eq-label').value = item.asset_label || ''; document.getElementById('eq-name').value = item.name || '';
+      document.getElementById('eq-quantity').value = item.quantity || 1; document.getElementById('eq-dept').value = item.department || 'IT'; document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH';
+      document.getElementById('eq-status').value = item.status || 'AVAILABLE'; document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : ''; document.getElementById('eq-serial').value = item.serial_number || ''; document.getElementById('eq-location').value = item.location || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteEquipment(id, name) {
+      if (!confirm(`⚠️ ยืนยันลบ: ${name} ?`)) return;
+      await _supabase.from('equipment').delete().eq('id', id); alert('✅ ลบอุปกรณ์เรียบร้อย!'); await fetchAllEquipment();
+    }
+
+    function resetEquipmentForm() {
+      document.getElementById('form-equipment').reset(); document.getElementById('eq-id').value = ''; document.getElementById('eq-quantity').value = 1; document.getElementById('eq-status').value = 'AVAILABLE';
+      document.getElementById('form-equipment-title').innerHTML = `🛠️ [Admin Zone] เพิ่มรายการอุปกรณ์ใหม่`; document.getElementById('btn-save-equipment').innerHTML = `💾 บันทึกข้อมูลอุปกรณ์`;
+      document.getElementById('btn-save-equipment').className = 'bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
+    }
+
+    function initCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', locale: 'th', eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false, hour12: false },
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+        buttonText: { today: 'วันนี้', month: 'เดือน', week: 'สัปดาห์', day: 'วัน' },
+        events: fetchCalendarEvents, eventClick: function(info) { openEventDetailModal(info.event); }
+      });
+      calendar.render();
+    }
+
+    async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
+      const { data, error } = await _supabase.from('event_queue').select('*');
+      if (error) { failureCallback(error); return; }
+      allEventsList = data || []; const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
+      const filterStaff = document.getElementById('calendar-filter-staff')?.value.trim().toLowerCase() || '', filterDept = document.getElementById('calendar-filter-dept')?.value || 'ALL';
+
+      let filteredData = (data || []).filter(ev => {
+        if (filterDept !== 'ALL' && ev.department !== filterDept) return false;
+        if (filterStaff !== '') { const matchHost = (ev.main_host || '').toLowerCase().includes(filterStaff), matchOrganizer = (ev.organizer || '').toLowerCase().includes(filterStaff); if (!matchHost && !matchOrganizer) return false; }
+        return true;
+      });
+
+      const events = filteredData.map(ev => {
+        let datePart = ev.start_time ? getLocalDateString(ev.start_time) : (ev.event_date || getLocalDateString(new Date().toISOString()));
+        return {
+          id: ev.id, title: `${adjustUtcToThaiDisplay(ev.start_time)} [${ev.department || 'ALL'}] ${ev.event_title}`, start: datePart, end: datePart, backgroundColor: deptColors[ev.department] || '#6366f1', borderColor: deptColors[ev.department] || '#6366f1',
+          extendedProps: { eventId: ev.id, rawTitle: ev.event_title, dept: ev.department || 'ALL', mainHost: ev.main_host || '-', location: ev.location, organizer: ev.organizer, details: ev.details, remarks: ev.remarks, rawStart: ev.start_time, rawEnd: ev.end_time }
+        };
+      });
+      successCallback(events);
+    }
+
+    function openEventDetailModal(eventObj) {
+      const props = eventObj.extendedProps;
+      selectedEventForPrint = { eventId: props.eventId, title: props.rawTitle, dept: props.dept, mainHost: props.mainHost, location: props.location, organizer: props.organizer, start: formatThaiDateTime(props.rawStart || eventObj.start), end: formatThaiDateTime(props.rawEnd || eventObj.end), rawStart: props.rawStart, rawEnd: props.rawEnd, details: props.details, remarks: props.remarks };
+      document.getElementById('detail-dept-badge').textContent = `ฝ่าย: ${props.dept}`; 
+      document.getElementById('detail-title').textContent = props.rawTitle; 
+      document.getElementById('detail-main-host').textContent = props.mainHost; 
+      document.getElementById('detail-location').textContent = props.location; 
+      document.getElementById('detail-organizer').textContent = props.organizer || '-';
+      document.getElementById('detail-start').textContent = selectedEventForPrint.start; 
+      document.getElementById('detail-end').textContent = selectedEventForPrint.end; 
+      document.getElementById('detail-remarks').textContent = props.remarks || '-';
+
+      let agendaHtml = '';
+      if (props.details && props.details.includes('AGENDA:')) {
+        try {
+          const agendaStr = props.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+          const agendaList = JSON.parse(agendaStr);
+          if (agendaList.length > 0) {
+            agendaHtml = '<table class="w-full text-left"><tbody>' + agendaList.map(a => `<tr><td class="w-16 md:w-24 p-1.5 font-bold text-indigo-700 align-top">${a.time}</td><td class="p-1.5 border-l border-indigo-200 pl-3 leading-tight">${a.desc.replace(/\n/g, '<br>')}</td></tr>`).join('') + '</tbody></table>';
+          }
+        } catch(e) {}
+      }
+      
+      const agendaContainer = document.getElementById('detail-agenda-container');
+      if (agendaHtml) {
+        agendaContainer.classList.remove('hidden');
+        document.getElementById('detail-agenda-list').innerHTML = agendaHtml;
+      } else {
+        agendaContainer.classList.add('hidden');
+      }
+
+      let eqHtml = '';
+      if (props.details && props.details.includes('EQ_IDS:')) {
+        const ids = props.details.split('EQ_IDS:')[1].split('|')[0].split(',');
+        let hasEq = false;
+        ids.forEach(id => { 
+          const item = allEquipment.find(i => i.id == id.trim()); 
+          if (item) { 
+            hasEq = true;
+            eqHtml += `<div class="flex justify-between border-b border-slate-200 py-1.5"><span class="break-words whitespace-normal pr-2"><b>[${item.asset_label}]</b> ${item.name} ${item.brand && item.brand !== 'undefined' ? `(${item.brand})` : ''} [${item.department}]</span><span class="text-slate-400 pl-2 shrink-0">เก็บ: ${item.location || '-'}</span></div>`; 
+          } 
+        });
+        if(!hasEq) eqHtml = `<p class="text-slate-600 break-words">ไม่มีรายการอุปกรณ์</p>`;
+      } else {
+        eqHtml = `<p class="text-slate-600 break-words">ไม่มีรายการอุปกรณ์</p>`;
+      }
+      document.getElementById('detail-equipment-list').innerHTML = eqHtml;
+
+      document.getElementById('btn-edit-event').classList.toggle('hidden', !currentAdmin); document.getElementById('btn-cancel-event').classList.toggle('hidden', !currentAdmin);
+      document.getElementById('modal-event-detail').classList.remove('hidden');
+    }
+
+    function printEventReport() {
+      if (!selectedEventForPrint) return;
+      
+      const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, '');
+      const docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`;
+      const nowDate = new Date().toLocaleDateString('th-TH');
+
+      const orgStr = selectedEventForPrint.organizer || '';
+      const getDeptStaffNames = (deptKey) => orgStr ? orgStr.split(', ').filter(m => m.includes(`[${deptKey}]`)).map(m => m.split(' [')[0]) : [];
+      
+      const itStaffs = getDeptStaffNames('IT'), avStaffs = getDeptStaffNames('AV'), mediaStaffs = getDeptStaffNames('MEDIA'), facStaffs = getDeptStaffNames('FACILITY');
+
+      let nHousekeeper = 0, nTech = 0, nSec = 0, nPark = 0;
+      if (orgStr.includes('แม่บ้าน')) { let m = orgStr.match(/แม่บ้าน\s*(\d+)\s*คน/); if (m) nHousekeeper = m[1]; }
+      if (orgStr.includes('ช่างอาคาร')) { let m = orgStr.match(/ช่างอาคาร\s*(\d+)\s*คน/); if (m) nTech = m[1]; }
+      if (orgStr.includes('รปภ.')) { let m = orgStr.match(/รปภ.\s*(\d+)\s*คน/); if (m) nSec = m[1]; }
+      if (orgStr.includes('ช่องจอดรถ')) { let m = orgStr.match(/ช่องจอดรถ\s*(\d+)\s*คัน/); if (m) nPark = m[1]; }
+
+      let agendaPrintHtml = '';
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('AGENDA:')) {
+        try {
+          const agendaStr = selectedEventForPrint.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+          const agendaList = JSON.parse(agendaStr);
+          if (agendaList.length > 0) {
+            agendaPrintHtml = `
+              <div class="mb-4">
+                <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">📋 กำหนดการย่อย / Agenda</h3>
+                <table class="w-full border-collapse border border-slate-300 text-[11px] md:text-xs text-left">
+                  <thead class="bg-slate-50">
+                     <tr><th class="border border-slate-300 p-2 w-28 text-center">เวลา</th><th class="border border-slate-300 p-2">รายละเอียดกิจกรรม</th></tr>
+                  </thead>
+                  <tbody>
+                    ${agendaList.map(a => `<tr><td class="border border-slate-300 p-2 font-bold text-indigo-900 align-top text-center">${a.time}</td><td class="border border-slate-300 p-2 leading-relaxed whitespace-pre-wrap">${a.desc.replace(/\n/g, '<br>')}</td></tr>`).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }
+        } catch(e) {}
+      }
+
+      let tableHtml = '';
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) {
+        const ids = selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',');
+        let hasItem = false;
+        ids.forEach(id => { 
+          const item = allEquipment.find(i => i.id == id.trim()); 
+          if (item) { 
+            hasItem = true;
+            const brandStr = (item.brand && item.brand !== 'undefined') ? `(${item.brand})` : '';
+            tableHtml += `<tr class="hover:bg-slate-50"><td class="border border-slate-300 p-2 text-center"><input type="checkbox" class="rounded"></td><td class="border border-slate-300 p-2 font-bold text-slate-800">[${item.asset_label}] ${item.name} ${brandStr}</td><td class="border border-slate-300 p-2 text-center">${item.department || 'IT'}</td><td class="border border-slate-300 p-2">${item.location || '-'}</td><td class="border border-slate-300 p-2 text-center text-emerald-700 font-semibold">🟢 พร้อมใช้งาน</td><td class="border border-slate-300 p-2 text-slate-400"></td></tr>`; 
+          } 
+        });
+        if(!hasItem) tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">ไม่มีรายการอุปกรณ์</td></tr>`;
+      } else { 
+        tableHtml = `<tr><td class="border border-slate-300 p-2 text-center"><input type="checkbox"></td><td colspan="5" class="border border-slate-300 p-2 text-slate-500">ไม่มีรายการอุปกรณ์</td></tr>`; 
+      }
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('⚠️ เบราว์เซอร์บล็อกการเปิดแท็บใหม่ \nกรุณาอนุญาต (Allow Pop-ups) ให้เว็บไซต์นี้เพื่อทำการพิมพ์ใบงาน');
+        return;
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="th-TH">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>ใบงานกิจกรรม - ${selectedEventForPrint.title}</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+          <style>
+            body { font-family: 'Sarabun', sans-serif; background: #f1f5f9; }
+            @media print {
+              .no-print { display: none !important; }
+              @page { size: A4 portrait; margin: 0.5cm; }
+              body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+              .print-container { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            }
+          </style>
+        </head>
+        <body class="text-slate-900 pb-12">
+          
+          <!-- แถบเมนูด้านบน (ไม่ถูกพิมพ์) -->
+          <div class="no-print bg-indigo-800 text-white p-4 sticky top-0 z-50 shadow-md">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div class="text-center sm:text-left">
+                <h2 class="text-lg md:text-xl font-bold">หน้าใบงานกิจกรรม (Print Preview)</h2>
+                <p class="text-xs text-indigo-200">ตรวจสอบความถูกต้องก่อนกดพิมพ์</p>
+              </div>
+              <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="window.close()" class="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-bold transition">ปิดหน้าต่าง</button>
+                <button onclick="window.print()" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-lg text-sm font-bold shadow-lg transition flex items-center justify-center gap-2">
+                  🖨️ กดพิมพ์ใบงาน
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- หน้ากระดาษใบงาน -->
+          <div class="print-container max-w-4xl mx-auto bg-white p-6 md:p-12 mt-6 shadow-xl border border-slate-200 rounded-lg">
+            
+            <div class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-indigo-900 pb-4 mb-4 gap-4">
+              <div class="flex items-center gap-4">
+                <img src="${window.location.origin}/logo.png" alt="Denla Logo" class="h-16 w-16 object-contain" onerror="this.style.display='none'">
+                <div><h1 class="text-xl md:text-2xl font-extrabold text-indigo-950">โรงเรียนอนุบาลเด่นหล้า</h1><p class="text-sm md:text-base font-bold text-slate-600">(Denla Kindergarten)</p></div>
+              </div>
+              <div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1 bg-slate-50 w-full sm:w-auto sm:min-w-[220px]">
+                <div class="flex justify-between"><span class="font-bold text-slate-600">เลขที่เอกสาร :</span><span class="font-mono font-bold text-indigo-900">${docId}</span></div>
+                <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">วันที่พิมพ์ :</span><span class="font-medium">${nowDate}</span></div>
+                <div class="flex justify-between border-t border-slate-200 pt-1"><span class="font-bold text-slate-600">แบบฟอร์ม :</span><span class="font-medium">FM-AVS-001</span></div>
+              </div>
+            </div>
+
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center mb-4 space-y-1">
+              <h2 class="text-lg md:text-xl font-bold text-indigo-950">ใบงานกิจกรรมและตรวจเช็กอุปกรณ์</h2>
+              <p class="text-sm md:text-base font-extrabold text-indigo-800">งานกิจกรรม: <span class="underline decoration-indigo-300 decoration-2">${selectedEventForPrint.title}</span></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs border border-slate-300 rounded-xl p-3 bg-slate-50/50 mb-4 space-y-1">
+              <p><b>ฝ่ายรับผิดชอบหลัก:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.dept}</span></p>
+              <p><b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.mainHost}</span></p>
+              <p class="md:col-span-2"><b>สถานที่จัดงาน:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.location}</span></p>
+              <p class="md:col-span-2"><b>วันและเวลากิจกรรม:</b> <span class="font-bold text-indigo-900">${selectedEventForPrint.start} ถึง ${selectedEventForPrint.end}</span></p>
+              <p class="md:col-span-2 border-t border-slate-200 pt-1.5 mt-1"><b>หมายเหตุเพิ่มเติม:</b> <span class="text-slate-700">${selectedEventForPrint.remarks || '-'}</span></p>
+            </div>
+
+            ${agendaPrintHtml}
+
+            <div class="mb-4">
+              <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs flex items-center gap-2">1. ทีมงานและการสนับสนุนกิจกรรม</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-slate-300 text-[11px] md:text-xs text-left min-w-[600px]">
+                  <thead><tr class="bg-indigo-50 font-bold text-indigo-950"><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมระบบและสื่อ</th><th class="border border-slate-300 p-2 w-1/3 text-center">ทีมสถานที่และบริการ</th><th class="border border-slate-300 p-2 w-1/3 text-center">การจัดสรรที่จอดรถ</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+                        <p><b>IT:</b> <span class="font-bold text-indigo-900">${itStaffs.length} คน</span></p><p class="text-[10px] md:text-[11px] text-slate-600 pl-2 font-medium">${itStaffs.join(', ') || '-'}</p><hr class="border-slate-200">
+                        <p><b>โสตฯ:</b> <span class="font-bold text-indigo-900">${avStaffs.length} คน</span></p><p class="text-[10px] md:text-[11px] text-slate-600 pl-2 font-medium">${avStaffs.join(', ') || '-'}</p><hr class="border-slate-200">
+                        <p><b>ช่างภาพ:</b> <span class="font-bold text-indigo-900">${mediaStaffs.length} คน</span></p><p class="text-[10px] md:text-[11px] text-slate-600 pl-2 font-medium">${mediaStaffs.join(', ') || '-'}</p>
+                      </td>
+                      <td class="border border-slate-300 p-2.5 space-y-1.5 align-top">
+                        <p><b>ฝ่ายอาคาร:</b> <span class="font-bold">${facStaffs.length} คน ${facStaffs.length>0 ? '('+facStaffs.join(', ')+')' : ''}</span></p>
+                        <p><b>ช่างอาคาร:</b> <span class="font-bold">${nTech} คน</span></p>
+                        <p><b>แม่บ้าน:</b> <span class="font-bold">${nHousekeeper} คน</span></p>
+                        <p><b>รปภ.:</b> <span class="font-bold">${nSec} คน</span></p>
+                      </td>
+                      <td class="border border-slate-300 p-2.5 space-y-2 align-top">
+                        <p><b>จำนวนที่จอดรถ:</b> <span class="font-bold text-indigo-900">${nPark} คัน</span></p>
+                        <p><b>พื้นที่จอดรถ:</b> .....................................</p>
+                        <p><b>ผู้ประสานงาน:</b> .....................................</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">2. รายการอุปกรณ์จัดเตรียมและใบตรวจเช็กหน้างาน</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-slate-300 text-[11px] md:text-xs text-left min-w-[600px]">
+                  <thead><tr class="bg-indigo-900 text-white font-bold text-center"><th class="border border-slate-300 p-2 w-14">ตรวจเช็ก</th><th class="border border-slate-300 p-2">รายการอุปกรณ์ / ยี่ห้อรุ่น</th><th class="border border-slate-300 p-2 w-20">ฝ่ายดูแล</th><th class="border border-slate-300 p-2 w-28">สถานที่เก็บ</th><th class="border border-slate-300 p-2 w-28">สถานะหน้างาน</th><th class="border border-slate-300 p-2 w-24">หมายเหตุ</th></tr></thead>
+                  <tbody>
+                    ${tableHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mb-6 space-y-3">
+              <h3 class="bg-indigo-900 text-white px-3 py-1.5 rounded-t-lg font-bold text-xs">3. สถานะการจัดเตรียมและตรวจสอบ</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 border border-slate-300 rounded-b-lg p-2.5 text-xs bg-slate-50">
+                <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>จัดเตรียมอุปกรณ์ครบถ้วน</span></label>
+                <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ทดสอบการใช้งานเรียบร้อย</span></label>
+                <label class="flex items-center gap-1.5 font-semibold"><input type="checkbox" class="rounded"> <span>ส่งมอบพื้นที่หลังจบกิจกรรม</span></label>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs pt-6 border-t border-slate-300 mt-6">
+                <div class="space-y-6 md:space-y-8">
+                  <p>ลงชื่อ ...........................................................</p>
+                  <p class="font-bold">( ผู้ขอใช้บริการ / ผู้จัดงาน )</p>
+                  <p>วันที่ ..... / ..... / .........</p>
+                </div>
+                <div class="space-y-6 md:space-y-8">
+                  <p>ลงชื่อ ...........................................................</p>
+                  <p class="font-bold">( ผู้จัดงาน / ผู้รับผิดชอบหลัก )</p>
+                  <p>วันที่ ..... / ..... / .........</p>
+                </div>
+                <div class="space-y-6 md:space-y-8">
+                  <p>ลงชื่อ ...........................................................</p>
+                  <p class="font-bold">( หัวหน้าฝ่ายโสตฯ / IT / บริการ )</p>
+                  <p>วันที่ ..... / ..... / .........</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+
+    async function sendGoogleChatNotification({ type, title, details }) {
+      // ใช้ Webhook แยก 2 ตัวตาม type
+      const url = type === 'borrow' ? WEBHOOK_BORROW : WEBHOOK_EVENT;
+      if (!url) return;
+      
+      try { 
+        await fetch(url, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ 
+            cardsV2: [{ 
+              cardId: 'notificationCard', 
+              card: { 
+                header: { title: title, subtitle: 'ระบบแจ้งเตือน IT, AV, Media & Facility เด่นหล้า' }, 
+                sections: [{ widgets: [{ textParagraph: { text: details.join('<br>') } }] }] 
+              } 
+            }] 
+          }) 
+        }); 
+      } catch (err) { console.error('Chat err:', err); }
+    }
+
+    async function handleBorrowSubmit(e) {
+      e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-borrow');
+      if (btnSubmit.disabled) return; 
+
+      const equipmentId = document.getElementById('borrow-asset-select').value, borrowType = document.getElementById('borrow-type-select').value, borrowerName = document.getElementById('borrower-name').value, dept = document.getElementById('borrower-dept').value, returnDate = document.getElementById('return-date').value, note = document.getElementById('borrow-note').value;
+      if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
+      
+      const item = allEquipment.find(i => i.id == equipmentId), availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+      if (availableQty <= 0) { alert('❌ อุปกรณ์ชิ้นนี้ถูกยืม/เบิก ครบตามจำนวนทั้งหมดแล้ว'); return; }
+
+      btnSubmit.disabled = true;
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = '⏳ กำลังบันทึกข้อมูล...';
+
+      const { error } = await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note }]);
+      
+      if (error) { alert('Error: ' + error.message); btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; }
+
+      sendGoogleChatNotification({ 
+        type: 'borrow',
+        title: `${borrowType === 'LONG_TERM' ? `📂 [ส่งมอบอุปกรณ์ใช้งานระยะยาว]` : `📦 มีรายการยืมอุปกรณ์ใหม่`} [ฝ่าย ${item.department || 'IT'}]`, 
+        details: [
+          `<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`, 
+          `📦 <b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`, 
+          `🏷️ <b>ฝ่ายที่ดูแล:</b> ${item.department || 'IT'}`, 
+          `👤 <b>ผู้รับมอบ/ผู้ยืม:</b> ${borrowerName} (${dept || '-'})`, 
+          `📅 <b>กำหนดคืน:</b> ${borrowType === 'LONG_TERM' ? 'Long-term (No Due Date)' : formatThaiDateTime(returnDate).substring(0, 10)}`, 
+          `📝 <b>วัตถุประสงค์/หมายเหตุ:</b> ${note || '-'}`
+        ] 
+      });
+      
+      alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบอุปกรณ์ระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
+      document.getElementById('form-borrow').reset(); toggleBorrowTypeMode(); await fetchAllEquipment(); await loadActiveBorrows();
+
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = originalText;
+    }
+
+    async function handleEventSubmit(e) {
+      e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-event');
+      if (btnSubmit.disabled) return; 
+
+      const rawEventId = document.getElementById('event-id').value, dept = document.getElementById('event-dept-select').value, title = document.getElementById('event-title').value, mainHost = document.getElementById('event-main-host').value;
+      const locationSel = document.getElementById('event-location-select').value, locationCustom = document.getElementById('event-location-custom').value, location = (locationSel === 'CUSTOM') ? locationCustom : locationSel;
+      const startDateStr = `${document.getElementById('start-year').value}-${document.getElementById('start-month').value}-${document.getElementById('start-day').value}`, startTime = document.getElementById('event-start-time').value;
+      const endDateStr = `${document.getElementById('end-year').value}-${document.getElementById('end-month').value}-${document.getElementById('end-day').value}`, endTime = document.getElementById('event-end-time').value;
+      const remarks = document.getElementById('event-remarks').value, showDisplay = document.getElementById('chk-show-display')?.checked;
+      
+      const nHousekeeper = parseInt(document.getElementById('num-housekeeper').value || 0, 10), nTechnician = parseInt(document.getElementById('num-technician').value || 0, 10), nParking = parseInt(document.getElementById('num-parking').value || 0, 10);
+      const selectedAdmins = Array.from(document.querySelectorAll('input[name="tag-admin-item"]:checked')).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
+      let tagDisplayList = selectedAdmins.map(a => `${a.full_name} (${a.nickname || '-'}) [${a.cleanDept}]`), reqStaffList = [];
+      if (nHousekeeper > 0) reqStaffList.push(`🧹 แม่บ้าน ${nHousekeeper} คน`); if (nTechnician > 0) reqStaffList.push(`🛠️ ช่างอาคาร ${nTechnician} คน`); if (nParking > 0) reqStaffList.push(`🚗 ช่องจอดรถ ${nParking} คัน`);
+      if (reqStaffList.length > 0) { tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`); }
+
+      const isoStart = formatLocalToISO(startDateStr, startTime), isoEnd = formatLocalToISO(endDateStr, endTime), newStartMs = new Date(isoStart).getTime(), newEndMs = new Date(isoEnd).getTime();
+      if (newEndMs <= newStartMs) { alert('⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!'); return; }
+
+      const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
+      if (!fetchErr && existingEvents) {
+        for (const ev of existingEvents) {
+          if (rawEventId && parseInt(rawEventId, 10) === ev.id) continue;
+          if ((newStartMs < new Date(ev.end_time).getTime()) && (newEndMs > new Date(ev.start_time).getTime())) {
+            if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) { alert(`⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); return; }
+            if (selectedAdmins.length > 0 && ev.organizer) {
+              for (const admin of selectedAdmins) { if (ev.organizer.includes(admin.full_name)) { alert(`⚠️ ไม่สามารถลงคิวซ้ำได้! เนื่องจากทีมงาน ${admin.full_name} (${admin.nickname || '-'}) ถูกแท็กในงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); return; } }
+            }
+          }
+        }
+      }
+
+      btnSubmit.disabled = true;
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.innerHTML = '⏳ กำลังบันทึกข้อมูล...';
+
+      let chatMentionStr = selectedAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`).join(', ') || '-';
+      const facilityAdmins = allAdmins.filter(a => a.cleanDept === 'FACILITY');
+      if ((reqStaffList.length > 0 || dept === 'FACILITY') && facilityAdmins.length > 0) {
+        chatMentionStr += `<br>🏢 <font color="#d97706"><b>[เรียนฝ่ายอาคารสถานที่]:</b> ${facilityAdmins.map(a => a.email ? `<users/${a.email}> (${a.nickname || a.full_name})` : `${a.full_name}`).join(', ')}${reqStaffList.length > 0 ? ` (ขอสนับสนุน: ${reqStaffList.join(', ')})` : ''}</font>`;
+      }
+
+      const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked'), selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value), selectedEqNames = Array.from(checkedBoxes).map(cb => { const item = allEquipment.find(i => i.id == cb.value); return item ? `[${item.asset_label}] ${item.name}` : ''; });
+      
+      const agendaStr = JSON.stringify(currentAgenda).replace(/\|/g, '&#124;');
+      const detailsStr = `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}|AGENDA:${agendaStr}`;
+
+      const payload = { department: dept, event_title: title, main_host: mainHost, location: location, start_time: isoStart, end_time: isoEnd, event_date: startDateStr, organizer: tagDisplayList.join(', ') || 'ไม่มีทีมงานแท็ก', details: detailsStr, remarks: remarks };
+
+      const { error } = rawEventId && rawEventId !== '' ? await _supabase.from('event_queue').update(payload).eq('id', parseInt(rawEventId, 10)) : await _supabase.from('event_queue').insert([payload]);
+      
+      if (error) { 
+        alert('Error: ' + error.message); 
+        btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; 
+        return; 
+      }
+
+      sendGoogleChatNotification({ 
+        type: 'event',
+        title: rawEventId ? `✏️ อัปเดตคิวงานกิจกรรม [เรียนฝ่าย: ${dept}]` : `📅 มอบหมายคิวงานใหม่ [เรียนฝ่าย: ${dept}]`, 
+        details: [
+          `<b>ชื่อกิจกรรม:</b> ${title}`, 
+          `👤 <b>ผู้จัดงาน / ผู้รับผิดชอบหลัก:</b> ${mainHost}`, 
+          `📍 <b>สถานที่จัดงาน:</b> <font color="#0284c7"><b>${location}</b></font>`, 
+          `<b>เวลาเริ่ม:</b> ${formatThaiDateTime(isoStart)}`, 
+          `<b>เวลาเสร็จงาน:</b> ${formatThaiDateTime(isoEnd)}`, 
+          `🏷️ <b>ทีมงานรับผิดชอบปฏิบัติงาน:</b><br>${chatMentionStr}`, 
+          `📝 <b>หมายเหตุ:</b> ${remarks || '-'}`, 
+          `🛠️ <b>อุปกรณ์จัดงาน (${selectedEqNames.length} ชิ้น):</b><br>${selectedEqNames.join('<br>') || '-'}`
+        ] 
+      });
+      alert(rawEventId ? '✅ อัปเดตแก้ไขคิวงานเรียบร้อยแล้ว!' : '✅ บันทึกคิวงานเรียบร้อย!'); 
+      
+      resetEventForm(); 
+      if (calendar) calendar.refetchEvents();
+
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = originalText;
+    }
+
+    function editEventFromModal() {
+      if (!currentAdmin || !selectedEventForPrint) return;
+      document.getElementById('event-id').value = selectedEventForPrint.eventId; document.getElementById('event-dept-select').value = selectedEventForPrint.dept || 'IT'; document.getElementById('event-title').value = selectedEventForPrint.title || ''; document.getElementById('event-main-host').value = selectedEventForPrint.mainHost || '';
+      
+      const loc = selectedEventForPrint.location || '', locSel = document.getElementById('event-location-select');
+      let foundOption = false; for (let opt of locSel.options) { if (opt.value === loc) { locSel.value = loc; foundOption = true; break; } }
+      if (!foundOption) { locSel.value = 'CUSTOM'; document.getElementById('event-location-custom').value = loc; } toggleCustomLocationInput();
+
+      const chkDisplay = document.getElementById('chk-show-display'); if (chkDisplay) { chkDisplay.checked = !selectedEventForPrint.details?.includes('HIDE_DISPLAY:true'); }
+      
+      if (selectedEventForPrint.rawStart) { const dStart = new Date(selectedEventForPrint.rawStart); document.getElementById('start-year').value = String(dStart.getFullYear()); document.getElementById('start-month').value = String(dStart.getMonth() + 1).padStart(2, '0'); document.getElementById('start-day').value = String(dStart.getDate()).padStart(2, '0'); document.getElementById('event-start-time').value = `${String(dStart.getHours()).padStart(2,'0')}:${String(Math.floor(dStart.getMinutes() / 5) * 5).padStart(2,'0')}`; }
+      if (selectedEventForPrint.rawEnd) { const dEnd = new Date(selectedEventForPrint.rawEnd); document.getElementById('end-year').value = String(dEnd.getFullYear()); document.getElementById('end-month').value = String(dEnd.getMonth() + 1).padStart(2, '0'); document.getElementById('end-day').value = String(dEnd.getDate()).padStart(2, '0'); document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(Math.floor(dEnd.getMinutes() / 5) * 5).padStart(2,'0')}`; }
+
+      document.getElementById('event-remarks').value = selectedEventForPrint.remarks || ''; clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) { selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',').forEach(id => { const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`); if (cb) cb.checked = true; }); }
+
+      if (selectedEventForPrint.details && selectedEventForPrint.details.includes('AGENDA:')) {
+        try {
+          const agendaStr = selectedEventForPrint.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|');
+          currentAgenda = JSON.parse(agendaStr);
+        } catch(e) { currentAgenda = []; }
+      } else {
+        currentAgenda = [];
+      }
+      renderAgendaTable();
+
+      document.getElementById('form-event-title').innerHTML = `✏️ [Admin Zone] แก้ไขคิวงาน (ID: ${selectedEventForPrint.eventId})`; document.getElementById('btn-submit-event').innerHTML = `💾 ยืนยันการอัปเดตคิวงาน`; document.getElementById('btn-submit-event').className = 'w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition'; document.getElementById('btn-cancel-edit-event').classList.remove('hidden');
+      closeModals(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetEventForm() {
+      document.getElementById('form-event').reset(); document.getElementById('event-id').value = '';
+      const now = new Date(), curDay = String(now.getDate()).padStart(2, '0'), curMonth = String(now.getMonth() + 1).padStart(2, '0'), curYear = String(now.getFullYear());
+      ['start', 'end'].forEach(prefix => { document.getElementById(`${prefix}-day`).value = curDay; document.getElementById(`${prefix}-month`).value = curMonth; document.getElementById(`${prefix}-year`).value = curYear; });
+      document.getElementById('event-start-time').value = '08:30'; document.getElementById('event-end-time').value = '16:30';
+      toggleCustomLocationInput(); clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      
+      currentAgenda = [];
+      renderAgendaTable();
+
+      document.getElementById('form-event-title').innerHTML = `➕ ลงคิวงาน / กิจกรรมใหม่`; document.getElementById('btn-submit-event').innerHTML = `📅 บันทึกคิวงาน & แท็กแจ้งเตือนทีมงาน`; document.getElementById('btn-submit-event').className = 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-md transition'; document.getElementById('btn-cancel-edit-event').classList.add('hidden');
+    }
+
+    async function cancelEvent() {
+      if (!currentAdmin || !selectedEventForPrint) return;
+      if (!confirm(`⚠️ ยืนยันยกเลิกคิวงานกิจกรรม: "${selectedEventForPrint.title}" ?`)) return;
+      
+      const rawDept = currentAdmin.department || 'IT';
+      const cleanDept = rawDept.includes('|') ? rawDept.split('|')[0] : rawDept;
+
+      const { error } = await _supabase.from('event_queue').delete().eq('id', selectedEventForPrint.eventId);
+      if (error) { alert('Error: ' + error.message); return; }
+      sendGoogleChatNotification({ 
+        type: 'event',
+        title: `⚠️ แจ้งยกเลิกคิวงานกิจกรรม [ฝ่าย ${selectedEventForPrint.dept}]`, 
+        details: [
+          `<b>ชื่อกิจกรรมที่ยกเลิก:</b> <font color="#ef4444"><b>${selectedEventForPrint.title}</b></font>`, 
+          `👤 <b>ผู้จัดงานเดิม:</b> ${selectedEventForPrint.mainHost}`, 
+          `📍 <b>สถานที่:</b> ${selectedEventForPrint.location}`, 
+          `🛑 <b>ผู้ยกเลิกงาน (Admin):</b> ${currentAdmin.full_name} (${currentAdmin.nickname || '-'}) [ฝ่าย ${cleanDept}]`
+        ] 
+      });
+      alert('✅ ยกเลิกคิวงานกิจกรรมเรียบร้อยแล้ว'); closeModals(); if (calendar) calendar.refetchEvents();
     }
   </script>
 </body>
