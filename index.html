@@ -701,10 +701,12 @@
     // ==========================================
     // 3. ระบบสิทธิ์และการจัดการ Admin
     // ==========================================
-    async function loadAdminPermissions() {
+async function loadAdminPermissions() {
       const { data, error } = await _supabase.from('admin_users').select('*').order('department');
       if (error) { console.error('Error fetching admins'); return; }
-      allAdmins = data || [];
+      
+      // อัปเดตใหม่: กรองคนที่ department มีคำว่า HIDDEN ออกไป จะไม่ถูกแสดงในรายชื่อ
+      allAdmins = (data || []).filter(admin => !(admin.department || '').includes('HIDDEN'));
       
       const container = document.getElementById('tag-admin-list');
       if (allAdmins.length === 0) { 
@@ -715,7 +717,7 @@
                   const d = admin.department || 'IT', cleanDept = d.includes('|') ? d.split('|')[0] : d;
                   return `<label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition" data-dept="${cleanDept}"><div class="flex items-center gap-1.5"><input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${cleanDept}" class="rounded text-amber-600 focus:ring-0"><span class="font-medium text-slate-800">${admin.full_name}</span><span class="text-slate-500">(${admin.nickname || '-'})</span></div><span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${cleanDept}</span></label>`;
               }).join('');
-              filterStaffTagsByDept(); // กรองรายชื่อทีมงานตามแผนกที่เลือกไว้ตอนแรก
+              filterStaffTagsByDept(); 
           }
       }
 
