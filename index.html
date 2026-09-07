@@ -48,20 +48,15 @@
       
       <div class="flex flex-wrap items-center gap-2">
         <nav class="flex flex-wrap gap-1 bg-indigo-800/60 p-1 rounded-xl">
-          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow hidden">📱 ยืม-คืน & เบิกส่งมอบ</button>
-          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white hidden">📅 คิวงาน/ปฏิทิน</button>
-          <button onclick="switchTab('display')" id="tab-display" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white hidden">📺 จอแสดงกิจกรรม</button>
-          <button onclick="switchTab('staff-summary')" id="tab-staff-summary" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white hidden">📊 สรุปภาระงาน</button>
-          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white hidden">🖥️ คลังอุปกรณ์</button>
+          <button onclick="switchTab('borrow')" id="tab-borrow" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition bg-white text-indigo-700 shadow">📱 ยืม-คืน & เบิกส่งมอบ</button>
+          <button onclick="switchTab('event')" id="tab-event" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📅 คิวงาน/ปฏิทิน</button>
+          <button onclick="switchTab('display')" id="tab-display" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-indigo-100 hover:text-white">📺 จอแสดงกิจกรรม</button>
+          <button onclick="switchTab('staff-summary')" id="tab-staff-summary" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white">📊 สรุปภาระงาน</button>
+          <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-amber-300 hover:text-white">🖥️ คลังอุปกรณ์</button>
           <button onclick="switchTab('permissions')" id="tab-permissions" class="tab-btn super-admin-col hidden px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition text-rose-300 hover:text-white">🔑 จัดการสิทธิ์</button>
         </nav>
-        <div class="flex items-center bg-indigo-900/80 rounded-xl p-0.5 border border-indigo-500/50">
-          <button onclick="changeLanguage('th')" id="lang-th" class="px-2 py-1 rounded-lg text-xs font-bold transition bg-white text-indigo-900 shadow">TH</button>
-          <button onclick="changeLanguage('en')" id="lang-en" class="px-2 py-1 rounded-lg text-xs font-bold transition text-indigo-200 hover:text-white">EN</button>
-        </div>
         <div class="flex gap-1">
           <button id="btn-admin-login" onclick="openLoginModal()" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition">🔐 เข้าระบบ Admin</button>
-          <button id="btn-admin-register" onclick="openRegisterModal()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-medium px-3 py-1.5 rounded-xl text-xs md:text-sm shadow transition border border-indigo-500">📝 ลงทะเบียน Admin</button>
         </div>
       </div>
     </div>
@@ -75,7 +70,7 @@
     </div>
 
     <!-- TAB 1: ยืม-คืน -->
-    <section id="sec-borrow" class="space-y-6 hidden">
+    <section id="sec-borrow" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">🔍 1. เลือกอุปกรณ์ที่ต้องการยืม / เบิก</h2>
@@ -185,7 +180,7 @@
             <input type="hidden" id="event-id">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">ส่วนงานที่รับผิดชอบหลัก *</label>
-              <select id="event-dept-select" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-bold text-indigo-900">
+              <select id="event-dept-select" onchange="filterStaffTagsByDept()" required class="w-full p-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm outline-none font-bold text-indigo-900">
                 <option value="IT">💻 ฝ่ายไอที (IT)</option>
                 <option value="AV">🔊 ฝ่ายโสตทัศนูปกรณ์ (AV)</option>
                 <option value="MEDIA">📷 ฝ่ายช่างภาพ/สื่อ (Media)</option>
@@ -267,16 +262,11 @@
                 <div class="flex flex-col bg-white p-2 rounded-lg border border-amber-200 items-center justify-center space-y-1"><span class="text-slate-700 font-medium">🚗 ที่จอดรถ</span><div class="flex items-center gap-1"><input type="number" id="num-parking" min="0" value="0" class="w-12 p-1 border rounded text-center font-bold text-amber-900"><span>คัน</span></div></div>
               </div>
               <div class="pt-2 border-t border-amber-200 space-y-1">
-                <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน (เลือกแผนก หรือ ติ๊กรายบุคคล):</label>
-                <div class="flex flex-wrap gap-1 text-[11px]">
-                  <button type="button" onclick="selectAllTags('ALL')" class="bg-slate-800 text-white px-2 py-0.5 rounded-lg">+ แท็กทุกแผนก</button>
-                  <button type="button" onclick="selectAllTags('IT')" class="bg-blue-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก IT</button>
-                  <button type="button" onclick="selectAllTags('AV')" class="bg-rose-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก AV</button>
-                  <button type="button" onclick="selectAllTags('MEDIA')" class="bg-emerald-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก Media</button>
-                  <button type="button" onclick="selectAllTags('FACILITY')" class="bg-amber-600 text-white px-2 py-0.5 rounded-lg">+ แท็ก อาคารฯ</button>
-                  <button type="button" onclick="clearAllTags()" class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-lg">ล้างเลือก</button>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-xs font-bold text-amber-900">🏷️ แท็กทีมงานร่วมปฏิบัติงาน:</label>
+                  <button type="button" onclick="clearAllTags()" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-0.5 rounded-lg transition">ล้างเลือกทั้งหมด</button>
                 </div>
-                <div id="tag-admin-list" class="max-h-36 overflow-y-auto border border-amber-300 rounded-lg p-2 bg-white text-xs space-y-1"><p class="text-slate-400 text-center py-1">กำลังโหลดรายชื่อทีมงาน...</p></div>
+                <div id="tag-admin-list" class="max-h-40 overflow-y-auto border border-amber-300 rounded-lg p-2 bg-white text-xs space-y-1"><p class="text-slate-400 text-center py-1">กำลังโหลดรายชื่อทีมงาน...</p></div>
               </div>
             </div>
             <div>
@@ -433,9 +423,14 @@
     <!-- TAB 6: สิทธิ์การเข้าถึง (เฉพาะ Super Admin) -->
     <section id="sec-permissions" class="space-y-6 hidden super-admin-col">
       <div class="bg-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-800 space-y-4">
-         <div class="border-b border-slate-800 pb-3">
-             <h2 class="text-lg font-bold text-rose-400 flex items-center gap-2">🔑 [Super Admin Zone] จัดการสิทธิ์การเข้าถึงเมนู</h2>
-             <p class="text-xs text-slate-400 mt-1">กำหนดว่า Admin คนไหนสามารถเข้าใช้งานเมนูใดได้บ้าง (มีผลทันทีในครั้งถัดไปที่ล็อกอิน)</p>
+         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-3 gap-3">
+             <div>
+                 <h2 class="text-lg font-bold text-rose-400 flex items-center gap-2">🔑 [Super Admin Zone] จัดการสิทธิ์การเข้าถึงเมนู</h2>
+                 <p class="text-xs text-slate-400 mt-1">กำหนดว่า Admin คนไหนสามารถเข้าใช้งานเมนูใดได้บ้าง (มีผลทันทีในครั้งถัดไปที่ล็อกอิน)</p>
+             </div>
+             <button onclick="openRegisterModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg transition w-full sm:w-auto flex items-center justify-center gap-2">
+                ➕ สร้างบัญชี Admin ใหม่
+             </button>
          </div>
          <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
@@ -470,7 +465,6 @@
           <p class="text-xs text-indigo-200 font-medium tracking-wide mt-0.5">Denla Kindergarten Event Schedule</p>
         </div>
       </div>
-      
       <div class="flex items-center gap-4 md:gap-6 font-bold">
         <div class="border border-indigo-400/30 rounded-full px-4 py-1.5 flex items-center gap-3 shadow-inner bg-indigo-900/40 hidden md:flex">
           <div class="bg-emerald-500 text-white p-1 rounded-full shadow-sm">
@@ -481,7 +475,6 @@
           </div>
         </div>
         <div id="display-header-clock" class="text-3xl md:text-4xl font-black tracking-widest text-amber-400 drop-shadow-lg tabular-nums">00:00</div>
-        <div class="border border-indigo-400 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-xs md:text-sm bg-indigo-900/50 shadow-inner">TH</div>
         <button onclick="switchTab('borrow')" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-full transition shadow flex items-center gap-1 text-slate-300">✕ ปิด</button>
       </div>
     </div>
@@ -717,10 +710,13 @@
       if (allAdmins.length === 0) { 
           if(container) container.innerHTML = `<p class="text-slate-400 text-center py-1">ยังไม่มีรายชื่อ Admin</p>`; 
       } else {
-          if(container) container.innerHTML = allAdmins.map(admin => {
-              const d = admin.department || 'IT', cleanDept = d.includes('|') ? d.split('|')[0] : d;
-              return `<label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition"><div class="flex items-center gap-1.5"><input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${cleanDept}" class="rounded text-amber-600 focus:ring-0"><span class="font-medium text-slate-800">${admin.full_name}</span><span class="text-slate-500">(${admin.nickname || '-'})</span></div><span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${cleanDept}</span></label>`;
-          }).join('');
+          if(container) {
+              container.innerHTML = allAdmins.map(admin => {
+                  const d = admin.department || 'IT', cleanDept = d.includes('|') ? d.split('|')[0] : d;
+                  return `<label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition" data-dept="${cleanDept}"><div class="flex items-center gap-1.5"><input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${cleanDept}" class="rounded text-amber-600 focus:ring-0"><span class="font-medium text-slate-800">${admin.full_name}</span><span class="text-slate-500">(${admin.nickname || '-'})</span></div><span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${cleanDept}</span></label>`;
+              }).join('');
+              filterStaffTagsByDept(); // กรองรายชื่อทีมงานตามแผนกที่เลือกไว้ตอนแรก
+          }
       }
 
       const tbody = document.getElementById('table-permissions');
@@ -781,23 +777,46 @@
         const isSuperAdmin = (currentAdmin.username === 'admin' || cleanDept === 'ALL');
         document.getElementById('admin-welcome-text').innerHTML = `🛠️ สวัสดีคุณ <b>${currentAdmin.full_name}</b> [สถานะ: <b>${isSuperAdmin ? 'Super Admin' : 'Admin ประจำแผนก'}</b> | สังกัด: <b>${cleanDept}</b>]`;
         
-        document.getElementById('btn-admin-login').classList.add('hidden'); document.getElementById('btn-admin-register').classList.add('hidden');
+        document.getElementById('btn-admin-login').classList.add('hidden');
+        
         document.getElementById('tab-borrow').classList.toggle('hidden', !allowedMenus.includes('borrow'));
         document.getElementById('tab-event').classList.toggle('hidden', !allowedMenus.includes('event'));
         document.getElementById('tab-display').classList.toggle('hidden', !allowedMenus.includes('display'));
         document.getElementById('tab-staff-summary').classList.toggle('hidden', !allowedMenus.includes('staff-summary'));
         document.getElementById('tab-inventory').classList.toggle('hidden', !allowedMenus.includes('inventory'));
-        document.querySelectorAll('.super-admin-col').forEach(el => isSuperAdmin ? el.classList.remove('hidden') : el.classList.add('hidden'));
+        
+        // บังคับซ่อนแท็บและเนื้อหาของจัดการสิทธิ์ให้เข้มงวด
+        const permTabBtn = document.getElementById('tab-permissions');
+        const permSection = document.getElementById('sec-permissions');
+        if (isSuperAdmin && allowedMenus.includes('permissions')) {
+            permTabBtn.classList.remove('hidden');
+            document.querySelectorAll('.super-admin-col').forEach(el => el.classList.remove('hidden'));
+        } else {
+            permTabBtn.classList.add('hidden');
+            if (permSection) permSection.classList.add('hidden');
+            document.querySelectorAll('.super-admin-col').forEach(el => el.classList.add('hidden'));
+        }
+
+        document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
 
         switchTab(allowedMenus.includes('borrow') ? 'borrow' : (allowedMenus[0] || 'display'));
         if (showNotify) alert(`🎉 เข้าสู่ระบบเรียบร้อยแล้ว`);
       } else {
         localStorage.removeItem('denla_admin_session'); currentAdmin = null;
         document.getElementById('admin-banner').classList.add('hidden');
-        document.getElementById('btn-admin-login').classList.remove('hidden'); document.getElementById('btn-admin-register').classList.remove('hidden');
-        document.getElementById('tab-borrow').classList.remove('hidden'); document.getElementById('tab-event').classList.remove('hidden'); document.getElementById('tab-display').classList.remove('hidden');
-        document.getElementById('tab-staff-summary').classList.add('hidden'); document.getElementById('tab-inventory').classList.add('hidden');
+        document.getElementById('btn-admin-login').classList.remove('hidden');
+        
+        document.getElementById('tab-borrow').classList.remove('hidden'); 
+        document.getElementById('tab-event').classList.remove('hidden'); 
+        document.getElementById('tab-display').classList.remove('hidden');
+        
+        document.getElementById('tab-staff-summary').classList.add('hidden'); 
+        document.getElementById('tab-inventory').classList.add('hidden');
+        document.getElementById('tab-permissions').classList.add('hidden');
+        
+        document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.super-admin-col').forEach(el => el.classList.add('hidden')); 
+        
         switchTab('borrow');
       }
       closeModals(); loadActiveBorrows(); renderInventoryTable(allEquipment);
@@ -829,7 +848,31 @@
     function formatThaiDateTime(dateInput) { if (!dateInput) return '-'; const d = new Date(dateInput); return !isNaN(d.getTime()) ? `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543} ${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')} น.` : String(dateInput); }
     function getLocalDateString(isoStr) { if (!isoStr) return ''; const d = new Date(isoStr); return !isNaN(d.getTime()) ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : String(isoStr).substring(0, 10); }
     function formatLocalToISO(dateStr, timeStr) { return (!dateStr || !timeStr) ? null : `${dateStr}T${timeStr}:00+07:00`; }
-    function selectAllTags(deptKey) { document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => { if (deptKey === 'ALL' || cb.dataset.dept === deptKey) cb.checked = true; }); }
+    
+    // ระบบกรองรายชื่อทีมงานตามแผนกที่เลือก
+    function filterStaffTagsByDept() {
+      const selectedDept = document.getElementById('event-dept-select').value;
+      const labels = document.querySelectorAll('#tag-admin-list label');
+      labels.forEach(label => {
+        const cb = label.querySelector('input[type="checkbox"]');
+        if (cb) {
+          if (selectedDept === 'ALL' || cb.dataset.dept === selectedDept || cb.dataset.dept === 'ALL') {
+            label.classList.remove('hidden');
+            label.classList.add('flex');
+          } else {
+            label.classList.remove('flex');
+            label.classList.add('hidden');
+            cb.checked = false; // เอาติ๊กถูกออกถ้าโดนซ่อน
+          }
+        }
+      });
+    }
+
+    function selectAllTags(deptKey) { 
+      document.querySelectorAll('#tag-admin-list label:not(.hidden) input[type="checkbox"]').forEach(cb => { 
+        if (deptKey === 'ALL' || cb.dataset.dept === deptKey) cb.checked = true; 
+      }); 
+    }
     function clearAllTags() { document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => cb.checked = false); ['num-housekeeper', 'num-technician', 'num-parking'].forEach(id => { const el = document.getElementById(id); if (el) el.value = 0; }); }
     function openLoginModal() { document.getElementById('modal-login').classList.remove('hidden'); }
     function openRegisterModal() { document.getElementById('modal-register').classList.remove('hidden'); }
@@ -1011,9 +1054,46 @@
       if (reqStaffList.length > 0) tagDisplayList.push(`🏢 [ขอกำลังคน/ที่จอดรถอาคารฯ: ${reqStaffList.join(', ')}]`);
 
       const isoStart = formatLocalToISO(startDateStr, startTime), isoEnd = formatLocalToISO(endDateStr, endTime);
-      if (new Date(isoEnd).getTime() <= new Date(isoStart).getTime()) { alert('⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!'); return; }
+      const newStartMs = new Date(isoStart).getTime(), newEndMs = new Date(isoEnd).getTime();
+      
+      if (newEndMs <= newStartMs) { alert('⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!'); return; }
 
-      btnSubmit.disabled = true; const originalText = btnSubmit.innerHTML; btnSubmit.innerHTML = '⏳ กำลังบันทึก...';
+      // =========================================================
+      // ระบบตรวจสอบคิวทับซ้อน (สถานที่ / บุคคล)
+      // =========================================================
+      btnSubmit.disabled = true; const originalText = btnSubmit.innerHTML; btnSubmit.innerHTML = '⏳ กำลังตรวจสอบคิวงาน...';
+      
+      const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
+      if (!fetchErr && existingEvents) {
+        for (const ev of existingEvents) {
+          if (rawEventId && parseInt(rawEventId, 10) === ev.id) continue;
+          
+          const evStartMs = new Date(ev.start_time).getTime();
+          const evEndMs = new Date(ev.end_time).getTime();
+          
+          if (newStartMs < evEndMs && newEndMs > evStartMs) {
+            if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) { 
+              alert(`⚠️ ไม่สามารถลงคิวได้!\nสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
+              btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
+            }
+            if (selectedAdmins.length > 0 && ev.organizer) {
+              for (const admin of selectedAdmins) { 
+                if (ev.organizer.includes(admin.full_name)) { 
+                  alert(`⚠️ ไม่สามารถลงคิวได้!\nทีมงาน "${admin.full_name}" ติดภารกิจงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
+                  btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
+                } 
+              }
+            }
+            if (ev.main_host && mainHost && ev.main_host.trim().toLowerCase() === mainHost.trim().toLowerCase()) {
+                alert(`⚠️ ไม่สามารถลงคิวได้!\nผู้รับผิดชอบหลัก "${mainHost}" ติดภารกิจงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
+                btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
+            }
+          }
+        }
+      }
+      // =========================================================
+
+      btnSubmit.innerHTML = '⏳ กำลังบันทึก...';
       const checkedBoxes = document.querySelectorAll('input[name="event-eq-item"]:checked'), selectedEqIds = Array.from(checkedBoxes).map(cb => cb.value), selectedEqNames = Array.from(checkedBoxes).map(cb => { const item = allEquipment.find(i => i.id == cb.value); return item ? `[${item.asset_label}] ${item.name}` : ''; });
       const agendaStr = JSON.stringify(currentAgenda).replace(/\|/g, '&#124;');
       const detailsStr = `EQ_IDS:${selectedEqIds.join(',')}${!showDisplay ? '|HIDE_DISPLAY:true' : ''}|AGENDA:${agendaStr}`;
@@ -1039,6 +1119,8 @@
       if (!currentAdmin || !selectedEventForPrint) return;
       document.getElementById('event-id').value = selectedEventForPrint.eventId; document.getElementById('event-dept-select').value = selectedEventForPrint.dept || 'IT'; document.getElementById('event-title').value = selectedEventForPrint.title || ''; document.getElementById('event-main-host').value = selectedEventForPrint.mainHost || '';
       
+      filterStaffTagsByDept(); // ให้กรองรายชื่อทีมงานตามแผนกทันทีที่กดแก้ไขงาน
+
       const loc = selectedEventForPrint.location || '', locSel = document.getElementById('event-location-select');
       let foundOption = false; for (let opt of locSel.options) { if (opt.value === loc) { locSel.value = loc; foundOption = true; break; } }
       if (!foundOption) { locSel.value = 'CUSTOM'; document.getElementById('event-location-custom').value = loc; } toggleCustomLocationInput();
@@ -1049,6 +1131,15 @@
       if (selectedEventForPrint.rawEnd) { const dEnd = new Date(selectedEventForPrint.rawEnd); document.getElementById('end-year').value = String(dEnd.getFullYear()); document.getElementById('end-month').value = String(dEnd.getMonth() + 1).padStart(2, '0'); document.getElementById('end-day').value = String(dEnd.getDate()).padStart(2, '0'); document.getElementById('event-end-time').value = `${String(dEnd.getHours()).padStart(2,'0')}:${String(Math.floor(dEnd.getMinutes() / 5) * 5).padStart(2,'0')}`; }
 
       document.getElementById('event-remarks').value = selectedEventForPrint.remarks || ''; clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false);
+      
+      // ดึงข้อมูลคนถูกแท็กมาติ๊กใหม่
+      if (selectedEventForPrint.organizer && selectedEventForPrint.organizer !== 'ไม่มีทีมงานแท็ก') {
+         document.querySelectorAll('input[name="tag-admin-item"]').forEach(cb => {
+            const admin = allAdmins.find(a => a.id == cb.value);
+            if (admin && selectedEventForPrint.organizer.includes(admin.full_name)) { cb.checked = true; }
+         });
+      }
+
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('EQ_IDS:')) { selectedEventForPrint.details.split('EQ_IDS:')[1].split('|')[0].split(',').forEach(id => { const cb = document.querySelector(`input[name="event-eq-item"][value="${id.trim()}"]`); if (cb) cb.checked = true; }); }
 
       if (selectedEventForPrint.details && selectedEventForPrint.details.includes('AGENDA:')) { try { currentAgenda = JSON.parse(selectedEventForPrint.details.split('AGENDA:')[1].split('|')[0].replace(/&#124;/g, '|')); } catch(e) { currentAgenda = []; } } else { currentAgenda = []; }
@@ -1064,6 +1155,7 @@
       ['start', 'end'].forEach(prefix => { document.getElementById(`${prefix}-day`).value = curDay; document.getElementById(`${prefix}-month`).value = curMonth; document.getElementById(`${prefix}-year`).value = curYear; });
       document.getElementById('event-start-time').value = '08:30'; document.getElementById('event-end-time').value = '16:30';
       toggleCustomLocationInput(); clearAllTags(); document.querySelectorAll('input[name="event-eq-item"]').forEach(cb => cb.checked = false); currentAgenda = []; renderAgendaTable();
+      filterStaffTagsByDept(); // รีเซ็ตตัวกรองทีมงาน
       document.getElementById('form-event-title').innerHTML = `➕ ลงคิวงาน / กิจกรรมใหม่`; document.getElementById('btn-submit-event').innerHTML = `📅 บันทึกคิวงาน`; document.getElementById('btn-cancel-edit-event').classList.add('hidden');
     }
 
@@ -1075,6 +1167,47 @@
       const cleanDept = currentAdmin.department.includes('|') ? currentAdmin.department.split('|')[0] : currentAdmin.department;
       sendGoogleChatNotification({ type: 'event', title: `⚠️ ยกเลิกคิวงาน [ฝ่าย ${selectedEventForPrint.dept}]`, details: [`<b>กิจกรรมที่ยกเลิก:</b> <font color="#ef4444">${selectedEventForPrint.title}</font>`, `🛑 <b>ผู้ยกเลิก (Admin):</b> ${currentAdmin.full_name}`] });
       alert('✅ ยกเลิกคิวงานเรียบร้อยแล้ว'); closeModals(); if (calendar) calendar.refetchEvents();
+    }
+
+    // ==========================================
+    // ฟังก์ชันซ่อมหน้าสรุปภาระงาน (ดึงสดจาก DB)
+    // ==========================================
+    async function renderStaffWorkloadSummary() {
+      const tbody = document.getElementById('table-staff-workload');
+      tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">⏳ กำลังโหลดข้อมูล...</td></tr>';
+      
+      const searchName = document.getElementById('staff-search-name')?.value.trim().toLowerCase() || '';
+      const searchDept = document.getElementById('staff-search-dept')?.value || 'ALL';
+      const startDate = document.getElementById('staff-search-start')?.value || '';
+      const endDate = document.getElementById('staff-search-end')?.value || '';
+
+      const { data, error } = await _supabase.from('event_queue').select('*').order('start_time', { ascending: false });
+      
+      if (error) { 
+          tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-500 font-bold">❌ เกิดข้อผิดพลาดในการดึงข้อมูลจากฐานข้อมูล</td></tr>`; 
+          return; 
+      }
+      
+      let filtered = data || [];
+      
+      if (startDate) filtered = filtered.filter(ev => getLocalDateString(ev.start_time) >= startDate);
+      if (endDate) filtered = filtered.filter(ev => getLocalDateString(ev.start_time) <= endDate);
+      if (searchDept !== 'ALL') filtered = filtered.filter(ev => ev.department === searchDept);
+      
+      if (searchName !== '') {
+          filtered = filtered.filter(ev => {
+              const host = (ev.main_host || '').toLowerCase();
+              const org = (ev.organizer || '').toLowerCase();
+              return host.includes(searchName) || org.includes(searchName);
+          });
+      }
+
+      if (filtered.length === 0) { 
+          tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">ไม่พบภาระงานตามเงื่อนไขที่ค้นหา</td></tr>`; 
+          return; 
+      }
+
+      tbody.innerHTML = filtered.map(ev => `<tr class="hover:bg-slate-800/60 transition"><td class="p-2.5 font-bold text-white">${ev.event_title}</td><td class="p-2.5"><span class="bg-indigo-950 text-indigo-300 border border-indigo-700/50 px-2 py-0.5 rounded font-bold">${ev.department || 'ALL'}</span></td><td class="p-2.5 text-amber-300 font-medium">${ev.main_host || '-'}</td><td class="p-2.5 text-emerald-300 font-medium">${ev.organizer || '-'}</td><td class="p-2.5">${formatThaiDateTime(ev.start_time)}</td><td class="p-2.5 text-sky-300">${ev.location || '-'}</td></tr>`).join('');
     }
 
     // ==========================================
