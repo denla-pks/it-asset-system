@@ -705,15 +705,27 @@ async function loadAdminPermissions() {
       const { data, error } = await _supabase.from('admin_users').select('*').order('department');
       if (error) { console.error('Error fetching admins'); return; }
       
-      // อัปเดตใหม่: กรองคนที่ department มีคำว่า HIDDEN ออกไป จะไม่ถูกแสดงในรายชื่อ
+      // 1. เก็บข้อมูลทุกคนที่ไม่ได้ใส่คำว่า HIDDEN (เอาคนลาออก/ย้ายออกทิ้งไปเลย ไม่ต้องแสดงที่ไหนทั้งสิ้น)
       allAdmins = (data || []).filter(admin => !(admin.department || '').includes('HIDDEN'));
       
+      // 2. ส่วนสร้าง "กล่องแท็กทีมงาน" (ซ่อนคนที่เป็น ALL ออกไปโดยอัตโนมัติ)
       const container = document.getElementById('tag-admin-list');
-      if (allAdmins.length === 0) { 
-          if(container) container.innerHTML = `<p class="text-slate-400 text-center py-1">ยังไม่มีรายชื่อ Admin</p>`; 
-      } else {
-          if(container) {
-              container.innerHTML = allAdmins.map(admin => {
+      if (container) {
+          const taggableAdmins = allAdmins.filter(admin => {
+              const d = admin.department || '';
+              const cleanDept = d.includes('|') ? d.split('|')[0] : d;
+              
+              // ซ่อนคนที่เป็น ALL อัตโนมัติ หรือ ถ้าใครแผนกอื่นอยากให้ซ่อนด้วย ก็เติม NO_TAG ลงในฐานข้อมูลได้
+              if (cleanDept === 'ALL' || d.includes('NO_TAG')) {
+                  return false;
+              }
+              return true;
+          });
+
+          if (taggableAdmins.length === 0) { 
+              container.innerHTML = `<p class="text-slate-400 text-center py-1">ไม่มีรายชื่อทีมงานให้แท็ก</p>`; 
+          } else {
+              container.innerHTML = taggableAdmins.map(admin => {
                   const d = admin.department || 'IT', cleanDept = d.includes('|') ? d.split('|')[0] : d;
                   return `<label class="flex items-center justify-between p-1 hover:bg-amber-100/50 rounded cursor-pointer transition" data-dept="${cleanDept}"><div class="flex items-center gap-1.5"><input type="checkbox" name="tag-admin-item" value="${admin.id}" data-dept="${cleanDept}" class="rounded text-amber-600 focus:ring-0"><span class="font-medium text-slate-800">${admin.full_name}</span><span class="text-slate-500">(${admin.nickname || '-'})</span></div><span class="bg-amber-100 text-amber-900 text-[10px] px-1.5 py-0.5 rounded font-bold">${cleanDept}</span></label>`;
               }).join('');
@@ -721,10 +733,11 @@ async function loadAdminPermissions() {
           }
       }
 
+      // 3. ส่วนสร้าง "ตารางจัดการสิทธิ์" (แสดงทุกคนที่เหลือ รวมถึงระดับ ALL เพื่อให้เรายังแก้ไขสิทธิ์เค้าได้)
       const tbody = document.getElementById('table-permissions');
       if (tbody) {
           tbody.innerHTML = allAdmins.map(user => {
-              if (user.username === 'admin') return ''; 
+              if (user.username === 'admin') return ''; // ซ่อนบัญชี admin ระบบตัวแรก
               const rawDept = user.department || 'IT', cleanDept = rawDept.includes('|') ? rawDept.split('|')[0] : rawDept;
               let perms = rawDept.includes('|') ? rawDept.split('|')[1].split(',') : ['borrow', 'event', 'display'];
               const isChecked = (val) => perms.includes(val) ? 'checked' : '';
