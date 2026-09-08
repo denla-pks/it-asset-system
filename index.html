@@ -1052,7 +1052,7 @@ async function loadAdminPermissions() {
       document.getElementById('modal-event-detail').classList.remove('hidden');
     }
 
-    async function handleEventSubmit(e) {
+async function handleEventSubmit(e) {
       e.preventDefault();
       const btnSubmit = document.getElementById('btn-submit-event'); if (btnSubmit.disabled) return; 
 
@@ -1074,7 +1074,23 @@ async function loadAdminPermissions() {
       if (newEndMs <= newStartMs) { alert('⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!'); return; }
 
       // =========================================================
-      // ระบบตรวจสอบคิวทับซ้อน (สถานที่ / บุคคล)
+      // 1. ระบบตรวจสอบคิวล่วงหน้า (ไม่เกิน 2 เดือน)
+      // =========================================================
+      const limitDate = new Date();
+      limitDate.setMonth(limitDate.getMonth() + 2); // บวกเพิ่มไปอีก 2 เดือนจากวันนี้
+      
+      // ข้ามการเช็กกฏ 2 เดือน หากเป็นการ "แก้ไข" คิวงานที่มีอยู่แล้วในอดีต (เช็กเฉพาะการสร้างคิวใหม่)
+      if (!rawEventId || rawEventId === '') {
+          if (newStartMs > limitDate.getTime()) {
+              const limitDateStr = formatThaiDateTime(limitDate.toISOString()).substring(0, 10);
+              alert(`⚠️ ไม่สามารถลงคิวได้!\nระบบอนุญาตให้จองคิวงานล่วงหน้าได้ไม่เกิน 2 เดือน\n(สามารถจองได้ถึงวันที่ ${limitDateStr} เท่านั้น)`);
+              return;
+          }
+      }
+      // =========================================================
+
+      // =========================================================
+      // 2. ระบบตรวจสอบคิวทับซ้อน (สถานที่ / บุคคล)
       // =========================================================
       btnSubmit.disabled = true; const originalText = btnSubmit.innerHTML; btnSubmit.innerHTML = '⏳ กำลังตรวจสอบคิวงาน...';
       
