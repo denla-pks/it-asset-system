@@ -1077,9 +1077,7 @@ async function handleEventSubmit(e) {
       // 1. ระบบตรวจสอบคิวล่วงหน้า (ไม่เกิน 2 เดือน)
       // =========================================================
       const limitDate = new Date();
-      limitDate.setMonth(limitDate.getMonth() + 2); // บวกเพิ่มไปอีก 2 เดือนจากวันนี้
-      
-      // ข้ามการเช็กกฏ 2 เดือน หากเป็นการ "แก้ไข" คิวงานที่มีอยู่แล้วในอดีต (เช็กเฉพาะการสร้างคิวใหม่)
+      limitDate.setMonth(limitDate.getMonth() + 2);
       if (!rawEventId || rawEventId === '') {
           if (newStartMs > limitDate.getTime()) {
               const limitDateStr = formatThaiDateTime(limitDate.toISOString()).substring(0, 10);
@@ -1087,10 +1085,9 @@ async function handleEventSubmit(e) {
               return;
           }
       }
-      // =========================================================
 
       // =========================================================
-      // 2. ระบบตรวจสอบคิวทับซ้อน (สถานที่ / บุคคล)
+      // 2. ระบบตรวจสอบคิวทับซ้อน (สถานที่ / บุคคล / แผนก)
       // =========================================================
       btnSubmit.disabled = true; const originalText = btnSubmit.innerHTML; btnSubmit.innerHTML = '⏳ กำลังตรวจสอบคิวงาน...';
       
@@ -1103,10 +1100,13 @@ async function handleEventSubmit(e) {
           const evEndMs = new Date(ev.end_time).getTime();
           
           if (newStartMs < evEndMs && newEndMs > evStartMs) {
+            // เช็ก 2.1: สถานที่จัดงานซ้ำ (ถ้าสถานที่เดียวกัน ห้ามลงเด็ดขาด ทุกแผนก)
             if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) { 
               alert(`⚠️ ไม่สามารถลงคิวได้!\nสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
               btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
             }
+            
+            // เช็ก 2.2: ทีมงานที่ถูกแท็กซ้ำ (ติดงานอื่นอยู่)
             if (selectedAdmins.length > 0 && ev.organizer) {
               for (const admin of selectedAdmins) { 
                 if (ev.organizer.includes(admin.full_name)) { 
@@ -1115,8 +1115,18 @@ async function handleEventSubmit(e) {
                 } 
               }
             }
+            
+            // เช็ก 2.3: ผู้รับผิดชอบหลัก (Main Host) ซ้ำ
             if (ev.main_host && mainHost && ev.main_host.trim().toLowerCase() === mainHost.trim().toLowerCase()) {
                 alert(`⚠️ ไม่สามารถลงคิวได้!\nผู้รับผิดชอบหลัก "${mainHost}" ติดภารกิจงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
+                btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
+            }
+
+            // เช็ก 2.4 [มาใหม่]: เช็กคิวรับงานของแผนกซ้อนทับกัน
+            // (บล็อกไม่ให้แผนกรับงานซ้อนเวลา ยกเว้นแผนกอาคารสถานที่ FACILITY ที่สามารถรับงานขนานกันได้ถ้าคนละสถานที่)
+            if (dept !== 'FACILITY' && ev.department === dept) {
+                const deptNameTh = dept === 'IT' ? 'ฝ่ายไอที (IT)' : dept === 'AV' ? 'ฝ่ายโสตฯ (AV)' : dept === 'MEDIA' ? 'ฝ่ายช่างภาพ (Media)' : dept;
+                alert(`⚠️ ไม่สามารถลงคิวได้!\n${deptNameTh} ติดภารกิจงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว\n\n(ระบบไม่อนุญาตให้แผนกรับงานซ้อนเวลากัน ยกเว้นฝ่ายอาคารสถานที่)`); 
                 btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
             }
           }
