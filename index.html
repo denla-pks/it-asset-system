@@ -1073,7 +1073,6 @@ async function handleEventSubmit(e) {
       const nHousekeeper = parseInt(document.getElementById('num-housekeeper').value || 0, 10), nTechnician = parseInt(document.getElementById('num-technician').value || 0, 10), nParking = parseInt(document.getElementById('num-parking').value || 0, 10);
       const selectedAdmins = Array.from(document.querySelectorAll('input[name="tag-admin-item"]:checked')).map(cb => allAdmins.find(a => a.id == cb.value)).filter(Boolean);
       
-      // ✅ [ส่วนที่แก้ไข] ดึงชื่อแผนกที่ถูกต้องมาใส่ในวงเล็บ ไม่ให้เป็น undefined
       let tagDisplayList = selectedAdmins.map(a => {
           const cleanDept = a.department ? (a.department.includes('|') ? a.department.split('|')[0] : a.department) : 'IT';
           return `${a.full_name} (${a.nickname || '-'}) [${cleanDept}]`;
@@ -1088,7 +1087,7 @@ async function handleEventSubmit(e) {
       
       if (newEndMs <= newStartMs) { alert('⚠️ เวลาเสร็จงานต้องมากกว่าเวลาเริ่มงาน!'); return; }
 
-      // ระบบตรวจสอบคิวล่วงหน้า (ไม่เกิน 2 เดือน)
+      // 1. ระบบตรวจสอบคิวล่วงหน้า (ไม่เกิน 2 เดือน)
       const limitDate = new Date();
       limitDate.setMonth(limitDate.getMonth() + 2);
       if (!rawEventId || rawEventId === '') {
@@ -1099,7 +1098,7 @@ async function handleEventSubmit(e) {
           }
       }
 
-      // ระบบตรวจสอบคิวทับซ้อน
+      // 2. ระบบตรวจสอบคิวทับซ้อน (สถานที่ / บุคคล / แผนกแบบฉลาด)
       btnSubmit.disabled = true; const originalText = btnSubmit.innerHTML; btnSubmit.innerHTML = '⏳ กำลังตรวจสอบคิวงาน...';
       
       const { data: existingEvents, error: fetchErr } = await _supabase.from('event_queue').select('*');
@@ -1111,10 +1110,13 @@ async function handleEventSubmit(e) {
           const evEndMs = new Date(ev.end_time).getTime();
           
           if (newStartMs < evEndMs && newEndMs > evStartMs) {
+            // เช็ก 2.1: สถานที่จัดงานซ้ำ (ถ้าสถานที่เดียวกัน ห้ามลงเด็ดขาด ทุกแผนก)
             if (ev.location && location && ev.location.trim().toLowerCase() === location.trim().toLowerCase()) { 
               alert(`⚠️ ไม่สามารถลงคิวได้!\nสถานที่ "${location}" ถูกจองจัดงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
               btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
             }
+            
+            // เช็ก 2.2: ทีมงานที่ถูกแท็กซ้ำ (ติดงานอื่นอยู่)
             if (selectedAdmins.length > 0 && ev.organizer) {
               for (const admin of selectedAdmins) { 
                 if (ev.organizer.includes(admin.full_name)) { 
@@ -1123,14 +1125,24 @@ async function handleEventSubmit(e) {
                 } 
               }
             }
+            
+            // เช็ก 2.3: ผู้รับผิดชอบหลัก (Main Host) ซ้ำ
             if (ev.main_host && mainHost && ev.main_host.trim().toLowerCase() === mainHost.trim().toLowerCase()) {
                 alert(`⚠️ ไม่สามารถลงคิวได้!\nผู้รับผิดชอบหลัก "${mainHost}" ติดภารกิจงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว`); 
                 btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
             }
+
+            // ✅ เช็ก 2.4 [ปรับใหม่]: ล็อกแผนก "เฉพาะกรณีที่ไม่ระบุคนทำงาน"
             if (dept !== 'FACILITY' && ev.department === dept) {
-                const deptNameTh = dept === 'IT' ? 'ฝ่ายไอที (IT)' : dept === 'AV' ? 'ฝ่ายโสตฯ (AV)' : dept === 'MEDIA' ? 'ฝ่ายช่างภาพ (Media)' : dept;
-                alert(`⚠️ ไม่สามารถลงคิวได้!\n${deptNameTh} ติดภารกิจงาน "${ev.event_title}" ในช่วงเวลานี้แล้ว\n\n(ระบบไม่อนุญาตให้แผนกรับงานซ้อนเวลากัน ยกเว้นฝ่ายอาคารสถานที่)`); 
-                btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
+                // เช็กว่า งานเก่า หรือ งานใหม่ "ไม่มีการแท็กชื่อทีมงาน" เลยหรือไม่
+                const oldNoTags = (!ev.organizer || ev.organizer === 'ไม่มีทีมงานแท็ก');
+                const newNoTags = (selectedAdmins.length === 0);
+
+                if (oldNoTags || newNoTags) {
+                    const deptNameTh = dept === 'IT' ? 'ฝ่ายไอที (IT)' : dept === 'AV' ? 'ฝ่ายโสตฯ (AV)' : dept === 'MEDIA' ? 'ฝ่ายช่างภาพ (Media)' : dept;
+                    alert(`⚠️ ไม่สามารถลงคิวได้! ${deptNameTh} ติดงาน "${ev.event_title}"\n\n(ระบบตรวจพบการลงคิวงานซ้อนเวลาโดย "ไม่ระบุแท็กทีมงาน" จึงทำการล็อกคิวทั้งแผนกเพื่อป้องกันความสับสน)\n\n💡 วิธีแก้: หากต้องการให้แผนกรับงานซ้อนเวลาได้ กรุณา "แท็กชื่อทีมงาน" ที่ไปปฏิบัติงานให้ชัดเจนทั้งงานเก่าและงานใหม่ครับ`); 
+                    btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; 
+                }
             }
           }
         }
