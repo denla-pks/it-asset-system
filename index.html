@@ -1005,7 +1005,7 @@ async function loadAdminPermissions() {
       calendar.render();
     }
 
-    async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
+async function fetchCalendarEvents(fetchInfo, successCallback, failureCallback) {
       const { data, error } = await _supabase.from('event_queue').select('*');
       if (error) { failureCallback(error); return; }
       allEventsList = data || []; const deptColors = { 'AV': '#f43f5e', 'IT': '#0284c7', 'MEDIA': '#10b981', 'FACILITY': '#f59e0b', 'ALL': '#8b5cf6' };
@@ -1015,10 +1015,18 @@ async function loadAdminPermissions() {
         if (filterStaff !== '') { const matchHost = (ev.main_host || '').toLowerCase().includes(filterStaff), matchOrganizer = (ev.organizer || '').toLowerCase().includes(filterStaff); if (!matchHost && !matchOrganizer) return false; }
         return true;
       });
+      
       successCallback(filteredData.map(ev => {
-        let datePart = ev.start_time ? getLocalDateString(ev.start_time) : ev.event_date;
         return {
-          id: ev.id, title: `${adjustUtcToThaiDisplay(ev.start_time)} [${ev.department || 'ALL'}] ${ev.event_title}`, start: datePart, end: datePart, backgroundColor: deptColors[ev.department] || '#6366f1', borderColor: deptColors[ev.department] || '#6366f1',
+          id: ev.id, 
+          title: `${adjustUtcToThaiDisplay(ev.start_time)} [${ev.department || 'ALL'}] ${ev.event_title}`, 
+          
+          // ✅ [ส่วนที่แก้ไข] ดึงเวลาเริ่มและจบแบบเต็มๆ มาใช้ ปฏิทินจะได้ลากแถบยาวข้ามวันให้ถูกต้อง
+          start: ev.start_time, 
+          end: ev.end_time,     
+          
+          backgroundColor: deptColors[ev.department] || '#6366f1', 
+          borderColor: deptColors[ev.department] || '#6366f1',
           extendedProps: { eventId: ev.id, rawTitle: ev.event_title, dept: ev.department || 'ALL', mainHost: ev.main_host || '-', location: ev.location, organizer: ev.organizer, details: ev.details, remarks: ev.remarks, rawStart: ev.start_time, rawEnd: ev.end_time }
         };
       }));
