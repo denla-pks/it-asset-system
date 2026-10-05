@@ -634,7 +634,7 @@
     const SESSION_DURATION_MINUTES = 60;
 
     const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let allEquipment = [], activeBorrowRecords = [], allAdmins = [], calendar = null, currentAdmin = null;
+    let allEquipment = [], activeBorrowRecords = [], allBorrowedRecords = [], allAdmins = [], calendar = null, currentAdmin = null;
     let selectedEventForPrint = null, pendingReturnRecord = null, currentFilteredEquipment = [], allEventsList = [];
     let currentAgenda = []; 
     let currentLang = localStorage.getItem('denla_app_lang') || 'th';
@@ -1345,10 +1345,26 @@ async function handleEventSubmit(e) {
     // ==========================================
     // 7. ระบบอุปกรณ์ คลัง ยืม-คืน และ ส่งออก Excel
     // ==========================================
+    // Stock is independent of the borrow-table filters. Commit only a complete load.
+    async function loadStockBorrowRecords() {
+      const records = [], pageSize = 500;
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await _supabase.from('borrow_records')
+          .select('id, equipment_id, status, borrow_type')
+          .eq('status', 'BORROWED').order('id', { ascending: true })
+          .range(offset, offset + pageSize - 1);
+        if (error) throw error;
+        records.push(...(data || []));
+        if (!data || data.length < pageSize) break;
+      }
+      allBorrowedRecords = records;
+    }
+
     async function fetchAllEquipment() {
       const select = document.getElementById('borrow-asset-select');
       try {
         select.innerHTML = '<option value="">-- กำลังโหลดรายการ... --</option>';
+        await loadStockBorrowRecords();
         const { data, error } = await _supabase.from('equipment').select('*').order('asset_label');
         if (error) { console.error('Supabase Error (equipment):', error); select.innerHTML = `<option value="">❌ ข้อผิดพลาด: ดึงข้อมูลไม่ได้</option>`; return; }
         allEquipment = data || []; renderEquipmentDropdown(); renderInventoryTable(allEquipment); renderEventEquipmentAccordion();
@@ -1377,23 +1393,23 @@ async function handleEventSubmit(e) {
       select.innerHTML = `<option value="">-- เลือกอุปกรณ์ --</option>`;
       let filtered = allEquipment.filter(item => {
         if (item.status === 'UNAVAILABLE') return false;
-        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = totalQty - borrowedCount;
+        const totalQty = item.quantity ?? 1, borrowedCount = allBorrowedRecords.filter(r => r.equipment_id == item.id).length, availableQty = Math.max(0, totalQty - borrowedCount);
         return availableQty > 0 && ((item.usage_type || 'BOTH') === 'BORROW' || (item.usage_type || 'BOTH') === 'BOTH');
       });
       if (deptFilter !== 'ALL') filtered = filtered.filter(item => (item.department || 'IT') === deptFilter);
       filtered.forEach(item => {
-        const availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-        select.insertAdjacentHTML('beforeend', `<option value="${item.id}">[${item.asset_label}] ${item.name} (ว่าง ${availableQty}/${item.quantity || 1}) (${item.department || 'IT'})</option>`);
+        const availableQty = item.status === 'UNAVAILABLE' ? 0 : Math.max(0, (item.quantity ?? 1) - allBorrowedRecords.filter(r => r.equipment_id == item.id).length);
+        select.insertAdjacentHTML('beforeend', `<option value="${item.id}">[${item.asset_label}] ${item.name} (ว่าง ${availableQty}/${item.quantity ?? 1}) (${item.department || 'IT'})</option>`);
       });
     }
 
     function showEquipmentPreview(id) {
       const item = allEquipment.find(i => i.id == id), preview = document.getElementById('equipment-preview');
       if (!item) { preview.classList.add('hidden'); return; }
-      const availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
+      const availableQty = item.status === 'UNAVAILABLE' ? 0 : Math.max(0, (item.quantity ?? 1) - allBorrowedRecords.filter(r => r.equipment_id == item.id).length);
       document.getElementById('prev-name').textContent = `${item.name} ${item.brand && item.brand !== 'undefined' ? item.brand : ''}`;
-      document.getElementById('prev-label').textContent = item.asset_label; document.getElementById('prev-dept').textContent = item.department || 'IT';
-      document.getElementById('prev-location').textContent = item.location || '-'; document.getElementById('prev-stock').textContent = `${availableQty} / ${item.quantity || 1} ชิ้น`;
+      document.getElementById('prev-label').textContent = item.asset_label;
+      document.getElementById('prev-location').textContent = item.location || '-'; document.getElementById('prev-stock').textContent = `${availableQty} / ${item.quantity ?? 1} ชิ้น`;
       preview.classList.remove('hidden');
     }
 
@@ -1421,7 +1437,7 @@ async function handleEventSubmit(e) {
     function editEquipment(id) {
       const item = allEquipment.find(i => i.id == id); if (!item) return;
       document.getElementById('form-equipment-title').innerHTML = `✏️ แก้ไขอุปกรณ์ (ID: ${item.id})`; document.getElementById('btn-save-equipment').innerHTML = `💾 อัปเดตข้อมูล`; document.getElementById('btn-save-equipment').className = 'bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold px-6 py-2.5 rounded-xl text-sm shadow transition';
-      document.getElementById('eq-id').value = item.id; document.getElementById('eq-label').value = item.asset_label || ''; document.getElementById('eq-name').value = item.name || ''; document.getElementById('eq-quantity').value = item.quantity || 1; document.getElementById('eq-dept').value = item.department || 'IT'; document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH'; document.getElementById('eq-status').value = item.status || 'AVAILABLE'; document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : ''; document.getElementById('eq-serial').value = item.serial_number || ''; document.getElementById('eq-location').value = item.location || '';
+      document.getElementById('eq-id').value = item.id; document.getElementById('eq-label').value = item.asset_label || ''; document.getElementById('eq-name').value = item.name || ''; document.getElementById('eq-quantity').value = item.quantity ?? 1; document.getElementById('eq-dept').value = item.department || 'IT'; document.getElementById('eq-usage-type').value = item.usage_type || 'BOTH'; document.getElementById('eq-status').value = item.status || 'AVAILABLE'; document.getElementById('eq-brand').value = (item.brand && item.brand !== 'undefined') ? item.brand : ''; document.getElementById('eq-serial').value = item.serial_number || ''; document.getElementById('eq-location').value = item.location || '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1438,7 +1454,7 @@ async function handleEventSubmit(e) {
     function renderInventoryTable(items) {
       currentFilteredEquipment = items || []; const tbody = document.getElementById('table-inventory');
       tbody.innerHTML = items.map(item => {
-        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = totalQty - borrowedCount;
+        const totalQty = item.quantity ?? 1, borrowedCount = allBorrowedRecords.filter(r => r.equipment_id == item.id).length, availableQty = Math.max(0, totalQty - borrowedCount);
         const usageBadge = (item.usage_type === 'EVENT') ? `<span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">🎪 กิจกรรม</span>` : (item.usage_type === 'BORROW') ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">📱 ยืม-คืน</span>` : `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">🔄 ทั้งคู่</span>`;
         let stockBadge = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">🟢 พร้อมใช้งาน (${availableQty}/${totalQty})</span>`;
         if (item.status === 'UNAVAILABLE') { stockBadge = `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded-full font-bold">🔴 ส่งซ่อม</span>`; } 
@@ -1469,20 +1485,53 @@ async function handleEventSubmit(e) {
     }
 
     async function handleBorrowSubmit(e) {
-      e.preventDefault(); const btnSubmit = document.getElementById('btn-submit-borrow'); if (btnSubmit.disabled) return; 
-      const equipmentId = document.getElementById('borrow-asset-select').value, borrowType = document.getElementById('borrow-type-select').value, borrowerName = document.getElementById('borrower-name').value, dept = document.getElementById('borrower-dept').value, returnDate = document.getElementById('return-date').value, note = document.getElementById('borrow-note').value;
-      if (!equipmentId) { alert('กรุณาเลือกอุปกรณ์'); return; }
-      const item = allEquipment.find(i => i.id == equipmentId), availableQty = (item.quantity || 1) - activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length;
-      if (availableQty <= 0) { alert('❌ อุปกรณ์ถูกยืมครบตามจำนวนแล้ว'); return; }
-
-      btnSubmit.disabled = true; const originalText = btnSubmit.innerHTML; btnSubmit.innerHTML = '⏳ กำลังบันทึก...';
-      const { error } = await _supabase.from('borrow_records').insert([{ equipment_id: equipmentId, borrow_type: borrowType, borrower_name: `${borrowerName} (${dept || 'N/A'})`, expected_return_date: (borrowType === 'LONG_TERM') ? '2099-12-31' : returnDate, note: note }]);
-      if (error) { alert('Error: ' + error.message); btnSubmit.disabled = false; btnSubmit.innerHTML = originalText; return; }
-
-      sendGoogleChatNotification({ type: 'borrow', title: `${borrowType === 'LONG_TERM' ? `📂 [ส่งมอบระยะยาว]` : `📦 มียืมอุปกรณ์ใหม่`} [ฝ่าย ${item.department || 'IT'}]`, details: [`<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`, `📦 <b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`, `👤 <b>ผู้รับมอบ/ยืม:</b> ${borrowerName} (${dept || '-'})`, `📅 <b>กำหนดคืน:</b> ${borrowType === 'LONG_TERM' ? 'ไม่มีกำหนด' : formatThaiDateTime(returnDate).substring(0, 10)}`, `📝 <b>หมายเหตุ:</b> ${note || '-'}`] });
-      alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
-      document.getElementById('form-borrow').reset(); toggleBorrowTypeMode(); await fetchAllEquipment(); await loadActiveBorrows();
-      btnSubmit.disabled = false; btnSubmit.innerHTML = originalText;
+      e.preventDefault();
+      const btnSubmit = document.getElementById('btn-submit-borrow');
+      if (btnSubmit.disabled) return;
+      const equipmentId = document.getElementById('borrow-asset-select').value,
+        borrowType = document.getElementById('borrow-type-select').value,
+        borrowerName = document.getElementById('borrower-name').value.trim(),
+        dept = document.getElementById('borrower-dept').value.trim(),
+        returnDate = document.getElementById('return-date').value,
+        note = document.getElementById('borrow-note').value.trim();
+      if (!equipmentId || !borrowerName) { alert('กรุณาเลือกอุปกรณ์และระบุชื่อผู้ยืม'); return; }
+      if (!['SHORT_TERM', 'LONG_TERM'].includes(borrowType)) { alert('กรุณาเลือกประเภทการยืม'); return; }
+      if (borrowType === 'SHORT_TERM' && !returnDate) { alert('กรุณาระบุกำหนดส่งคืน'); return; }
+      const originalText = btnSubmit.innerHTML;
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '⏳ กำลังบันทึก...';
+      try {
+        // Validate fresh equipment and all outstanding loans before inserting.
+        const { data: item, error: itemError } = await _supabase.from('equipment')
+          .select('*').eq('id', equipmentId).single();
+        if (itemError) throw itemError;
+        if (!item) throw new Error('ไม่พบข้อมูลอุปกรณ์');
+        await loadStockBorrowRecords();
+        const availableQty = (item.quantity ?? 1) - allBorrowedRecords.filter(r => r.equipment_id == item.id).length;
+        if (item.status === 'UNAVAILABLE' || !['BORROW', 'BOTH'].includes(item.usage_type || 'BOTH')) {
+          alert('❌ อุปกรณ์นี้ไม่พร้อมให้ยืม'); return;
+        }
+        if (availableQty <= 0) { alert('❌ อุปกรณ์ถูกยืมครบตามจำนวนแล้ว'); renderEquipmentDropdown(); return; }
+        const { error } = await _supabase.from('borrow_records').insert([{
+          equipment_id: equipmentId, borrow_type: borrowType, status: 'BORROWED',
+          borrower_name: `${borrowerName} (${dept || 'N/A'})`,
+          expected_return_date: borrowType === 'LONG_TERM' ? '2099-12-31' : returnDate, note
+        }]);
+        if (error) throw error;
+        sendGoogleChatNotification({ type: 'borrow', title: `${borrowType === 'LONG_TERM' ? `📂 [ส่งมอบระยะยาว]` : `📦 มียืมอุปกรณ์ใหม่`} [ฝ่าย ${item.department || 'IT'}]`, details: [`<b>ประเภท:</b> ${borrowType === 'LONG_TERM' ? '🏢 เบิกใช้งานระยะยาว/ประจำตำแหน่ง' : '📱 ยืมใช้งานรายวัน'}`, `📦 <b>อุปกรณ์:</b> ${item.name} [${item.asset_label}]`, `👤 <b>ผู้รับมอบ/ยืม:</b> ${borrowerName} (${dept || '-'})`, `📅 <b>กำหนดคืน:</b> ${borrowType === 'LONG_TERM' ? 'ไม่มีกำหนด' : formatThaiDateTime(returnDate).substring(0, 10)}`, `📝 <b>หมายเหตุ:</b> ${note || '-'}`] });
+        document.getElementById('form-borrow').reset();
+        toggleBorrowTypeMode();
+        document.getElementById('equipment-preview').classList.add('hidden');
+        await fetchAllEquipment();
+        await loadActiveBorrows();
+        alert(borrowType === 'LONG_TERM' ? '✅ บันทึกส่งมอบระยะยาวเรียบร้อย!' : '✅ บันทึกการยืมเรียบร้อย!');
+      } catch (err) {
+        console.error('Borrow error:', err);
+        alert('❌ ไม่สามารถดำเนินการยืมได้: ' + (err.message || 'โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่'));
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalText;
+      }
     }
 
     async function loadActiveBorrows() {
@@ -1546,7 +1595,7 @@ async function handleEventSubmit(e) {
     function exportInventoryToExcel() {
       if (!currentFilteredEquipment || currentFilteredEquipment.length === 0) { alert('❌ ไม่พบข้อมูลคลังอุปกรณ์'); return; }
       const exportData = currentFilteredEquipment.map(item => {
-        const totalQty = item.quantity || 1, borrowedCount = activeBorrowRecords.filter(r => r.equipment_id === item.id && r.status === 'BORROWED').length, availableQty = (item.status === 'UNAVAILABLE') ? 0 : (totalQty - borrowedCount);
+        const totalQty = item.quantity ?? 1, borrowedCount = allBorrowedRecords.filter(r => r.equipment_id == item.id).length, availableQty = (item.status === 'UNAVAILABLE') ? 0 : Math.max(0, totalQty - borrowedCount);
         return { 'Asset Label': item.asset_label || '-', 'Equipment Name': item.name || '-', 'Department': item.department || 'IT', 'Usage Category': (item.usage_type === 'EVENT') ? 'Event Queue Only' : (item.usage_type === 'BORROW') ? 'Daily Borrow Only' : 'Both Event & Borrow', 'Total Quantity': totalQty, 'Available Quantity': availableQty, 'Brand/Model': (item.brand && item.brand !== 'undefined') ? item.brand : '-', 'Serial Number': item.serial_number || '-', 'Storage Location': item.location || '-', 'Stock Status': (item.status === 'UNAVAILABLE') ? 'Unavailable' : (availableQty <= 0) ? 'Out of Stock' : 'Available' };
       });
       const worksheet = XLSX.utils.json_to_sheet(exportData), workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Equipment_Inventory"); XLSX.writeFile(workbook, `Denla_Equipment_Inventory.xlsx`);
@@ -1559,15 +1608,34 @@ async function handleEventSubmit(e) {
       document.getElementById('inspect-condition').value = 'GOOD'; document.getElementById('inspect-remark').value = ''; document.getElementById('modal-return-inspect').classList.remove('hidden');
     }
 
+    let returnSaveInProgress = false;
     async function confirmReturnWithInspection() {
-      if (!pendingReturnRecord) return;
-      const condition = document.getElementById('inspect-condition').value, remark = document.getElementById('inspect-remark').value;
-      await _supabase.from('borrow_records').update({ status: 'RETURNED', actual_return_date: new Date().toISOString(), return_condition: condition, return_remark: remark }).eq('id', pendingReturnRecord.id);
-      if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') { await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', pendingReturnRecord.equipment_id); alert('⚠️ รับคืนเรียบร้อย! อุปกรณ์ถูกปรับสถานะเป็น "ส่งซ่อม"'); } 
-      else { alert('✅ ตรวจรับคืนเรียบร้อย'); }
-      closeModals(); pendingReturnRecord = null; await fetchAllEquipment(); await loadActiveBorrows();
+      if (!currentAdmin || !pendingReturnRecord || returnSaveInProgress) return;
+      returnSaveInProgress = true;
+      const record = pendingReturnRecord;
+      const condition = document.getElementById('inspect-condition').value,
+        remark = document.getElementById('inspect-remark').value;
+      try {
+        // Mark damaged equipment unavailable before releasing its borrowed stock.
+        if (condition === 'MINOR_DAMAGE' || condition === 'DAMAGED_LOST') {
+          const { error } = await _supabase.from('equipment').update({ status: 'UNAVAILABLE' }).eq('id', record.equipment_id);
+          if (error) throw error;
+        }
+        const { error } = await _supabase.from('borrow_records').update({
+          status: 'RETURNED', actual_return_date: new Date().toISOString(),
+          return_condition: condition, return_remark: remark
+        }).eq('id', record.id).eq('status', 'BORROWED');
+        if (error) throw error;
+        closeModals(); pendingReturnRecord = null;
+        await fetchAllEquipment(); await loadActiveBorrows();
+        alert(condition === 'GOOD' ? '✅ ตรวจรับคืนเรียบร้อย' : '⚠️ รับคืนเรียบร้อย! อุปกรณ์ถูกปรับสถานะเป็น "ส่งซ่อม"');
+      } catch (err) {
+        console.error('Return error:', err);
+        alert('❌ รับคืนไม่สำเร็จ: ' + (err.message || 'กรุณาลองใหม่'));
+        await fetchAllEquipment();
+      } finally { returnSaveInProgress = false; }
     }
-    
+
     function printEventReport() {
       if (!selectedEventForPrint) return;
       const todayStr = new Date().toISOString().slice(0,10).replace(/-/g, ''), docId = `FM-AVS-${todayStr}-${String(selectedEventForPrint.eventId || '001').padStart(3, '0')}`, nowDate = new Date().toLocaleDateString('th-TH');
